@@ -1,0 +1,15 @@
+# --- Python Virtual Environment ---
+.venv/
+venv/
+env/
+
+# --- File Sampah Python ---
+__pycache__/
+*.pyc
+
+# --- RAHASIA (Jangan pernah di-upload!) ---
+credentials.json
+client_secret.json
+.env
+*.pem
+secrets.toml
