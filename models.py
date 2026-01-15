@@ -45,6 +45,9 @@ class MonitorFolder(db.Model):
     col_date = db.Column(db.String(50), default="Timestamp")
     col_income = db.Column(db.String(50), default="Nominal Pemasukan")
     col_expense = db.Column(db.String(50), default="Nominal Pengeluaran")
+    cell_addr_income = db.Column(db.String(10), default="K1")  # Posisi Total Pemasukan
+    cell_addr_expense = db.Column(db.String(10), default="K2") # Posisi Total Pengeluaran
+    cell_addr_balance = db.Column(db.String(10), default="K3") # Posisi Sisa Saldo
     
     # Panel 2: Grafik Kategori (Pie Chart)
     col_category = db.Column(db.String(50), default="Sumber Pengeluaran")

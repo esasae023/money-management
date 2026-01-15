@@ -4,6 +4,7 @@ import json
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from gspread.utils import a1_to_rowcol
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
@@ -44,44 +45,71 @@ def get_google_client():
         return None
 
 def fetch_sheet_data(folder, sheet_name):
-    """
-    Mengambil data dengan error handling agar tidak Internal Server Error
-    """
     client = get_google_client()
-    if not client: return None, "Google Account belum disetting admin."
+    if not client: return None, "Google Account belum disetting."
     
     try:
         sheet = client.open_by_url(folder.spreadsheet_url)
         worksheet = sheet.worksheet(sheet_name)
-        data = worksheet.get_all_values()
         
-        # Cari header row (baris yang mengandung nama kolom tanggal)
+        # 1. Ambil semua data mentah (List of Lists)
+        # Ini lebih hemat kuota daripada request satu-satu
+        raw_data = worksheet.get_all_values()
+        
+        if not raw_data: return None, "Sheet kosong."
+
+        # --- LOGIC BARU: AMBIL VALUE DARI ALAMAT CELL (K5, dll) ---
+        def get_cell_value(addr):
+            try:
+                if not addr: return 0
+                row, col = a1_to_rowcol(addr) # Ubah "K5" jadi (5, 11)
+                # Ingat: List python mulai dari index 0, jadi dikurangi 1
+                val = raw_data[row-1][col-1]
+                # Bersihkan format uang (Rp, titik, koma)
+                return float(str(val).replace('.','').replace(',','').replace('Rp','').strip())
+            except (IndexError, ValueError):
+                return 0
+
+        # Hitung Summary langsung dari alamat cell yg diminta user
+        summary = {
+            'income': f"{get_cell_value(folder.cell_addr_income):,.0f}",
+            'expense': f"{get_cell_value(folder.cell_addr_expense):,.0f}",
+            'balance': f"{get_cell_value(folder.cell_addr_balance):,.0f}"
+        }
+
+        # --- LOGIC LAMA: UNTUK GRAFIK (DATAFRAME) ---
+        # Cari header row untuk bikin DataFrame
         header_index = 0
         found = False
-        for i, row in enumerate(data):
+        for i, row in enumerate(raw_data):
             if folder.col_date in row:
                 header_index = i
                 found = True
                 break
         
-        if not found: return None, f"Kolom '{folder.col_date}' tidak ditemukan di sheet."
-
-        df = pd.DataFrame(data[header_index+1:], columns=data[header_index])
-        
-        # Bersihkan data numerik
-        def clean_num(x):
-            try: return float(str(x).replace('.','').replace(',','').replace('Rp','').strip())
-            except: return 0
+        df = pd.DataFrame()
+        if found and len(raw_data) > header_index + 1:
+            df = pd.DataFrame(raw_data[header_index+1:], columns=raw_data[header_index])
             
-        df[folder.col_income] = df[folder.col_income].apply(clean_num)
-        df[folder.col_expense] = df[folder.col_expense].apply(clean_num)
-        df[folder.col_date] = pd.to_datetime(df[folder.col_date], errors='coerce')
-        
-        return df, None
+            # Bersihkan data numerik untuk grafik
+            def clean_num(x):
+                try: return float(str(x).replace('.','').replace(',','').replace('Rp','').strip())
+                except: return 0
+            
+            # Pastikan kolom ada sebelum diproses
+            if folder.col_income in df.columns:
+                df[folder.col_income] = df[folder.col_income].apply(clean_num)
+            if folder.col_expense in df.columns:
+                df[folder.col_expense] = df[folder.col_expense].apply(clean_num)
+            
+            df[folder.col_date] = pd.to_datetime(df[folder.col_date], errors='coerce')
+
+        return df, summary, None
+
     except gspread.exceptions.WorksheetNotFound:
-        return None, f"Sheet '{sheet_name}' tidak ditemukan."
+        return None, {}, f"Sheet '{sheet_name}' tidak ditemukan."
     except Exception as e:
-        return None, str(e)
+        return None, {}, str(e)
 
 # --- ROUTES ---
 
@@ -160,14 +188,23 @@ def folder_settings(folder_id):
     if folder.user_id != current_user.id: return redirect(url_for('home'))
     
     if request.method == 'POST':
+        # ... (inputan lama sama) ...
         folder.name = request.form['name']
         folder.spreadsheet_url = request.form['url']
         folder.sheet_list_str = request.form['sheet_list']
-        # Mapping Kolom
+        
+        # Mapping Kolom Grafik
         folder.col_date = request.form['col_date']
-        folder.col_income = request.form['col_income']
+        folder.col_income = request.form['col_income'] # Masih dipakai untuk grafik? Opsional
         folder.col_expense = request.form['col_expense']
         folder.col_category = request.form['col_category']
+        folder.col_cat_type = request.form['col_cat_type']
+        
+        # --- INPUT BARU: Mapping Cell KPI ---
+        folder.cell_addr_income = request.form['cell_addr_income']
+        folder.cell_addr_expense = request.form['cell_addr_expense']
+        folder.cell_addr_balance = request.form['cell_addr_balance']
+        
         db.session.commit()
         flash('Pengaturan Folder disimpan.', 'success')
         return redirect(url_for('dashboard', folder_id=folder.id))
@@ -183,49 +220,56 @@ def dashboard(folder_id):
     sheet_list = folder.get_sheet_list()
     selected_month = request.args.get('month', sheet_list[0] if sheet_list else 'Sheet1')
     
-    # Default Values (Agar tidak Internal Server Error)
+    # Default Values (Agar tampilan tidak crash jika data kosong)
     summary = {'income': '0', 'expense': '0', 'balance': '0'}
     chart_daily = {'labels': [], 'data': []}
     chart_cat = {'labels': [], 'data': []}
     error_msg = None
 
-    # Fetch Data
-    df, error = fetch_sheet_data(folder, selected_month)
+    # --- PERUBAHAN UTAMA DI SINI ---
+    # Memanggil fetch_sheet_data yang baru.
+    # Variabel 'summary_data' berisi nilai langsung dari Cell Excel (misal K5, K6)
+    df, summary_data, error = fetch_sheet_data(folder, selected_month)
     
+    # Jika berhasil ambil angka dari Cell K5 dll, masukkan ke variabel summary
+    if summary_data:
+        summary = summary_data
+
     if error:
         error_msg = error
     elif df is not None and not df.empty:
         try:
-            # 1. Summary logic
-            inc = df[folder.col_income].sum()
-            exp = df[folder.col_expense].sum()
-            summary = {
-                'income': f"{inc:,.0f}",
-                'expense': f"{exp:,.0f}",
-                'balance': f"{inc - exp:,.0f}"
-            }
+            # --- LOGIC LAMA DIHAPUS ---
+            # Kita TIDAK LAGI menghitung total_income = df.sum() di sini.
+            # Karena angkanya sudah diambil dari 'summary_data' di atas.
+            # Kita langsung fokus memproses data untuk GRAFIK saja.
+            # --------------------------
             
-            # 2. Chart Harian logic
-            daily = df.groupby(df[folder.col_date].dt.date)[folder.col_expense].sum().reset_index()
-            chart_daily = {
-                'labels': daily[folder.col_date].astype(str).tolist(),
-                'data': daily[folder.col_expense].tolist()
-            }
+            # 1. Chart Harian logic (Line Chart)
+            # Pastikan kolom tanggal dan pengeluaran ada
+            if folder.col_date in df.columns and folder.col_expense in df.columns:
+                daily = df.groupby(df[folder.col_date].dt.date)[folder.col_expense].sum().reset_index()
+                chart_daily = {
+                    'labels': daily[folder.col_date].astype(str).tolist(),
+                    'data': daily[folder.col_expense].tolist()
+                }
             
-            # 3. Chart Kategori logic (Filter hanya 'Pengeluaran')
-            # Cek apakah ada kolom filter 'Jenis' (optional)
-            if folder.col_cat_type in df.columns:
-                cat_df = df[df[folder.col_cat_type] == 'Pengeluaran']
-            else:
-                cat_df = df # Ambil semua jika tidak ada kolom jenis
+            # 2. Chart Kategori logic (Pie Chart)
+            if folder.col_category in df.columns and folder.col_expense in df.columns:
+                # Cek apakah ada kolom filter 'Jenis' (optional)
+                if folder.col_cat_type in df.columns:
+                    cat_df = df[df[folder.col_cat_type] == 'Pengeluaran']
+                else:
+                    cat_df = df # Ambil semua jika tidak ada kolom jenis
+                    
+                cat_grp = cat_df.groupby(folder.col_category)[folder.col_expense].sum().reset_index()
+                chart_cat = {
+                    'labels': cat_grp[folder.col_category].tolist(),
+                    'data': cat_grp[folder.col_expense].tolist()
+                }
                 
-            cat_grp = cat_df.groupby(folder.col_category)[folder.col_expense].sum().reset_index()
-            chart_cat = {
-                'labels': cat_grp[folder.col_category].tolist(),
-                'data': cat_grp[folder.col_expense].tolist()
-            }
         except Exception as e:
-            error_msg = f"Error saat memproses data: {str(e)}. Cek setting kolom."
+            error_msg = f"Error saat memproses grafik: {str(e)}. Cek nama kolom di setting."
 
     return render_template('dashboard.html', 
                            folder=folder, 

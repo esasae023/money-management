@@ -1,60 +1,104 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="container">
-    <h4>⚙️ Konfigurasi Folder: {{ folder.name }}</h4>
-    <form method="POST" class="mt-4">
+<div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4>⚙️ Konfigurasi Folder: {{ folder.name }}</h4>
+        <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-outline-secondary btn-sm">
+            ← Kembali ke Dashboard
+        </a>
+    </div>
+
+    <form method="POST">
         
-        <div class="card mb-4">
-            <div class="card-header">Data Source</div>
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-bold">1. Data Source</div>
             <div class="card-body">
                 <div class="mb-3">
-                    <label>Nama Folder</label>
+                    <label class="form-label">Nama Folder / Project</label>
                     <input type="text" name="name" class="form-control" value="{{ folder.name }}" required>
                 </div>
                 <div class="mb-3">
-                    <label>Link Google Spreadsheet</label>
-                    <input type="url" name="url" class="form-control" value="{{ folder.spreadsheet_url }}" required>
+                    <label class="form-label">Link Google Spreadsheet</label>
+                    <input type="url" name="url" class="form-control" value="{{ folder.spreadsheet_url }}" required placeholder="https://docs.google.com/spreadsheets/d/...">
                 </div>
                 <div class="mb-3">
-                    <label>List Nama Sheet (Bulan)</label>
-                    <textarea name="sheet_list" class="form-control" rows="2">{{ folder.sheet_list_str }}</textarea>
-                    <div class="form-text">Pisahkan dengan koma. Contoh: Januari, Februari, Maret</div>
+                    <label class="form-label">List Nama Sheet (Bulan)</label>
+                    <textarea name="sheet_list" class="form-control" rows="2" placeholder="Januari, Februari, Maret">{{ folder.sheet_list_str }}</textarea>
+                    <div class="form-text">Pisahkan dengan koma. Pastikan nama persis dengan nama tab di bawah Excel.</div>
                 </div>
             </div>
         </div>
 
-        <div class="card mb-4 border-info">
-            <div class="card-header bg-info text-white">Formula / Mapping Kolom (Grafana Style)</div>
+        <div class="card mb-4 border-primary shadow-sm">
+            <div class="card-header bg-primary text-white fw-bold">
+                2. Mapping Cell Indikator (KPI)
+            </div>
             <div class="card-body">
-                <p class="small text-muted">Masukkan <b>NAMA KOLOM</b> persis seperti di baris header Excel anda.</p>
+                <div class="alert alert-primary py-2 small">
+                    <i class="bi bi-info-circle"></i> Masukkan <b>ALAMAT CELL</b> Excel (Contoh: <code>K5</code>, <code>AB2</code>) dimana rumus total berada. Fitur ini mengambil angka "Matang" dari Excel.
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="fw-bold text-success">Posisi Total Pemasukan</label>
+                        <input type="text" name="cell_addr_income" class="form-control" value="{{ folder.cell_addr_income }}" placeholder="Contoh: K5">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="fw-bold text-danger">Posisi Total Pengeluaran</label>
+                        <input type="text" name="cell_addr_expense" class="form-control" value="{{ folder.cell_addr_expense }}" placeholder="Contoh: K6">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="fw-bold text-primary">Posisi Sisa Saldo</label>
+                        <input type="text" name="cell_addr_balance" class="form-control" value="{{ folder.cell_addr_balance }}" placeholder="Contoh: K7">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 border-info shadow-sm">
+            <div class="card-header bg-info text-white fw-bold">
+                3. Mapping Nama Kolom (Untuk Grafik)
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info py-2 small">
+                    <i class="bi bi-info-circle"></i> Masukkan <b>NAMA HEADER KOLOM</b> persis seperti di baris header Excel Anda. Ini digunakan untuk menggambar grafik Trend & Pie Chart.
+                </div>
                 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="fw-bold">Panel: Tanggal</label>
-                        <input type="text" name="col_date" class="form-control" value="{{ folder.col_date }}">
+                        <label class="fw-bold">Kolom Tanggal</label>
+                        <input type="text" name="col_date" class="form-control" value="{{ folder.col_date }}" placeholder="Contoh: Timestamp">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="fw-bold">Panel: Filter Jenis (Pemasukan/Pengeluaran)</label>
-                        <input type="text" name="col_cat_type" class="form-control" value="{{ folder.col_cat_type }}">
-                        <div class="form-text">Biarkan kosong jika tidak ada kolom jenis.</div>
+                        <label class="fw-bold">Kolom Filter Jenis (Opsional)</label>
+                        <input type="text" name="col_cat_type" class="form-control" value="{{ folder.col_cat_type }}" placeholder="Contoh: Jenis Transaksi">
+                        <div class="form-text small">Kosongkan jika semua data di sheet adalah pengeluaran.</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="fw-bold">Kolom Nominal Pemasukan</label>
+                        <input type="text" name="col_income" class="form-control" value="{{ folder.col_income }}" placeholder="Contoh: Nominal Masuk">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="fw-bold">Panel: Nominal Pemasukan</label>
-                        <input type="text" name="col_income" class="form-control" value="{{ folder.col_income }}">
+                        <label class="fw-bold">Kolom Nominal Pengeluaran</label>
+                        <input type="text" name="col_expense" class="form-control" value="{{ folder.col_expense }}" placeholder="Contoh: Nominal Keluar">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="fw-bold">Panel: Nominal Pengeluaran</label>
-                        <input type="text" name="col_expense" class="form-control" value="{{ folder.col_expense }}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="fw-bold">Panel: Kategori</label>
-                        <input type="text" name="col_category" class="form-control" value="{{ folder.col_category }}">
+                        <label class="fw-bold">Kolom Kategori</label>
+                        <input type="text" name="col_category" class="form-control" value="{{ folder.col_category }}" placeholder="Contoh: Sumber Pengeluaran">
                     </div>
                 </div>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-success w-100">Simpan Konfigurasi</button>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success btn-lg flex-grow-1">Simpan Konfigurasi</button>
+            <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-secondary btn-lg">Batal / Kembali</a>
+        </div>
+
     </form>
 </div>
 {% endblock %}
