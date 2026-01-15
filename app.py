@@ -44,41 +44,62 @@ def get_google_client():
         print(f"Auth Error: {e}")
         return None
 
+# --- UPDATE FUNGSI INI DI app.py ---
+
 def fetch_sheet_data(folder, sheet_name):
     client = get_google_client()
-    if not client: return None, "Google Account belum disetting."
+    if not client: return None, {}, "Google Account belum disetting."
     
     try:
         sheet = client.open_by_url(folder.spreadsheet_url)
         worksheet = sheet.worksheet(sheet_name)
         
-        # 1. Ambil semua data mentah (List of Lists)
-        # Ini lebih hemat kuota daripada request satu-satu
+        # 1. Ambil semua data mentah
         raw_data = worksheet.get_all_values()
-        
-        if not raw_data: return None, "Sheet kosong."
+        if not raw_data: return None, {}, "Sheet kosong."
 
-        # --- LOGIC BARU: AMBIL VALUE DARI ALAMAT CELL (K5, dll) ---
+        # --- FUNGSI PEMBERSIH RUPIAH (LOGIC BARU) ---
+        def clean_indo_number(val):
+            """
+            Mengubah format 'Rp 7.173.670,00' menjadi float 7173670.0
+            """
+            try:
+                # Ubah ke string dulu
+                s = str(val)
+                # 1. Buang 'Rp' dan spasi
+                s = s.replace('Rp', '').strip()
+                # 2. Buang TITIK (karena di Indo titik itu pemisah ribuan, di Python tidak butuh)
+                s = s.replace('.', '') 
+                # 3. Ganti KOMA dengan TITIK (agar Python paham ini desimal)
+                s = s.replace(',', '.')
+                
+                # Cek jika string kosong
+                if not s: return 0
+                
+                return float(s)
+            except ValueError:
+                return 0
+
+        # --- LOGIC CELL ADDRESS (KPI) ---
         def get_cell_value(addr):
             try:
                 if not addr: return 0
-                row, col = a1_to_rowcol(addr) # Ubah "K5" jadi (5, 11)
-                # Ingat: List python mulai dari index 0, jadi dikurangi 1
+                row, col = a1_to_rowcol(addr)
+                # Ambil value raw dari koordinat
                 val = raw_data[row-1][col-1]
-                # Bersihkan format uang (Rp, titik, koma)
-                return float(str(val).replace('.','').replace(',','').replace('Rp','').strip())
+                # Bersihkan dengan logic Indo tadi
+                return clean_indo_number(val)
             except (IndexError, ValueError):
                 return 0
 
-        # Hitung Summary langsung dari alamat cell yg diminta user
+        # Hitung Summary langsung dari alamat cell
         summary = {
             'income': f"{get_cell_value(folder.cell_addr_income):,.0f}",
             'expense': f"{get_cell_value(folder.cell_addr_expense):,.0f}",
             'balance': f"{get_cell_value(folder.cell_addr_balance):,.0f}"
         }
 
-        # --- LOGIC LAMA: UNTUK GRAFIK (DATAFRAME) ---
-        # Cari header row untuk bikin DataFrame
+        # --- LOGIC DATAFRAME (GRAFIK) ---
         header_index = 0
         found = False
         for i, row in enumerate(raw_data):
@@ -91,16 +112,11 @@ def fetch_sheet_data(folder, sheet_name):
         if found and len(raw_data) > header_index + 1:
             df = pd.DataFrame(raw_data[header_index+1:], columns=raw_data[header_index])
             
-            # Bersihkan data numerik untuk grafik
-            def clean_num(x):
-                try: return float(str(x).replace('.','').replace(',','').replace('Rp','').strip())
-                except: return 0
-            
-            # Pastikan kolom ada sebelum diproses
+            # Terapkan pembersih angka Indo ke kolom DataFrame juga
             if folder.col_income in df.columns:
-                df[folder.col_income] = df[folder.col_income].apply(clean_num)
+                df[folder.col_income] = df[folder.col_income].apply(clean_indo_number)
             if folder.col_expense in df.columns:
-                df[folder.col_expense] = df[folder.col_expense].apply(clean_num)
+                df[folder.col_expense] = df[folder.col_expense].apply(clean_indo_number)
             
             df[folder.col_date] = pd.to_datetime(df[folder.col_date], errors='coerce')
 
