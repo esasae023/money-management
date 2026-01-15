@@ -105,7 +105,7 @@ def logout():
 @app.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
-    # Ambil filter dari URL
+# Ambil filter dari URL
     selected_year_id = request.args.get('year_id')
     selected_month = request.args.get('month', 'Januari') # Default
     
@@ -114,22 +114,27 @@ def dashboard():
     
     current_config = None
     df = None
+    
+    # --- PERBAIKAN: Inisialisasi variabel default agar tidak error jika kosong ---
     summary = {}
+    chart_daily_labels, chart_daily_values = [], []
+    chart_cat_labels, chart_cat_values = [], []
+    # ---------------------------------------------------------------------------
     
     if configs:
         # Tentukan config mana yang dipakai
         if selected_year_id:
             current_config = SpreadsheetConfig.query.get(selected_year_id)
-            if current_config.user_id != current_user.id: current_config = configs[0] # Security check
+            if current_config and current_config.user_id != current_user.id: 
+                current_config = configs[0] # Security check
         else:
             current_config = configs[0]
             
-        # Fetch Data
-        df = get_google_data(current_config, selected_month)
+        # Fetch Data hanya jika config valid
+        if current_config:
+            df = get_google_data(current_config, selected_month)
         
-        if df is not None:
-            # --- AGGREGATION LOGIC (Mirip Grafana Query) ---
-            
+        if df is not None and not df.empty:
             # 1. Total Summary
             total_income = df[current_config.col_amount_in].sum()
             total_expense = df[current_config.col_amount_out].sum()
@@ -142,19 +147,21 @@ def dashboard():
             }
             
             # 2. Daily Trend (Line Chart)
-            daily_grp = df.groupby(df[current_config.col_date].dt.date)[[current_config.col_amount_out]].sum().reset_index()
-            chart_daily_labels = daily_grp[current_config.col_date].astype(str).tolist()
-            chart_daily_values = daily_grp[current_config.col_amount_out].tolist()
+            # Pastikan kolom date dikenali sebagai datetime
+            if current_config.col_date in df.columns:
+                daily_grp = df.groupby(df[current_config.col_date].dt.date)[[current_config.col_amount_out]].sum().reset_index()
+                chart_daily_labels = daily_grp[current_config.col_date].astype(str).tolist()
+                chart_daily_values = daily_grp[current_config.col_amount_out].tolist()
             
             # 3. Category Pie Chart (Pengeluaran)
-            cat_grp = df[df[current_config.col_type] == 'Pengeluaran'].groupby(current_config.col_category)[current_config.col_amount_out].sum().reset_index()
-            chart_cat_labels = cat_grp[current_config.col_category].tolist()
-            chart_cat_values = cat_grp[current_config.col_amount_out].tolist()
+            if current_config.col_type in df.columns and current_config.col_category in df.columns:
+                cat_grp = df[df[current_config.col_type] == 'Pengeluaran'].groupby(current_config.col_category)[current_config.col_amount_out].sum().reset_index()
+                chart_cat_labels = cat_grp[current_config.col_category].tolist()
+                chart_cat_values = cat_grp[current_config.col_amount_out].tolist()
             
         else:
-            flash(f'Gagal memuat data sheet "{selected_month}". Pastikan nama sheet benar.', 'warning')
-            chart_daily_labels, chart_daily_values = [], []
-            chart_cat_labels, chart_cat_values = [], []
+            if current_config:
+                flash(f'Gagal memuat data sheet "{selected_month}" atau data kosong.', 'warning')
 
     return render_template('dashboard.html', 
                            configs=configs, 
