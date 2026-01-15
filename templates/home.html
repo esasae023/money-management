@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📂 Folder Monitoring Saya</h2>
+    <div>
+        {% if not has_global %}
+        <a href="{{ url_for('settings_global') }}" class="btn btn-warning">⚠️ Setup Google API Dulu!</a>
+        {% else %}
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newFolderModal">+ Buat Folder Baru</button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    {% for folder in folders %}
+    <div class="col-md-4 mb-3">
+        <div class="card h-100 shadow-sm hover-effect">
+            <div class="card-body text-center">
+                <h5 class="card-title">{{ folder.name }}</h5>
+                <p class="text-muted small text-truncate">{{ folder.spreadsheet_url }}</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-outline-primary">Buka Dashboard</a>
+                    <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-sm btn-light text-secondary">⚙️ Config</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center text-muted py-5">
+        Belum ada folder. Buat satu untuk memulai.
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="newFolderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('create_folder') }}" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Folder Baru</h5>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label>Nama Folder (Misal: Tahun 2025)</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label>Link Spreadsheet</label>
+                    <input type="url" name="url" class="form-control" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-success">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

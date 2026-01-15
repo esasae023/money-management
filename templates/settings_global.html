@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h3>🌍 Global Settings</h3>
+    <div class="alert alert-warning">Setting ini berlaku untuk semua user dan semua folder.</div>
+    <form method="POST">
+        <div class="mb-3">
+            <label>Google Service Account Credential (JSON)</label>
+            <textarea name="google_creds" class="form-control" rows="10" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Simpan Credential</button>
+    </form>
+</div>
+{% endblock %}

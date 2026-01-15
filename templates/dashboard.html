@@ -1,143 +1,111 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Money Manager</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a class="navbar-brand" href="#">My Money Monitor</a>
-            <div class="d-flex">
-                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light me-2">Dashboard</a>
-                <a href="{{ url_for('settings') }}" class="btn btn-outline-light me-2">Settings</a>
-                <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
-            </div>
-        </div>
-    </nav>
-    <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
-    </div>
-</body>
-</html>
-
 {% extends "base.html" %}
 {% block content %}
-<div class="row mb-3">
-    <div class="col-md-3">
-        <label>Pilih Tahun (Folder)</label>
-        <select class="form-select" onchange="location = this.value;">
-            {% for conf in configs %}
-            <option value="{{ url_for('dashboard', year_id=conf.id, month=selected_month) }}" 
-                    {% if current_config and conf.id == current_config.id %}selected{% endif %}>
-                📁 {{ conf.year_label }}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
+            <li class="breadcrumb-item active">{{ folder.name }}</li>
+        </ol>
+    </nav>
+    <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-sm btn-secondary">⚙️ Setting Panel/Formula</a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <select class="form-select" onchange="location = '?month=' + this.value;">
+            {% for sheet in sheet_list %}
+            <option value="{{ sheet }}" {% if selected_month == sheet %}selected{% endif %}>
+                📅 Bulan: {{ sheet }}
             </option>
             {% endfor %}
         </select>
     </div>
-    
-    <div class="col-md-3">
-        <label>Pilih Bulan</label>
-        <select class="form-select" onchange="updateMonth(this.value)">
-            {% for m in ['Januari', 'Februari', 'Maret', 'Desember'] %}
-            <option value="{{ m }}" {% if selected_month == m %}selected{% endif %}>{{ m }}</option>
-            {% endfor %}
-        </select>
+    <div class="col-md-8">
+        {% if error_msg %}
+        <div class="alert alert-warning py-1 mb-0">{{ error_msg }}</div>
+        {% endif %}
     </div>
 </div>
 
-{% if summary %}
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="card text-white bg-success mb-3">
-            <div class="card-header">Total Pemasukan</div>
-            <div class="card-body">
-                <h3 class="card-title">Rp {{ summary.income }}</h3>
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <small>Total Pemasukan</small>
+                <h3>Rp {{ summary.income }}</h3>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card text-white bg-danger mb-3">
-            <div class="card-header">Total Pengeluaran</div>
-            <div class="card-body">
-                <h3 class="card-title">Rp {{ summary.expense }}</h3>
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <small>Total Pengeluaran</small>
+                <h3>Rp {{ summary.expense }}</h3>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card text-white bg-primary mb-3">
-            <div class="card-header">Sisa Uang</div>
-            <div class="card-body">
-                <h3 class="card-title">Rp {{ summary.balance }}</h3>
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <small>Sisa Saldo</small>
+                <h3>Rp {{ summary.balance }}</h3>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-8">
-        <div class="card shadow-sm">
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">Trend Pengeluaran</div>
             <div class="card-body">
-                <h5>Trend Pengeluaran Harian</h5>
-                <canvas id="dailyChart"></canvas>
+                <canvas id="dailyChart" style="max-height: 300px;"></canvas>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm">
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white">Kategori</div>
             <div class="card-body">
-                <h5>Kategori Pengeluaran</h5>
-                <canvas id="catChart"></canvas>
+                <canvas id="catChart" style="max-height: 300px;"></canvas>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    function updateMonth(month) {
-        const urlParams = new URLSearchParams(window.location.search);
-        urlParams.set('month', month);
-        window.location.search = urlParams;
+    // Logic render chart hanya jika ada data
+    const dailyData = {{ chart_daily|tojson }};
+    const catData = {{ chart_cat|tojson }};
+
+    if (dailyData.labels.length > 0) {
+        new Chart(document.getElementById('dailyChart'), {
+            type: 'line',
+            data: {
+                labels: dailyData.labels,
+                datasets: [{
+                    label: 'Pengeluaran',
+                    data: dailyData.data,
+                    borderColor: '#dc3545',
+                    fill: true
+                }]
+            }
+        });
     }
 
-    // Render Daily Chart
-    const ctxDaily = document.getElementById('dailyChart').getContext('2d');
-    new Chart(ctxDaily, {
-        type: 'line',
-        data: {
-            labels: {{ chart_daily.labels | tojson }},
-            datasets: [{
-                label: 'Pengeluaran (Rp)',
-                data: {{ chart_daily.data | tojson }},
-                borderColor: 'rgba(255, 99, 132, 1)',
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                fill: true
-            }]
-        }
-    });
-
-    // Render Category Chart
-    const ctxCat = document.getElementById('catChart').getContext('2d');
-    new Chart(ctxCat, {
-        type: 'doughnut',
-        data: {
-            labels: {{ chart_cat.labels | tojson }},
-            datasets: [{
-                data: {{ chart_cat.data | tojson }},
-                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
-            }]
-        }
-    });
+    if (catData.labels.length > 0) {
+        new Chart(document.getElementById('catChart'), {
+            type: 'doughnut',
+            data: {
+                labels: catData.labels,
+                datasets: [{
+                    data: catData.data,
+                    backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107', '#198754']
+                }]
+            },
+            options: { plugins: { legend: { position: 'bottom' } } }
+        });
+    }
 </script>
-{% endif %}
 {% endblock %}

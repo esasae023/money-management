@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h4>⚙️ Konfigurasi Folder: {{ folder.name }}</h4>
+    <form method="POST" class="mt-4">
+        
+        <div class="card mb-4">
+            <div class="card-header">Data Source</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label>Nama Folder</label>
+                    <input type="text" name="name" class="form-control" value="{{ folder.name }}" required>
+                </div>
+                <div class="mb-3">
+                    <label>Link Google Spreadsheet</label>
+                    <input type="url" name="url" class="form-control" value="{{ folder.spreadsheet_url }}" required>
+                </div>
+                <div class="mb-3">
+                    <label>List Nama Sheet (Bulan)</label>
+                    <textarea name="sheet_list" class="form-control" rows="2">{{ folder.sheet_list_str }}</textarea>
+                    <div class="form-text">Pisahkan dengan koma. Contoh: Januari, Februari, Maret</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 border-info">
+            <div class="card-header bg-info text-white">Formula / Mapping Kolom (Grafana Style)</div>
+            <div class="card-body">
+                <p class="small text-muted">Masukkan <b>NAMA KOLOM</b> persis seperti di baris header Excel anda.</p>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="fw-bold">Panel: Tanggal</label>
+                        <input type="text" name="col_date" class="form-control" value="{{ folder.col_date }}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="fw-bold">Panel: Filter Jenis (Pemasukan/Pengeluaran)</label>
+                        <input type="text" name="col_cat_type" class="form-control" value="{{ folder.col_cat_type }}">
+                        <div class="form-text">Biarkan kosong jika tidak ada kolom jenis.</div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="fw-bold">Panel: Nominal Pemasukan</label>
+                        <input type="text" name="col_income" class="form-control" value="{{ folder.col_income }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="fw-bold">Panel: Nominal Pengeluaran</label>
+                        <input type="text" name="col_expense" class="form-control" value="{{ folder.col_expense }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="fw-bold">Panel: Kategori</label>
+                        <input type="text" name="col_category" class="form-control" value="{{ folder.col_category }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">Simpan Konfigurasi</button>
+    </form>
+</div>
+{% endblock %}
