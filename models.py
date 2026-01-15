@@ -24,8 +24,8 @@ class User(db.Model, UserMixin):
     folders = db.relationship('MonitorFolder', backref='owner', lazy=True)
 
 class GlobalSettings(db.Model):
-    # Hanya ada 1 baris di tabel ini untuk menyimpan Credential Google Service Account
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) 
     google_creds_encrypted = db.Column(db.Text, nullable=False)
 
 class MonitorFolder(db.Model):
