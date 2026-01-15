@@ -27,7 +27,10 @@ def load_user(user_id):
 
 # --- HELPER: KONEKSI GOOGLE SHEET ---
 def get_google_client():
-    settings = GlobalSettings.query.first()
+    if not current_user.is_authenticated: return None
+    # Filter berdasarkan user_id
+    settings = GlobalSettings.query.filter_by(user_id=current_user.id).first()
+    
     if not settings: return None
     try:
         creds_json = crypto.decrypt(settings.google_creds_encrypted)
@@ -115,20 +118,29 @@ def home():
 @app.route('/settings/global', methods=['GET', 'POST'])
 @login_required
 def settings_global():
-    # Setting Google Credential (Global)
     if request.method == 'POST':
         creds_content = request.form['google_creds']
         encrypted = crypto.encrypt(creds_content)
         
-        setting = GlobalSettings.query.first()
+        # Cek apakah user ini sudah punya settingan?
+        setting = GlobalSettings.query.filter_by(user_id=current_user.id).first()
+        
         if not setting:
-            setting = GlobalSettings(google_creds_encrypted=encrypted)
+            # === PERHATIKAN BARIS INI (PENYEBAB ERROR TADI) ===
+            # Kita harus memasukkan user_id saat membuat data baru
+            setting = GlobalSettings(
+                user_id=current_user.id, 
+                google_creds_encrypted=encrypted
+            )
             db.session.add(setting)
         else:
+            # Jika sudah ada, update saja isinya
             setting.google_creds_encrypted = encrypted
+            
         db.session.commit()
-        flash('Global Google Credentials updated!', 'success')
+        flash('API Key Google Anda berhasil disimpan!', 'success')
         return redirect(url_for('home'))
+        
     return render_template('settings_global.html')
 
 @app.route('/folder/create', methods=['POST'])
