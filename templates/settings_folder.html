@@ -9,7 +9,7 @@
         </a>
     </div>
 
-    <form method="POST">
+    <form method="POST" class="mb-5">
         
         <div class="card mb-4 shadow-sm">
             <div class="card-header fw-bold">1. Data Source</div>
@@ -20,85 +20,112 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Link Google Spreadsheet</label>
-                    <input type="url" name="url" class="form-control" value="{{ folder.spreadsheet_url }}" required placeholder="https://docs.google.com/spreadsheets/d/...">
+                    <input type="url" name="url" class="form-control" value="{{ folder.spreadsheet_url }}" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">List Nama Sheet (Bulan)</label>
-                    <textarea name="sheet_list" class="form-control" rows="2" placeholder="Januari, Februari, Maret">{{ folder.sheet_list_str }}</textarea>
-                    <div class="form-text">Pisahkan dengan koma. Pastikan nama persis dengan nama tab di bawah Excel.</div>
+                    <textarea name="sheet_list" class="form-control" rows="2">{{ folder.sheet_list_str }}</textarea>
                 </div>
             </div>
         </div>
 
         <div class="card mb-4 border-primary shadow-sm">
             <div class="card-header bg-primary text-white fw-bold">
-                2. Mapping Cell Indikator (KPI)
+                2. Mapping Indikator Utama (KPI)
             </div>
             <div class="card-body">
                 <div class="alert alert-primary py-2 small">
-                    <i class="bi bi-info-circle"></i> Masukkan <b>ALAMAT CELL</b> Excel (Contoh: <code>K5</code>, <code>AB2</code>) dimana rumus total berada. Fitur ini mengambil angka "Matang" dari Excel.
+                    <i class="bi bi-info-circle"></i> Masukkan Alamat Cell hasil rumus di Excel (Contoh: <code>K5</code>).
                 </div>
-                
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="fw-bold text-success">Posisi Total Pemasukan</label>
-                        <input type="text" name="cell_addr_income" class="form-control" value="{{ folder.cell_addr_income }}" placeholder="Contoh: K5">
+                        <label class="fw-bold text-success">Total Pemasukan</label>
+                        <input type="text" name="cell_addr_income" class="form-control" value="{{ folder.cell_addr_income }}" placeholder="K1">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="fw-bold text-danger">Posisi Total Pengeluaran</label>
-                        <input type="text" name="cell_addr_expense" class="form-control" value="{{ folder.cell_addr_expense }}" placeholder="Contoh: K6">
+                        <label class="fw-bold text-danger">Total Pengeluaran</label>
+                        <input type="text" name="cell_addr_expense" class="form-control" value="{{ folder.cell_addr_expense }}" placeholder="K2">
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="fw-bold text-primary">Posisi Sisa Saldo</label>
-                        <input type="text" name="cell_addr_balance" class="form-control" value="{{ folder.cell_addr_balance }}" placeholder="Contoh: K7">
+                        <label class="fw-bold text-primary">Sisa Saldo</label>
+                        <input type="text" name="cell_addr_balance" class="form-control" value="{{ folder.cell_addr_balance }}" placeholder="K3">
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card mb-4 border-info shadow-sm">
-            <div class="card-header bg-info text-white fw-bold">
-                3. Mapping Nama Kolom (Untuk Grafik)
+        <div class="card mb-4 border-secondary shadow-sm">
+            <div class="card-header bg-secondary text-white fw-bold">
+                3. Mapping Grafik Harian (Trend)
             </div>
             <div class="card-body">
-                <div class="alert alert-info py-2 small">
-                    <i class="bi bi-info-circle"></i> Masukkan <b>NAMA HEADER KOLOM</b> persis seperti di baris header Excel Anda. Ini digunakan untuk menggambar grafik Trend & Pie Chart.
+                <div class="alert alert-secondary py-2 small">
+                    Bagian ini opsional, hanya jika ingin menampilkan grafik garis harian. Butuh nama header kolom.
                 </div>
-                
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="fw-bold">Kolom Tanggal</label>
-                        <input type="text" name="col_date" class="form-control" value="{{ folder.col_date }}" placeholder="Contoh: Timestamp">
+                        <input type="text" name="col_date" class="form-control" value="{{ folder.col_date }}" placeholder="Timestamp">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="fw-bold">Kolom Filter Jenis (Opsional)</label>
-                        <input type="text" name="col_cat_type" class="form-control" value="{{ folder.col_cat_type }}" placeholder="Contoh: Jenis Transaksi">
-                        <div class="form-text small">Kosongkan jika semua data di sheet adalah pengeluaran.</div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label class="fw-bold">Kolom Nominal Pemasukan</label>
-                        <input type="text" name="col_income" class="form-control" value="{{ folder.col_income }}" placeholder="Contoh: Nominal Masuk">
-                    </div>
-                    <div class="col-md-4 mb-3">
                         <label class="fw-bold">Kolom Nominal Pengeluaran</label>
-                        <input type="text" name="col_expense" class="form-control" value="{{ folder.col_expense }}" placeholder="Contoh: Nominal Keluar">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="fw-bold">Kolom Kategori</label>
-                        <input type="text" name="col_category" class="form-control" value="{{ folder.col_category }}" placeholder="Contoh: Sumber Pengeluaran">
+                        <input type="text" name="col_expense" class="form-control" value="{{ folder.col_expense }}" placeholder="Nominal Pengeluaran">
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success btn-lg flex-grow-1">Simpan Konfigurasi</button>
-            <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-secondary btn-lg">Batal / Kembali</a>
-        </div>
-
+        <button type="submit" class="btn btn-primary w-100 py-2">💾 Simpan Konfigurasi Utama</button>
     </form>
+
+    <hr class="my-5">
+
+    <div class="card border-info shadow-sm">
+        <div class="card-header bg-info text-white fw-bold">
+            4. Mapping Pie Chart (Kategori Custom)
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info small">
+                Daftarkan kategori pengeluaran dan alamat cell-nya di sini (Contoh: Makan -> Z1).
+            </div>
+
+            <table class="table table-bordered table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nama Kategori</th>
+                        <th>Alamat Cell Excel</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in folder.categories %}
+                    <tr>
+                        <td>{{ cat.name }}</td>
+                        <td><code>{{ cat.cell_addr }}</code></td>
+                        <td>
+                            <a href="{{ url_for('delete_category', cat_id=cat.id) }}" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('Hapus?')">Hapus</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="text-center text-muted">Belum ada kategori.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <form action="{{ url_for('add_category', folder_id=folder.id) }}" method="POST" class="row g-2 mt-3 pt-3 border-top">
+                <div class="col-md-5">
+                    <input type="text" name="cat_name" class="form-control" placeholder="Nama Kategori (misal: Transport)" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="cat_addr" class="form-control" placeholder="Cell (misal: Z5)" required>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-success w-100">+ Tambah</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

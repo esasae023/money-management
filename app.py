@@ -1,21 +1,21 @@
-# app.py
 import os
 import json
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread.utils import a1_to_rowcol
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, abort
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
-from models import db, User, GlobalSettings, MonitorFolder, crypto
+from models import db, User, GlobalSettings, MonitorFolder, CategoryMap, crypto
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'rahasia')
+app.config['SECRET_KEY'] = 'rahasia_banget_123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///money_manager.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
@@ -29,9 +29,7 @@ def load_user(user_id):
 # --- HELPER: KONEKSI GOOGLE SHEET ---
 def get_google_client():
     if not current_user.is_authenticated: return None
-    # Filter berdasarkan user_id
     settings = GlobalSettings.query.filter_by(user_id=current_user.id).first()
-    
     if not settings: return None
     try:
         creds_json = crypto.decrypt(settings.google_creds_encrypted)
@@ -44,62 +42,55 @@ def get_google_client():
         print(f"Auth Error: {e}")
         return None
 
-# --- UPDATE FUNGSI INI DI app.py ---
-
 def fetch_sheet_data(folder, sheet_name):
     client = get_google_client()
-    if not client: return None, {}, "Google Account belum disetting."
+    if not client: return None, {}, {}, "Google Account belum disetting."
     
     try:
         sheet = client.open_by_url(folder.spreadsheet_url)
         worksheet = sheet.worksheet(sheet_name)
-        
-        # 1. Ambil semua data mentah
         raw_data = worksheet.get_all_values()
-        if not raw_data: return None, {}, "Sheet kosong."
+        
+        if not raw_data: return None, {}, {}, "Sheet kosong."
 
-        # --- FUNGSI PEMBERSIH RUPIAH (LOGIC BARU) ---
+        # Helper: Bersihkan Format Rupiah (Rp 1.000,00 -> 1000.0)
         def clean_indo_number(val):
-            """
-            Mengubah format 'Rp 7.173.670,00' menjadi float 7173670.0
-            """
             try:
-                # Ubah ke string dulu
-                s = str(val)
-                # 1. Buang 'Rp' dan spasi
-                s = s.replace('Rp', '').strip()
-                # 2. Buang TITIK (karena di Indo titik itu pemisah ribuan, di Python tidak butuh)
-                s = s.replace('.', '') 
-                # 3. Ganti KOMA dengan TITIK (agar Python paham ini desimal)
-                s = s.replace(',', '.')
-                
-                # Cek jika string kosong
-                if not s: return 0
-                
-                return float(s)
-            except ValueError:
-                return 0
+                s = str(val).replace('Rp', '').strip().replace('.', '').replace(',', '.')
+                return float(s) if s else 0
+            except: return 0
 
-        # --- LOGIC CELL ADDRESS (KPI) ---
+        # Helper: Ambil Nilai Cell (Z1, K5)
         def get_cell_value(addr):
             try:
                 if not addr: return 0
                 row, col = a1_to_rowcol(addr)
-                # Ambil value raw dari koordinat
                 val = raw_data[row-1][col-1]
-                # Bersihkan dengan logic Indo tadi
                 return clean_indo_number(val)
-            except (IndexError, ValueError):
-                return 0
+            except: return 0
 
-        # Hitung Summary langsung dari alamat cell
+        # 1. AMBIL DATA KPI (Income, Expense, Balance)
         summary = {
             'income': f"{get_cell_value(folder.cell_addr_income):,.0f}",
             'expense': f"{get_cell_value(folder.cell_addr_expense):,.0f}",
             'balance': f"{get_cell_value(folder.cell_addr_balance):,.0f}"
         }
 
-        # --- LOGIC DATAFRAME (GRAFIK) ---
+        # 2. AMBIL DATA PIE CHART (Dari Mapping Kategori Custom)
+        cat_labels = []
+        cat_data = []
+        for cat in folder.categories:
+            val = get_cell_value(cat.cell_addr)
+            if val > 0:
+                cat_labels.append(cat.name)
+                cat_data.append(val)
+        
+        chart_cat = {
+            'labels': cat_labels,
+            'data': cat_data
+        }
+
+        # 3. AMBIL DATA LINE CHART (Harian) - Masih butuh Pandas untuk tanggal
         header_index = 0
         found = False
         for i, row in enumerate(raw_data):
@@ -111,21 +102,15 @@ def fetch_sheet_data(folder, sheet_name):
         df = pd.DataFrame()
         if found and len(raw_data) > header_index + 1:
             df = pd.DataFrame(raw_data[header_index+1:], columns=raw_data[header_index])
-            
-            # Terapkan pembersih angka Indo ke kolom DataFrame juga
-            if folder.col_income in df.columns:
-                df[folder.col_income] = df[folder.col_income].apply(clean_indo_number)
+            # Bersihkan kolom expense agar bisa dijumlah per hari
             if folder.col_expense in df.columns:
                 df[folder.col_expense] = df[folder.col_expense].apply(clean_indo_number)
-            
             df[folder.col_date] = pd.to_datetime(df[folder.col_date], errors='coerce')
 
-        return df, summary, None
+        return df, summary, chart_cat, None
 
-    except gspread.exceptions.WorksheetNotFound:
-        return None, {}, f"Sheet '{sheet_name}' tidak ditemukan."
     except Exception as e:
-        return None, {}, str(e)
+        return None, {}, {}, str(e)
 
 # --- ROUTES ---
 
@@ -154,9 +139,8 @@ def logout():
 @app.route('/home')
 @login_required
 def home():
-    # Halaman utama: List Folder
     folders = MonitorFolder.query.filter_by(user_id=current_user.id).all()
-    global_set = GlobalSettings.query.first()
+    global_set = GlobalSettings.query.filter_by(user_id=current_user.id).first()
     return render_template('home.html', folders=folders, has_global=bool(global_set))
 
 @app.route('/settings/global', methods=['GET', 'POST'])
@@ -166,25 +150,16 @@ def settings_global():
         creds_content = request.form['google_creds']
         encrypted = crypto.encrypt(creds_content)
         
-        # Cek apakah user ini sudah punya settingan?
         setting = GlobalSettings.query.filter_by(user_id=current_user.id).first()
-        
         if not setting:
-            # === PERHATIKAN BARIS INI (PENYEBAB ERROR TADI) ===
-            # Kita harus memasukkan user_id saat membuat data baru
-            setting = GlobalSettings(
-                user_id=current_user.id, 
-                google_creds_encrypted=encrypted
-            )
+            setting = GlobalSettings(user_id=current_user.id, google_creds_encrypted=encrypted)
             db.session.add(setting)
         else:
-            # Jika sudah ada, update saja isinya
             setting.google_creds_encrypted = encrypted
             
         db.session.commit()
-        flash('API Key Google Anda berhasil disimpan!', 'success')
+        flash('API Key berhasil disimpan!', 'success')
         return redirect(url_for('home'))
-        
     return render_template('settings_global.html')
 
 @app.route('/folder/create', methods=['POST'])
@@ -197,6 +172,7 @@ def create_folder():
     db.session.commit()
     return redirect(url_for('home'))
 
+# --- ROUTE SETTING FOLDER (UPDATED) ---
 @app.route('/folder/<int:folder_id>/settings', methods=['GET', 'POST'])
 @login_required
 def folder_settings(folder_id):
@@ -204,28 +180,54 @@ def folder_settings(folder_id):
     if folder.user_id != current_user.id: return redirect(url_for('home'))
     
     if request.method == 'POST':
-        # ... (inputan lama sama) ...
+        # Simpan General & KPI
         folder.name = request.form['name']
         folder.spreadsheet_url = request.form['url']
         folder.sheet_list_str = request.form['sheet_list']
         
-        # Mapping Kolom Grafik
         folder.col_date = request.form['col_date']
-        folder.col_income = request.form['col_income'] # Masih dipakai untuk grafik? Opsional
         folder.col_expense = request.form['col_expense']
-        folder.col_category = request.form['col_category']
-        folder.col_cat_type = request.form['col_cat_type']
         
-        # --- INPUT BARU: Mapping Cell KPI ---
         folder.cell_addr_income = request.form['cell_addr_income']
         folder.cell_addr_expense = request.form['cell_addr_expense']
         folder.cell_addr_balance = request.form['cell_addr_balance']
         
         db.session.commit()
-        flash('Pengaturan Folder disimpan.', 'success')
-        return redirect(url_for('dashboard', folder_id=folder.id))
+        flash('Pengaturan berhasil disimpan.', 'success')
+        return redirect(url_for('folder_settings', folder_id=folder.id))
         
     return render_template('settings_folder.html', folder=folder)
+
+# --- ROUTE TAMBAH KATEGORI (NEW) ---
+@app.route('/folder/<int:folder_id>/category/add', methods=['POST'])
+@login_required
+def add_category(folder_id):
+    folder = MonitorFolder.query.get_or_404(folder_id)
+    if folder.user_id != current_user.id: return redirect(url_for('home'))
+    
+    name = request.form.get('cat_name')
+    addr = request.form.get('cat_addr')
+    
+    if name and addr:
+        new_cat = CategoryMap(folder_id=folder.id, name=name, cell_addr=addr)
+        db.session.add(new_cat)
+        db.session.commit()
+        flash('Kategori ditambahkan!', 'success')
+    
+    return redirect(url_for('folder_settings', folder_id=folder.id))
+
+# --- ROUTE HAPUS KATEGORI (NEW) ---
+@app.route('/category/delete/<int:cat_id>')
+@login_required
+def delete_category(cat_id):
+    cat = CategoryMap.query.get_or_404(cat_id)
+    folder = MonitorFolder.query.get(cat.folder_id)
+    if folder.user_id != current_user.id: return redirect(url_for('home'))
+    
+    db.session.delete(cat)
+    db.session.commit()
+    flash('Kategori dihapus.', 'warning')
+    return redirect(url_for('folder_settings', folder_id=folder.id))
 
 @app.route('/folder/<int:folder_id>/dashboard')
 @login_required
@@ -236,56 +238,29 @@ def dashboard(folder_id):
     sheet_list = folder.get_sheet_list()
     selected_month = request.args.get('month', sheet_list[0] if sheet_list else 'Sheet1')
     
-    # Default Values (Agar tampilan tidak crash jika data kosong)
     summary = {'income': '0', 'expense': '0', 'balance': '0'}
-    chart_daily = {'labels': [], 'data': []}
     chart_cat = {'labels': [], 'data': []}
+    chart_daily = {'labels': [], 'data': []}
     error_msg = None
 
-    # --- PERUBAHAN UTAMA DI SINI ---
-    # Memanggil fetch_sheet_data yang baru.
-    # Variabel 'summary_data' berisi nilai langsung dari Cell Excel (misal K5, K6)
-    df, summary_data, error = fetch_sheet_data(folder, selected_month)
+    # Fetch Data Baru (Return 4 variabel)
+    df, summary_data, chart_data, error = fetch_sheet_data(folder, selected_month)
     
-    # Jika berhasil ambil angka dari Cell K5 dll, masukkan ke variabel summary
-    if summary_data:
-        summary = summary_data
+    if summary_data: summary = summary_data
+    if chart_data: chart_cat = chart_data # Chart Pie diambil dari hasil cell mapping
+    if error: error_msg = error
 
-    if error:
-        error_msg = error
-    elif df is not None and not df.empty:
+    # Logic Line Chart (Harian) tetap pakai Pandas
+    if df is not None and not df.empty:
         try:
-            # --- LOGIC LAMA DIHAPUS ---
-            # Kita TIDAK LAGI menghitung total_income = df.sum() di sini.
-            # Karena angkanya sudah diambil dari 'summary_data' di atas.
-            # Kita langsung fokus memproses data untuk GRAFIK saja.
-            # --------------------------
-            
-            # 1. Chart Harian logic (Line Chart)
-            # Pastikan kolom tanggal dan pengeluaran ada
             if folder.col_date in df.columns and folder.col_expense in df.columns:
                 daily = df.groupby(df[folder.col_date].dt.date)[folder.col_expense].sum().reset_index()
                 chart_daily = {
                     'labels': daily[folder.col_date].astype(str).tolist(),
                     'data': daily[folder.col_expense].tolist()
                 }
-            
-            # 2. Chart Kategori logic (Pie Chart)
-            if folder.col_category in df.columns and folder.col_expense in df.columns:
-                # Cek apakah ada kolom filter 'Jenis' (optional)
-                if folder.col_cat_type in df.columns:
-                    cat_df = df[df[folder.col_cat_type] == 'Pengeluaran']
-                else:
-                    cat_df = df # Ambil semua jika tidak ada kolom jenis
-                    
-                cat_grp = cat_df.groupby(folder.col_category)[folder.col_expense].sum().reset_index()
-                chart_cat = {
-                    'labels': cat_grp[folder.col_category].tolist(),
-                    'data': cat_grp[folder.col_expense].tolist()
-                }
-                
         except Exception as e:
-            error_msg = f"Error saat memproses grafik: {str(e)}. Cek nama kolom di setting."
+            pass # Ignore chart error if summary is fine
 
     return render_template('dashboard.html', 
                            folder=folder, 
