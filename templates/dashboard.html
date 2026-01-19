@@ -1,111 +1,131 @@
 {% extends "base.html" %}
+
 {% block content %}
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ url_for('home') }}">Home</a></li>
-            <li class="breadcrumb-item active">{{ folder.name }}</li>
-        </ol>
-    </nav>
-    <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-sm btn-secondary">⚙️ Setting Panel/Formula</a>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-4">
-        <select class="form-select" onchange="location = '?month=' + this.value;">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📊 Dashboard: {{ folder.name }}</h2>
+    <div class="dropdown">
+        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            🗓️ Bulan: {{ selected_month }}
+        </button>
+        <ul class="dropdown-menu">
             {% for sheet in sheet_list %}
-            <option value="{{ sheet }}" {% if selected_month == sheet %}selected{% endif %}>
-                📅 Bulan: {{ sheet }}
-            </option>
+            <li><a class="dropdown-item" href="{{ url_for('dashboard', folder_id=folder.id, month=sheet) }}">{{ sheet }}</a></li>
             {% endfor %}
-        </select>
-    </div>
-    <div class="col-md-8">
-        {% if error_msg %}
-        <div class="alert alert-warning py-1 mb-0">{{ error_msg }}</div>
-        {% endif %}
+        </ul>
+        <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-secondary ms-2">⚙️ Config</a>
     </div>
 </div>
 
+{% if error_msg %}
+<div class="alert alert-danger">{{ error_msg }}</div>
+{% endif %}
+
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="card bg-success text-white">
-            <div class="card-body text-center">
-                <small>Total Pemasukan</small>
-                <h3>Rp {{ summary.income }}</h3>
+        <div class="card text-white bg-success h-100 hover-effect">
+            <div class="card-body">
+                <h5 class="card-title">Pemasukan</h5>
+                <h2 class="fw-bold">Rp {{ summary.income }}</h2>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card bg-danger text-white">
-            <div class="card-body text-center">
-                <small>Total Pengeluaran</small>
-                <h3>Rp {{ summary.expense }}</h3>
+        <div class="card text-white bg-danger h-100 hover-effect">
+            <div class="card-body">
+                <h5 class="card-title">Pengeluaran</h5>
+                <h2 class="fw-bold">Rp {{ summary.expense }}</h2>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card bg-primary text-white">
-            <div class="card-body text-center">
-                <small>Sisa Saldo</small>
-                <h3>Rp {{ summary.balance }}</h3>
+        <div class="card text-white bg-primary h-100 hover-effect">
+            <div class="card-body">
+                <h5 class="card-title">Sisa Saldo</h5>
+                <h2 class="fw-bold">Rp {{ summary.balance }}</h2>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="card mb-4 shadow-sm">
+    <div class="card-header fw-bold">📈 Trend Pemasukan vs Pengeluaran</div>
+    <div class="card-body">
+        <canvas id="trendChart" style="max-height: 400px;"></canvas>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-lg-8 mb-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white">Trend Pengeluaran</div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm border-success">
+            <div class="card-header bg-success text-white fw-bold">Kategori Pemasukan</div>
             <div class="card-body">
-                <canvas id="dailyChart" style="max-height: 300px;"></canvas>
+                <canvas id="incomePieChart"></canvas>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 mb-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white">Kategori</div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow-sm border-danger">
+            <div class="card-header bg-danger text-white fw-bold">Kategori Pengeluaran</div>
             <div class="card-body">
-                <canvas id="catChart" style="max-height: 300px;"></canvas>
+                <canvas id="expensePieChart"></canvas>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Logic render chart hanya jika ada data
-    const dailyData = {{ chart_daily|tojson }};
-    const catData = {{ chart_cat|tojson }};
-
-    if (dailyData.labels.length > 0) {
-        new Chart(document.getElementById('dailyChart'), {
-            type: 'line',
-            data: {
-                labels: dailyData.labels,
-                datasets: [{
-                    label: 'Pengeluaran',
-                    data: dailyData.data,
-                    borderColor: '#dc3545',
+    // 1. Line Chart (Trend)
+    const ctxTrend = document.getElementById('trendChart').getContext('2d');
+    new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+            labels: {{ chart_trend.labels | tojson }},
+            datasets: [
+                {
+                    label: 'Pemasukan',
+                    data: {{ chart_trend.income | tojson }},
+                    borderColor: '#198754', // Hijau
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    tension: 0.3,
                     fill: true
-                }]
-            }
-        });
-    }
+                },
+                {
+                    label: 'Pengeluaran',
+                    data: {{ chart_trend.expense | tojson }},
+                    borderColor: '#dc3545', // Merah
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
 
-    if (catData.labels.length > 0) {
-        new Chart(document.getElementById('catChart'), {
-            type: 'doughnut',
-            data: {
-                labels: catData.labels,
-                datasets: [{
-                    data: catData.data,
-                    backgroundColor: ['#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545', '#fd7e14', '#ffc107', '#198754']
-                }]
-            },
-            options: { plugins: { legend: { position: 'bottom' } } }
-        });
-    }
+    // 2. Pie Chart Pemasukan (Kiri)
+    const ctxInc = document.getElementById('incomePieChart').getContext('2d');
+    new Chart(ctxInc, {
+        type: 'doughnut',
+        data: {
+            labels: {{ pie_income.labels | tojson }},
+            datasets: [{
+                data: {{ pie_income.data | tojson }},
+                backgroundColor: ['#20c997', '#198754', '#0f5132', '#75b798', '#a3cfbb']
+            }]
+        }
+    });
+
+    // 3. Pie Chart Pengeluaran (Kanan)
+    const ctxExp = document.getElementById('expensePieChart').getContext('2d');
+    new Chart(ctxExp, {
+        type: 'doughnut',
+        data: {
+            labels: {{ pie_expense.labels | tojson }},
+            datasets: [{
+                data: {{ pie_expense.data | tojson }},
+                backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#e63757', '#fa5252']
+            }]
+        }
+    });
 </script>
 {% endblock %}

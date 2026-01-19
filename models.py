@@ -5,11 +5,9 @@ from cryptography.fernet import Fernet
 
 db = SQLAlchemy()
 
-# Enkripsi Helper
 class EncryptionManager:
     def __init__(self):
-        # Gunakan key tetap untuk development agar tidak error saat restart
-        # Di production, simpan ini di .env
+        # Key tetap untuk development. Di production gunakan .env
         self.key = b'gAAAAABlz8wLcwjT0E4w1q5uV6tD5yZ8q3_uW9aQ7n0=' 
         self.cipher = Fernet(self.key)
     def encrypt(self, data): return self.cipher.encrypt(data.encode()).decode()
@@ -36,25 +34,27 @@ class MonitorFolder(db.Model):
     spreadsheet_url = db.Column(db.String(500), nullable=False)
     sheet_list_str = db.Column(db.Text, default="Januari,Februari,Maret")
     
-    # --- KONFIGURASI PANEL 1 (KPI & GRAFIK HARIAN) ---
+    # --- KONFIGURASI GRAFIK LINE (HARIAN) ---
     col_date = db.Column(db.String(50), default="Timestamp")
-    col_expense = db.Column(db.String(50), default="Nominal Pengeluaran") # Masih dipakai untuk Line Chart (Trend)
+    col_income = db.Column(db.String(50), default="Nominal Pemasukan")   # Dipakai untuk Grafik Hijau
+    col_expense = db.Column(db.String(50), default="Nominal Pengeluaran") # Dipakai untuk Grafik Merah
     
-    # Mapping Cell KPI (Total Atas)
+    # --- MAPPING KPI (KARTU ATAS) ---
     cell_addr_income = db.Column(db.String(10), default="K1")
     cell_addr_expense = db.Column(db.String(10), default="K2")
     cell_addr_balance = db.Column(db.String(10), default="K3")
     
-    # --- RELASI KE KATEGORI CUSTOM (PIE CHART) ---
-    # Ini menggantikan kolom col_category lama
+    # --- RELASI KE KATEGORI ---
     categories = db.relationship('CategoryMap', backref='folder', lazy=True, cascade="all, delete-orphan")
     
     def get_sheet_list(self):
         return [x.strip() for x in self.sheet_list_str.split(',') if x.strip()]
 
-# --- TABEL BARU: Mapping Kategori ---
 class CategoryMap(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     folder_id = db.Column(db.Integer, db.ForeignKey('monitor_folder.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)    # Contoh: "Makan"
-    cell_addr = db.Column(db.String(10), nullable=False) # Contoh: "Z1"
+    name = db.Column(db.String(100), nullable=False)
+    cell_addr = db.Column(db.String(10), nullable=False)
+    
+    # BARU: Menandakan ini kategori 'income' atau 'expense'
+    type = db.Column(db.String(20), default='expense')
