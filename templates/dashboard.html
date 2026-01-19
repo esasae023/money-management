@@ -50,7 +50,9 @@
 <div class="card mb-4 shadow-sm">
     <div class="card-header fw-bold">📈 Trend Pemasukan vs Pengeluaran</div>
     <div class="card-body">
-        <canvas id="trendChart" style="max-height: 400px;"></canvas>
+        <div style="height: 300px; position: relative;">
+            <canvas id="trendChart"></canvas>
+        </div>
     </div>
 </div>
 
@@ -59,7 +61,9 @@
         <div class="card h-100 shadow-sm border-success">
             <div class="card-header bg-success text-white fw-bold">Kategori Pemasukan</div>
             <div class="card-body">
-                <canvas id="incomePieChart"></canvas>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="incomePieChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -67,7 +71,9 @@
         <div class="card h-100 shadow-sm border-danger">
             <div class="card-header bg-danger text-white fw-bold">Kategori Pengeluaran</div>
             <div class="card-body">
-                <canvas id="expensePieChart"></canvas>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="expensePieChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -99,7 +105,13 @@
                 }
             ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, // Wajib false agar ngikutin tinggi div container
+            plugins: {
+                legend: { position: 'top' }
+            }
+        }
     });
 
     // 2. Pie Chart Pemasukan (Kiri)
@@ -112,6 +124,13 @@
                 data: {{ pie_income.data | tojson }},
                 backgroundColor: ['#20c997', '#198754', '#0f5132', '#75b798', '#a3cfbb']
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // UPDATE: Agar mau dikecilkan jadi 300px
+            plugins: {
+                legend: { position: 'right' } // Legenda ditaruh kanan biar rapi di area sempit
+            }
         }
     });
 
@@ -125,6 +144,13 @@
                 data: {{ pie_expense.data | tojson }},
                 backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#e63757', '#fa5252']
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false, // UPDATE: Agar mau dikecilkan jadi 300px
+            plugins: {
+                legend: { position: 'right' } // Legenda ditaruh kanan
+            }
         }
     });
 </script>
