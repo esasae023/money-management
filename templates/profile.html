@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="max-width: 600px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>👤 Profil Pengguna</h3>
+        <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-sm">← Kembali ke Home</a>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title text-muted">Informasi Akun</h5>
+            <div class="mb-3">
+                <label class="fw-bold">Username</label>
+                <input type="text" class="form-control" value="{{ current_user.username }}" readonly disabled>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-warning">
+        <div class="card-header bg-warning text-dark fw-bold">
+            🔒 Ganti Password
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Password Lama</label>
+                    <input type="password" name="old_password" class="form-control" required placeholder="Masukkan password saat ini">
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <label class="form-label">Password Baru</label>
+                    <input type="password" name="new_password" class="form-control" required placeholder="Minimal 6 karakter">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ulangi Password Baru</label>
+                    <input type="password" name="confirm_password" class="form-control" required placeholder="Ketik ulang password baru">
+                </div>
+                
+                <button type="submit" class="btn btn-dark w-100">Simpan Password Baru</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

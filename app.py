@@ -270,6 +270,39 @@ def dashboard(folder_id):
                            pie_expense=pie_expense,
                            error_msg=error_msg)
 
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        old_password = request.form.get('old_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+
+        # 1. Cek apakah Password Lama benar?
+        if not bcrypt.check_password_hash(current_user.password, old_password):
+            flash('Gagal: Password lama Anda salah.', 'danger')
+            return redirect(url_for('profile'))
+        
+        # 2. Cek apakah Password Baru & Konfirmasi sama?
+        if new_password != confirm_password:
+            flash('Gagal: Konfirmasi password tidak cocok.', 'danger')
+            return redirect(url_for('profile'))
+            
+        # 3. Cek panjang password (opsional)
+        if len(new_password) < 6:
+            flash('Gagal: Password baru minimal 6 karakter.', 'danger')
+            return redirect(url_for('profile'))
+
+        # 4. Simpan Password Baru
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        current_user.password = hashed_password
+        db.session.commit()
+        
+        flash('Sukses: Password berhasil diubah!', 'success')
+        return redirect(url_for('profile'))
+
+    return render_template('profile.html')
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
