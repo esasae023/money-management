@@ -7,7 +7,7 @@ db = SQLAlchemy()
 
 class EncryptionManager:
     def __init__(self):
-        # Key tetap untuk development. Di production gunakan .env
+        # Key dev. Production gunakan .env
         self.key = b'gAAAAABlz8wLcwjT0E4w1q5uV6tD5yZ8q3_uW9aQ7n0=' 
         self.cipher = Fernet(self.key)
     def encrypt(self, data): return self.cipher.encrypt(data.encode()).decode()
@@ -34,17 +34,29 @@ class MonitorFolder(db.Model):
     spreadsheet_url = db.Column(db.String(500), nullable=False)
     sheet_list_str = db.Column(db.Text, default="Januari,Februari,Maret")
     
-    # --- KONFIGURASI GRAFIK LINE (HARIAN) ---
+    # --- KONFIGURASI GRAFIK TREND ---
     col_date = db.Column(db.String(50), default="Timestamp")
-    col_income = db.Column(db.String(50), default="Nominal Pemasukan")   # Dipakai untuk Grafik Hijau
-    col_expense = db.Column(db.String(50), default="Nominal Pengeluaran") # Dipakai untuk Grafik Merah
     
-    # --- MAPPING KPI (KARTU ATAS) ---
+    # Header Angka (Dipakai Kotor & Bersih)
+    col_income = db.Column(db.String(50), default="Nominal Pemasukan")
+    col_expense = db.Column(db.String(50), default="Nominal Pengeluaran")
+    
+    # --- LOGIC FILTERING (BARU) ---
+    # Header Kolom Kategori/Sumber (misal: "Sumber Pemasukan", "Keperluan")
+    col_source_income = db.Column(db.String(50), default="Sumber Pemasukan")
+    col_source_expense = db.Column(db.String(50), default="Sumber Pengeluaran")
+    
+    # Kata Kunci untuk DIABAIKAN di Dana Bersih (misal: "Hutang,Piutang")
+    debt_keywords = db.Column(db.String(200), default="Hutang,Piutang,Sahur hutang")
+
+    # --- MAPPING KPI (TOTAL) ---
     cell_addr_income = db.Column(db.String(10), default="K1")
     cell_addr_expense = db.Column(db.String(10), default="K2")
     cell_addr_balance = db.Column(db.String(10), default="K3")
     
-    # --- RELASI KE KATEGORI ---
+    clean_income_cells = db.Column(db.Text, default="") 
+    clean_expense_cells = db.Column(db.Text, default="") 
+    
     categories = db.relationship('CategoryMap', backref='folder', lazy=True, cascade="all, delete-orphan")
     
     def get_sheet_list(self):
@@ -55,6 +67,7 @@ class CategoryMap(db.Model):
     folder_id = db.Column(db.Integer, db.ForeignKey('monitor_folder.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     cell_addr = db.Column(db.String(10), nullable=False)
+    type = db.Column(db.String(20), default='expense') # 'income' or 'expense'
     
-    # BARU: Menandakan ini kategori 'income' atau 'expense'
-    type = db.Column(db.String(20), default='expense')
+    # Penanda apakah kategori ini masuk Dana Bersih?
+    is_clean = db.Column(db.Boolean, default=False)

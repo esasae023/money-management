@@ -2,10 +2,10 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>📊 Dashboard: {{ folder.name }}</h2>
+    <h2>📊 {{ folder.name }}</h2>
     <div class="dropdown">
         <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            🗓️ Bulan: {{ selected_month }}
+            🗓️ {{ selected_month }}
         </button>
         <ul class="dropdown-menu">
             {% for sheet in sheet_list %}
@@ -20,138 +20,168 @@
 <div class="alert alert-danger">{{ error_msg }}</div>
 {% endif %}
 
-<div class="row mb-4 g-3">
-    <div class="col-md-4">
-        <div class="card text-white bg-success h-100 hover-effect">
-            <div class="card-body">
-                <h5 class="card-title">Pemasukan</h5>
-                <h2 class="fw-bold">Rp {{ summary.income }}</h2>
+<div id="section-clean" class="mb-5 border-bottom pb-4">
+    <h4 class="mb-3 text-success"><i class="bi bi-stars"></i> Dashboard Dana Bersih (Tanpa Hutang)</h4>
+    
+    <div class="row mb-4 g-3">
+        <div class="col-md-4">
+            <div class="card text-white bg-success h-100 hover-effect">
+                <div class="card-body">
+                    <h6 class="card-title">Pemasukan Bersih</h6>
+                    <h3 class="fw-bold">Rp {{ sum_clean.income }}</h3>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-danger h-100 hover-effect">
-            <div class="card-body">
-                <h5 class="card-title">Pengeluaran</h5>
-                <h2 class="fw-bold">Rp {{ summary.expense }}</h2>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger h-100 hover-effect">
+                <div class="card-body">
+                    <h6 class="card-title">Pengeluaran Bersih</h6>
+                    <h3 class="fw-bold">Rp {{ sum_clean.expense }}</h3>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card text-white bg-primary h-100 hover-effect">
-            <div class="card-body">
-                <h5 class="card-title">Sisa Saldo</h5>
-                <h2 class="fw-bold">Rp {{ summary.balance }}</h2>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="card mb-4 shadow-sm">
-    <div class="card-header fw-bold">📈 Trend Pemasukan vs Pengeluaran</div>
-    <div class="card-body">
-        <div style="height: 300px; position: relative;">
-            <canvas id="trendChart"></canvas>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card h-100 shadow-sm border-success">
-            <div class="card-header bg-success text-white fw-bold">Kategori Pemasukan</div>
-            <div class="card-body">
-                <div style="height: 300px; position: relative;">
-                    <canvas id="incomePieChart"></canvas>
+        <div class="col-md-4">
+            <div class="card text-white bg-primary h-100 hover-effect opacity-75">
+                <div class="card-body">
+                    <h6 class="card-title">Sisa Saldo (Real)</h6>
+                    <h3 class="fw-bold">Rp {{ sum_clean.balance }}</h3>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6 mb-4">
-        <div class="card h-100 shadow-sm border-danger">
-            <div class="card-header bg-danger text-white fw-bold">Kategori Pengeluaran</div>
-            <div class="card-body">
-                <div style="height: 300px; position: relative;">
-                    <canvas id="expensePieChart"></canvas>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header fw-bold text-success">📈 Trend Dana Bersih</div>
+        <div class="card-body"><div style="height: 400px; position: relative;"><canvas id="chartTrendClean"></canvas></div></div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 border-success"><div class="card-header bg-success text-white">Pie Pemasukan (Bersih)</div>
+            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieIncClean"></canvas></div></div></div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card h-100 border-danger"><div class="card-header bg-danger text-white">Pie Pengeluaran (Bersih)</div>
+            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieExpClean"></canvas></div></div></div>
+        </div>
+    </div>
+</div>
+
+<div id="section-dirty" class="mb-5">
+    <h4 class="mb-3 text-secondary"><i class="bi bi-wallet2"></i> Dashboard Dana Kotor (Semua)</h4>
+
+    <div class="row mb-4 g-3">
+        <div class="col-md-4">
+            <div class="card bg-success h-100 hover-effect" style="--bs-bg-opacity: .8; color: white;">
+                <div class="card-body">
+                    <h6 class="card-title">Total Pemasukan</h6>
+                    <h3 class="fw-bold">Rp {{ sum_kotor.income }}</h3>
                 </div>
             </div>
         </div>
+        <div class="col-md-4">
+            <div class="card bg-danger h-100 hover-effect" style="--bs-bg-opacity: .8; color: white;">
+                <div class="card-body">
+                    <h6 class="card-title">Total Pengeluaran</h6>
+                    <h3 class="fw-bold">Rp {{ sum_kotor.expense }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-primary h-100 hover-effect" style="--bs-bg-opacity: .8; color: white;">
+                <div class="card-body">
+                    <h6 class="card-title">Sisa Saldo</h6>
+                    <h3 class="fw-bold">Rp {{ sum_kotor.balance }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header fw-bold text-secondary">📈 Trend Dana Kotor</div>
+        <div class="card-body"><div style="height: 400px; position: relative;"><canvas id="chartTrendDirty"></canvas></div></div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card h-100"><div class="card-header bg-secondary text-white">Pie Pemasukan (Total)</div>
+            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieIncDirty"></canvas></div></div></div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card h-100"><div class="card-header bg-secondary text-white">Pie Pengeluaran (Total)</div>
+            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieExpDirty"></canvas></div></div></div>
+        </div>
+    </div>
+</div>
+
+<div style="height: 80px;"></div>
+
+<div class="fixed-bottom d-flex justify-content-center" style="bottom: 70px; z-index: 9999; pointer-events: none;">
+    <div class="bg-white shadow-lg rounded-pill p-1 d-flex border" style="pointer-events: auto;">
+        <style>
+            .tgl-btn { border: none; background: transparent; padding: 8px 16px; border-radius: 50px; font-weight: bold; color: #777; transition: .3s; font-size: 0.9rem; }
+            .tgl-btn.active { background: #333; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+        </style>
+        <button class="tgl-btn active" onclick="setMode('semua')" id="btnSemua">Semua</button>
+        <button class="tgl-btn" onclick="setMode('bersih')" id="btnBersih">Dana Bersih</button>
+        <button class="tgl-btn" onclick="setMode('kotor')" id="btnKotor">Dana Kotor</button>
     </div>
 </div>
 
 <script>
-    // 1. Line Chart (Trend)
-    const ctxTrend = document.getElementById('trendChart').getContext('2d');
-    new Chart(ctxTrend, {
-        type: 'line',
-        data: {
-            labels: {{ chart_trend.labels | tojson }},
-            datasets: [
-                {
-                    label: 'Pemasukan',
-                    data: {{ chart_trend.income | tojson }},
-                    borderColor: '#198754', // Hijau
-                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                },
-                {
-                    label: 'Pengeluaran',
-                    data: {{ chart_trend.expense | tojson }},
-                    borderColor: '#dc3545', // Merah
-                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                }
-            ]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, // Wajib false agar ngikutin tinggi div container
-            plugins: {
-                legend: { position: 'top' }
-            }
-        }
-    });
+    // --- MODE SWITCHER LOGIC ---
+    function setMode(mode) {
+        const secClean = document.getElementById('section-clean');
+        const secDirty = document.getElementById('section-dirty');
+        
+        document.querySelectorAll('.tgl-btn').forEach(b => b.classList.remove('active'));
 
-    // 2. Pie Chart Pemasukan (Kiri)
-    const ctxInc = document.getElementById('incomePieChart').getContext('2d');
-    new Chart(ctxInc, {
-        type: 'doughnut',
-        data: {
-            labels: {{ pie_income.labels | tojson }},
-            datasets: [{
-                data: {{ pie_income.data | tojson }},
-                backgroundColor: ['#20c997', '#198754', '#0f5132', '#75b798', '#a3cfbb']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // UPDATE: Agar mau dikecilkan jadi 300px
-            plugins: {
-                legend: { position: 'right' } // Legenda ditaruh kanan biar rapi di area sempit
-            }
+        if (mode === 'semua') {
+            secClean.style.display = 'block';
+            secDirty.style.display = 'block';
+            document.getElementById('btnSemua').classList.add('active');
+        } else if (mode === 'bersih') {
+            secClean.style.display = 'block';
+            secDirty.style.display = 'none';
+            document.getElementById('btnBersih').classList.add('active');
+        } else if (mode === 'kotor') {
+            secClean.style.display = 'none';
+            secDirty.style.display = 'block';
+            document.getElementById('btnKotor').classList.add('active');
         }
-    });
+    }
+    
+    // Default: Semua
+    setMode('semua');
 
-    // 3. Pie Chart Pengeluaran (Kanan)
-    const ctxExp = document.getElementById('expensePieChart').getContext('2d');
-    new Chart(ctxExp, {
-        type: 'doughnut',
-        data: {
-            labels: {{ pie_expense.labels | tojson }},
-            datasets: [{
-                data: {{ pie_expense.data | tojson }},
-                backgroundColor: ['#dc3545', '#fd7e14', '#ffc107', '#e63757', '#fa5252']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false, // UPDATE: Agar mau dikecilkan jadi 300px
-            plugins: {
-                legend: { position: 'right' } // Legenda ditaruh kanan
-            }
-        }
-    });
+    // --- CHART GENERATORS ---
+    function renderLine(id, labels, inc, exp) {
+        new Chart(document.getElementById(id), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Masuk', data: inc, borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)', tension: 0.3, fill: true },
+                    { label: 'Keluar', data: exp, borderColor: '#dc3545', backgroundColor: 'rgba(220, 53, 69, 0.1)', tension: 0.3, fill: true }
+                ]
+            }, options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    function renderPie(id, labels, data, colors) {
+        new Chart(document.getElementById(id), {
+            type: 'doughnut',
+            data: { labels: labels, datasets: [{ data: data, backgroundColor: colors }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        });
+    }
+
+    // 1. Render Clean Charts
+    renderLine('chartTrendClean', {{ chart_clean.labels|tojson }}, {{ chart_clean.income|tojson }}, {{ chart_clean.expense|tojson }});
+    renderPie('pieIncClean', {{ pie_data.clean_inc.labels|tojson }}, {{ pie_data.clean_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
+    renderPie('pieExpClean', {{ pie_data.clean_exp.labels|tojson }}, {{ pie_data.clean_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
+
+    // 2. Render Dirty Charts
+    renderLine('chartTrendDirty', {{ chart_dirty.labels|tojson }}, {{ chart_dirty.income|tojson }}, {{ chart_dirty.expense|tojson }});
+    renderPie('pieIncDirty', {{ pie_data.dirty_inc.labels|tojson }}, {{ pie_data.dirty_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
+    renderPie('pieExpDirty', {{ pie_data.dirty_exp.labels|tojson }}, {{ pie_data.dirty_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
 </script>
 {% endblock %}

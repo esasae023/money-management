@@ -43,14 +43,14 @@ def get_google_client():
 
 def fetch_sheet_data(folder, sheet_name):
     client = get_google_client()
-    if not client: return None, {}, {}, {}, "Google Account belum disetting."
+    if not client: return None, {}, {}, {}, {}, {}, {}, "Google Account belum disetting."
     
     try:
         sheet = client.open_by_url(folder.spreadsheet_url)
         worksheet = sheet.worksheet(sheet_name)
         raw_data = worksheet.get_all_values()
         
-        if not raw_data: return None, {}, {}, {}, "Sheet kosong."
+        if not raw_data: return None, {}, {}, {}, {}, {}, {}, "Sheet kosong."
 
         def clean_indo_number(val):
             try:
@@ -61,35 +61,68 @@ def fetch_sheet_data(folder, sheet_name):
         def get_cell_value(addr):
             try:
                 if not addr: return 0
-                row, col = a1_to_rowcol(addr)
+                row, col = a1_to_rowcol(addr.strip())
                 val = raw_data[row-1][col-1]
                 return clean_indo_number(val)
             except: return 0
+            
+        def sum_cells(cell_list_str):
+            if not cell_list_str: return 0
+            total = 0
+            cells = cell_list_str.split(',')
+            for cell in cells:
+                if cell.strip():
+                    total += get_cell_value(cell)
+            return total
 
-        # 1. KPI UTAMA
-        summary = {
+        # 1. SUMMARY KOTOR
+        sum_kotor = {
             'income': f"{get_cell_value(folder.cell_addr_income):,.0f}",
             'expense': f"{get_cell_value(folder.cell_addr_expense):,.0f}",
             'balance': f"{get_cell_value(folder.cell_addr_balance):,.0f}"
         }
+        
+        # 2. SUMMARY BERSIH
+        clean_inc_val = sum_cells(folder.clean_income_cells)
+        clean_exp_val = sum_cells(folder.clean_expense_cells)
+        sum_clean = {
+            'income': f"{clean_inc_val:,.0f}",
+            'expense': f"{clean_exp_val:,.0f}",
+            'balance': sum_kotor['balance']
+        }
 
-        # 2. DATA PIE CHART (Dipisah Income & Expense)
-        pie_income = {'labels': [], 'data': []}
-        pie_expense = {'labels': [], 'data': []}
+        # 3. PIE CHART DATA
+        pie_data = {
+            'clean_inc': {'labels': [], 'data': []},
+            'clean_exp': {'labels': [], 'data': []},
+            'dirty_inc': {'labels': [], 'data': []},
+            'dirty_exp': {'labels': [], 'data': []}
+        }
 
         for cat in folder.categories:
             val = get_cell_value(cat.cell_addr)
             if val > 0:
+                # Dirty (Semua)
                 if cat.type == 'income':
-                    pie_income['labels'].append(cat.name)
-                    pie_income['data'].append(val)
+                    pie_data['dirty_inc']['labels'].append(cat.name)
+                    pie_data['dirty_inc']['data'].append(val)
                 else:
-                    pie_expense['labels'].append(cat.name)
-                    pie_expense['data'].append(val)
+                    pie_data['dirty_exp']['labels'].append(cat.name)
+                    pie_data['dirty_exp']['data'].append(val)
+                
+                # Clean (Filter is_clean)
+                if cat.is_clean:
+                    if cat.type == 'income':
+                        pie_data['clean_inc']['labels'].append(cat.name)
+                        pie_data['clean_inc']['data'].append(val)
+                    else:
+                        pie_data['clean_exp']['labels'].append(cat.name)
+                        pie_data['clean_exp']['data'].append(val)
 
-        # 3. DATA LINE CHART (Harian)
-        df = pd.DataFrame()
-        # Cari header
+        # 4. TREND CHART DATA (Filter Logic Baru)
+        df_dirty = pd.DataFrame() # Untuk Kotor
+        df_clean = pd.DataFrame() # Untuk Bersih
+        
         header_index = 0
         found = False
         for i, row in enumerate(raw_data):
@@ -99,20 +132,45 @@ def fetch_sheet_data(folder, sheet_name):
                 break
         
         if found and len(raw_data) > header_index + 1:
+            # Buat DF Dasar
             df = pd.DataFrame(raw_data[header_index+1:], columns=raw_data[header_index])
             
-            # Bersihkan angka Pemasukan & Pengeluaran
-            if folder.col_expense in df.columns:
-                df[folder.col_expense] = df[folder.col_expense].apply(clean_indo_number)
+            # Konversi Angka & Tanggal
             if folder.col_income in df.columns:
                 df[folder.col_income] = df[folder.col_income].apply(clean_indo_number)
+            if folder.col_expense in df.columns:
+                df[folder.col_expense] = df[folder.col_expense].apply(clean_indo_number)
             
             df[folder.col_date] = pd.to_datetime(df[folder.col_date], errors='coerce')
+            
+            # --- DF KOTOR (Ambil Semua) ---
+            df_dirty = df.copy()
 
-        return df, summary, pie_income, pie_expense, None
+            # --- DF BERSIH (Filter Buang Hutang) ---
+            df_clean = df.copy()
+            keywords = [k.strip().lower() for k in folder.debt_keywords.split(',') if k.strip()]
+            
+            # Filter Pemasukan Bersih
+            if folder.col_source_income in df_clean.columns:
+                # Set 0 jika kolom sumber mengandung kata kunci hutang
+                mask_debt_inc = df_clean[folder.col_source_income].astype(str).str.lower().apply(
+                    lambda x: any(k in x for k in keywords)
+                )
+                df_clean.loc[mask_debt_inc, folder.col_income] = 0
+
+            # Filter Pengeluaran Bersih
+            if folder.col_source_expense in df_clean.columns:
+                # Set 0 jika kolom sumber mengandung kata kunci hutang
+                mask_debt_exp = df_clean[folder.col_source_expense].astype(str).str.lower().apply(
+                    lambda x: any(k in x for k in keywords)
+                )
+                df_clean.loc[mask_debt_exp, folder.col_expense] = 0
+
+        # Kita return 2 DataFrame terpisah
+        return df_dirty, df_clean, sum_kotor, sum_clean, pie_data, None
 
     except Exception as e:
-        return None, {}, {}, {}, str(e)
+        return None, None, {}, {}, {}, str(e)
 
 # --- ROUTES ---
 @app.route('/')
@@ -130,9 +188,21 @@ def login():
 
 @app.route('/logout')
 @login_required
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
+def logout(): logout_user(); return redirect(url_for('login'))
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        new_password = request.form.get('new_password')
+        if len(new_password) < 6:
+            flash('Gagal: Password minimal 6 karakter.', 'danger')
+            return redirect(url_for('profile'))
+        current_user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        db.session.commit()
+        flash('Sukses: Password berhasil diubah!', 'success')
+        return redirect(url_for('profile'))
+    return render_template('profile.html')
 
 @app.route('/home')
 @login_required
@@ -175,17 +245,30 @@ def folder_settings(folder_id):
         folder.name = request.form['name']
         folder.spreadsheet_url = request.form['url']
         folder.sheet_list_str = request.form['sheet_list']
+        
+        # Grafik
         folder.col_date = request.form['col_date']
         folder.col_income = request.form['col_income']
         folder.col_expense = request.form['col_expense']
+        
+        # Filter Baru
+        folder.col_source_income = request.form['col_source_income']
+        folder.col_source_expense = request.form['col_source_expense']
+        folder.debt_keywords = request.form['debt_keywords']
+        
+        # Mapping Kotor
         folder.cell_addr_income = request.form['cell_addr_income']
         folder.cell_addr_expense = request.form['cell_addr_expense']
         folder.cell_addr_balance = request.form['cell_addr_balance']
+        
+        # Mapping Bersih
+        folder.clean_income_cells = request.form['clean_income_cells']
+        folder.clean_expense_cells = request.form['clean_expense_cells']
+        
         db.session.commit()
         flash('Pengaturan tersimpan.', 'success')
         return redirect(url_for('folder_settings', folder_id=folder.id))
     
-    # Pisahkan kategori untuk ditampilkan di 2 tabel berbeda
     cats_income = [c for c in folder.categories if c.type == 'income']
     cats_expense = [c for c in folder.categories if c.type == 'expense']
     return render_template('settings_folder.html', folder=folder, cats_income=cats_income, cats_expense=cats_expense)
@@ -195,17 +278,15 @@ def folder_settings(folder_id):
 def add_category(folder_id):
     folder = MonitorFolder.query.get_or_404(folder_id)
     if folder.user_id != current_user.id: return redirect(url_for('home'))
-    
     name = request.form.get('cat_name')
     addr = request.form.get('cat_addr')
-    tipe = request.form.get('cat_type') # 'income' atau 'expense'
-    
+    tipe = request.form.get('cat_type')
+    is_clean = True if request.form.get('is_clean') else False
     if name and addr and tipe:
-        new_cat = CategoryMap(folder_id=folder.id, name=name, cell_addr=addr, type=tipe)
+        new_cat = CategoryMap(folder_id=folder.id, name=name, cell_addr=addr, type=tipe, is_clean=is_clean)
         db.session.add(new_cat)
         db.session.commit()
         flash(f'Kategori {tipe} ditambahkan!', 'success')
-    
     return redirect(url_for('folder_settings', folder_id=folder.id))
 
 @app.route('/category/delete/<int:cat_id>')
@@ -227,81 +308,61 @@ def dashboard(folder_id):
     sheet_list = folder.get_sheet_list()
     selected_month = request.args.get('month', sheet_list[0] if sheet_list else 'Sheet1')
     
-    summary = {'income': '0', 'expense': '0', 'balance': '0'}
-    pie_income = {'labels': [], 'data': []}
-    pie_expense = {'labels': [], 'data': []}
-    chart_trend = {'labels': [], 'income': [], 'expense': []}
+    # --- PERBAIKAN DI SINI: Inisialisasi Default Harus Lengkap ---
+    sum_kotor = {'income': 0, 'expense': 0, 'balance': 0}
+    sum_clean = {'income': 0, 'expense': 0, 'balance': 0}
+    
+    chart_clean = {'labels': [], 'income': [], 'expense': []}
+    chart_dirty = {'labels': [], 'income': [], 'expense': []}
+    
+    # Sebelumnya hanya {}, sekarang kita beri struktur lengkap agar tidak error
+    pie_data = {
+        'clean_inc': {'labels': [], 'data': []},
+        'clean_exp': {'labels': [], 'data': []},
+        'dirty_inc': {'labels': [], 'data': []},
+        'dirty_exp': {'labels': [], 'data': []}
+    }
+    
     error_msg = None
 
-    # Fetch Data (Sekarang return 5 variable)
-    df, sum_data, p_inc, p_exp, err = fetch_sheet_data(folder, selected_month)
+    # Fetch Data
+    df_dirty, df_clean, kotor, clean, pies, err = fetch_sheet_data(folder, selected_month)
     
-    if sum_data: summary = sum_data
-    if p_inc: pie_income = p_inc
-    if p_exp: pie_expense = p_exp
+    if kotor: sum_kotor = kotor
+    if clean: sum_clean = clean
+    
+    # Hanya update pie_data jika 'pies' berhasil diambil dan tidak kosong
+    if pies and isinstance(pies, dict): 
+        # Update satu per satu key agar aman
+        if 'clean_inc' in pies: pie_data['clean_inc'] = pies['clean_inc']
+        if 'clean_exp' in pies: pie_data['clean_exp'] = pies['clean_exp']
+        if 'dirty_inc' in pies: pie_data['dirty_inc'] = pies['dirty_inc']
+        if 'dirty_exp' in pies: pie_data['dirty_exp'] = pies['dirty_exp']
+        
     if err: error_msg = err
 
-    # Logic Line Chart (Gabungan Pemasukan & Pengeluaran)
-    if df is not None and not df.empty:
+    # Logic Grafik (Tidak berubah)
+    if df_dirty is not None and not df_dirty.empty:
         try:
-            # Group by Tanggal
-            grp = df.groupby(df[folder.col_date].dt.date).sum(numeric_only=True).reset_index()
-            
-            chart_trend['labels'] = grp[folder.col_date].astype(str).tolist()
-            # Cek kolom ada atau tidak, kalau tidak isi 0
-            if folder.col_income in grp.columns:
-                chart_trend['income'] = grp[folder.col_income].tolist()
-            else:
-                chart_trend['income'] = [0] * len(chart_trend['labels'])
-                
-            if folder.col_expense in grp.columns:
-                chart_trend['expense'] = grp[folder.col_expense].tolist()
-            else:
-                chart_trend['expense'] = [0] * len(chart_trend['labels'])
-                
-        except Exception as e:
-            pass 
+            grp = df_dirty.groupby(df_dirty[folder.col_date].dt.date).sum(numeric_only=True).reset_index()
+            chart_dirty['labels'] = grp[folder.col_date].astype(str).tolist()
+            chart_dirty['income'] = grp[folder.col_income].tolist() if folder.col_income in grp else []
+            chart_dirty['expense'] = grp[folder.col_expense].tolist() if folder.col_expense in grp else []
+        except: pass
+
+    if df_clean is not None and not df_clean.empty:
+        try:
+            grp = df_clean.groupby(df_clean[folder.col_date].dt.date).sum(numeric_only=True).reset_index()
+            chart_clean['labels'] = grp[folder.col_date].astype(str).tolist()
+            chart_clean['income'] = grp[folder.col_income].tolist() if folder.col_income in grp else []
+            chart_clean['expense'] = grp[folder.col_expense].tolist() if folder.col_expense in grp else []
+        except: pass
 
     return render_template('dashboard.html', 
                            folder=folder, sheet_list=sheet_list, selected_month=selected_month,
-                           summary=summary, 
-                           chart_trend=chart_trend,
-                           pie_income=pie_income,
-                           pie_expense=pie_expense,
-                           error_msg=error_msg)
-
-@app.route('/profile', methods=['GET', 'POST'])
-@login_required
-def profile():
-    if request.method == 'POST':
-        old_password = request.form.get('old_password')
-        new_password = request.form.get('new_password')
-        confirm_password = request.form.get('confirm_password')
-
-        # 1. Cek apakah Password Lama benar?
-        if not bcrypt.check_password_hash(current_user.password, old_password):
-            flash('Gagal: Password lama Anda salah.', 'danger')
-            return redirect(url_for('profile'))
-        
-        # 2. Cek apakah Password Baru & Konfirmasi sama?
-        if new_password != confirm_password:
-            flash('Gagal: Konfirmasi password tidak cocok.', 'danger')
-            return redirect(url_for('profile'))
-            
-        # 3. Cek panjang password (opsional)
-        if len(new_password) < 6:
-            flash('Gagal: Password baru minimal 6 karakter.', 'danger')
-            return redirect(url_for('profile'))
-
-        # 4. Simpan Password Baru
-        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
-        current_user.password = hashed_password
-        db.session.commit()
-        
-        flash('Sukses: Password berhasil diubah!', 'success')
-        return redirect(url_for('profile'))
-
-    return render_template('profile.html')
+                           sum_kotor=sum_kotor, sum_clean=sum_clean,
+                           chart_dirty=chart_dirty, chart_clean=chart_clean,
+                           pie_data=pie_data, error_msg=error_msg)
 
 if __name__ == '__main__':
     with app.app_context():

@@ -9,9 +9,9 @@
 
     <form method="POST" class="mb-5">
         <div class="card mb-4 shadow-sm">
-            <div class="card-header fw-bold">1. General & KPI</div>
+            <div class="card-header fw-bold">1. General & Mapping KPI (Kartu Atas)</div>
             <div class="card-body">
-                <div class="row">
+                <div class="row mb-4">
                     <div class="col-md-6 mb-3">
                         <label>Nama Folder</label>
                         <input type="text" name="name" class="form-control" value="{{ folder.name }}" required>
@@ -20,25 +20,85 @@
                         <label>URL Spreadsheet</label>
                         <input type="url" name="url" class="form-control" value="{{ folder.spreadsheet_url }}" required>
                     </div>
-                    <div class="col-12 mb-3">
+                    <div class="col-12">
                         <label>Sheet Bulanan (dipisah koma)</label>
                         <input type="text" name="sheet_list" class="form-control" value="{{ folder.sheet_list_str }}">
                     </div>
                 </div>
-                
-                <h6 class="mt-3 fw-bold">Mapping Cell (KPI)</h6>
-                <div class="row">
-                    <div class="col-md-4"><input type="text" name="cell_addr_income" class="form-control" value="{{ folder.cell_addr_income }}" placeholder="Cell Pemasukan (K1)"></div>
-                    <div class="col-md-4"><input type="text" name="cell_addr_expense" class="form-control" value="{{ folder.cell_addr_expense }}" placeholder="Cell Pengeluaran (K2)"></div>
-                    <div class="col-md-4"><input type="text" name="cell_addr_balance" class="form-control" value="{{ folder.cell_addr_balance }}" placeholder="Cell Saldo (K3)"></div>
+
+                <hr>
+
+                <div class="alert alert-primary py-2 small">
+                    <i class="bi bi-wallet2"></i> <b>Dana Kotor (Cell Total)</b><br>
+                    Alamat Cell Excel totalan rumus (Contoh: K1).
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-success">Total Pemasukan (Kotor)</label>
+                        <input type="text" name="cell_addr_income" class="form-control" value="{{ folder.cell_addr_income }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-danger">Total Pengeluaran (Kotor)</label>
+                        <input type="text" name="cell_addr_expense" class="form-control" value="{{ folder.cell_addr_expense }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold text-primary">Sisa Saldo (Real)</label>
+                        <input type="text" name="cell_addr_balance" class="form-control" value="{{ folder.cell_addr_balance }}">
+                    </div>
                 </div>
 
-                <h6 class="mt-3 fw-bold">Mapping Kolom (Untuk Grafik Garis)</h6>
-                <div class="row">
-                    <div class="col-md-4"><input type="text" name="col_date" class="form-control" value="{{ folder.col_date }}" placeholder="Header Tanggal"></div>
-                    <div class="col-md-4"><input type="text" name="col_income" class="form-control" value="{{ folder.col_income }}" placeholder="Header Nominal Masuk"></div>
-                    <div class="col-md-4"><input type="text" name="col_expense" class="form-control" value="{{ folder.col_expense }}" placeholder="Header Nominal Keluar"></div>
+                <div class="alert alert-warning py-2 small">
+                    <i class="bi bi-stars"></i> <b>Dana Bersih (Cell Total)</b><br>
+                    Daftar cell operasional murni. Pisahkan koma (Z1, Z3).
                 </div>
+                <div class="row border p-2 rounded bg-light mx-1 mb-4">
+                    <div class="col-md-6 mb-2">
+                        <label class="small fw-bold">Cell Pemasukan (Bersih)</label>
+                        <input type="text" name="clean_income_cells" class="form-control form-control-sm" value="{{ folder.clean_income_cells }}">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="small fw-bold">Cell Pengeluaran (Bersih)</label>
+                        <input type="text" name="clean_expense_cells" class="form-control form-control-sm" value="{{ folder.clean_expense_cells }}">
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6 class="fw-bold">2. Konfigurasi Grafik & Filter Hutang</h6>
+                <div class="row mb-2">
+                    <div class="col-12 mb-2"><label class="small">Header Kolom Tanggal</label><input type="text" name="col_date" class="form-control form-control-sm" value="{{ folder.col_date }}"></div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="small fw-bold">Header Nominal Pemasukan</label>
+                        <input type="text" name="col_income" class="form-control form-control-sm" value="{{ folder.col_income }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small fw-bold">Header Nominal Pengeluaran</label>
+                        <input type="text" name="col_expense" class="form-control form-control-sm" value="{{ folder.col_expense }}">
+                    </div>
+                </div>
+
+                <div class="alert alert-info py-2 small">
+                    <i class="bi bi-funnel"></i> <b>Filter Hutang untuk Grafik Trend Bersih</b><br>
+                    Grafik bersih akan mengabaikan baris jika Header Kategori mengandung kata kunci hutang.
+                </div>
+                <div class="row border p-2 rounded bg-light mx-1">
+                    <div class="col-md-4">
+                        <label class="small fw-bold">Header Kategori Pemasukan</label>
+                        <input type="text" name="col_source_income" class="form-control form-control-sm" value="{{ folder.col_source_income }}" placeholder="Misal: Sumber Pemasukan">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold">Header Kategori Pengeluaran</label>
+                        <input type="text" name="col_source_expense" class="form-control form-control-sm" value="{{ folder.col_source_expense }}" placeholder="Misal: Sumber Pengeluaran">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small fw-bold">Kata Kunci Hutang (Pisah Koma)</label>
+                        <input type="text" name="debt_keywords" class="form-control form-control-sm" value="{{ folder.debt_keywords }}" placeholder="Hutang,Piutang,Sahur hutang">
+                    </div>
+                </div>
+
             </div>
             <div class="card-footer">
                 <button type="submit" class="btn btn-primary w-100">Simpan Config Utama</button>
@@ -46,50 +106,39 @@
         </div>
     </form>
 
-    <hr>
-
     <div class="row">
         <div class="col-md-6">
             <div class="card border-success h-100">
-                <div class="card-header bg-success text-white fw-bold">2. Kategori Pemasukan</div>
+                <div class="card-header bg-success text-white fw-bold">Kategori Pemasukan</div>
                 <div class="card-body">
                     <table class="table table-sm table-striped">
-                        <tr><th>Nama</th><th>Cell</th><th>Aksi</th></tr>
+                        <tr><th>Nama</th><th>Cell</th><th>Bersih?</th><th>Aksi</th></tr>
                         {% for cat in cats_income %}
-                        <tr>
-                            <td>{{ cat.name }}</td><td>{{ cat.cell_addr }}</td>
-                            <td><a href="{{ url_for('delete_category', cat_id=cat.id) }}" class="text-danger">Hapus</a></td>
-                        </tr>
+                        <tr><td>{{ cat.name }}</td><td>{{ cat.cell_addr }}</td><td>{% if cat.is_clean %}✅{% else %}-{% endif %}</td><td><a href="{{ url_for('delete_category', cat_id=cat.id) }}" class="text-danger">Hapus</a></td></tr>
                         {% endfor %}
                     </table>
-                    <form action="{{ url_for('add_category', folder_id=folder.id) }}" method="POST" class="row g-1 mt-2">
+                    <form action="{{ url_for('add_category', folder_id=folder.id) }}" method="POST" class="mt-2 border-top pt-2">
                         <input type="hidden" name="cat_type" value="income">
-                        <div class="col-5"><input type="text" name="cat_name" class="form-control form-control-sm" placeholder="Nama" required></div>
-                        <div class="col-4"><input type="text" name="cat_addr" class="form-control form-control-sm" placeholder="Cell" required></div>
-                        <div class="col-3"><button class="btn btn-sm btn-success w-100">Add</button></div>
+                        <div class="row g-1"><div class="col-5"><input type="text" name="cat_name" class="form-control form-control-sm" placeholder="Nama" required></div><div class="col-4"><input type="text" name="cat_addr" class="form-control form-control-sm" placeholder="Cell" required></div><div class="col-3"><button class="btn btn-sm btn-success w-100">Add</button></div></div>
+                        <div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="is_clean" id="chkInc"><label class="form-check-label small" for="chkInc">Masuk Dana Bersih?</label></div>
                     </form>
                 </div>
             </div>
         </div>
-
         <div class="col-md-6">
             <div class="card border-danger h-100">
-                <div class="card-header bg-danger text-white fw-bold">3. Kategori Pengeluaran</div>
+                <div class="card-header bg-danger text-white fw-bold">Kategori Pengeluaran</div>
                 <div class="card-body">
                     <table class="table table-sm table-striped">
-                        <tr><th>Nama</th><th>Cell</th><th>Aksi</th></tr>
+                        <tr><th>Nama</th><th>Cell</th><th>Bersih?</th><th>Aksi</th></tr>
                         {% for cat in cats_expense %}
-                        <tr>
-                            <td>{{ cat.name }}</td><td>{{ cat.cell_addr }}</td>
-                            <td><a href="{{ url_for('delete_category', cat_id=cat.id) }}" class="text-danger">Hapus</a></td>
-                        </tr>
+                        <tr><td>{{ cat.name }}</td><td>{{ cat.cell_addr }}</td><td>{% if cat.is_clean %}✅{% else %}-{% endif %}</td><td><a href="{{ url_for('delete_category', cat_id=cat.id) }}" class="text-danger">Hapus</a></td></tr>
                         {% endfor %}
                     </table>
-                    <form action="{{ url_for('add_category', folder_id=folder.id) }}" method="POST" class="row g-1 mt-2">
+                    <form action="{{ url_for('add_category', folder_id=folder.id) }}" method="POST" class="mt-2 border-top pt-2">
                         <input type="hidden" name="cat_type" value="expense">
-                        <div class="col-5"><input type="text" name="cat_name" class="form-control form-control-sm" placeholder="Nama" required></div>
-                        <div class="col-4"><input type="text" name="cat_addr" class="form-control form-control-sm" placeholder="Cell" required></div>
-                        <div class="col-3"><button class="btn btn-sm btn-danger w-100">Add</button></div>
+                        <div class="row g-1"><div class="col-5"><input type="text" name="cat_name" class="form-control form-control-sm" placeholder="Nama" required></div><div class="col-4"><input type="text" name="cat_addr" class="form-control form-control-sm" placeholder="Cell" required></div><div class="col-3"><button class="btn btn-sm btn-danger w-100">Add</button></div></div>
+                        <div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="is_clean" id="chkExp"><label class="form-check-label small" for="chkExp">Masuk Dana Bersih?</label></div>
                     </form>
                 </div>
             </div>
