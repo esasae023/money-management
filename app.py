@@ -2,9 +2,10 @@ import os
 import json
 import pandas as pd
 import gspread
+from datetime import timedelta  # <--- IMPORT PENTING
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread.utils import a1_to_rowcol
-from flask import Flask, render_template, request, redirect, url_for, flash, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, abort, session
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 from models import db, User, GlobalSettings, MonitorFolder, CategoryMap, crypto
@@ -17,6 +18,9 @@ app.config['SECRET_KEY'] = 'rahasia_banget_123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///money_manager.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# --- CONFIG SESSION TIMEOUT 30 MENIT ---
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+
 db.init_app(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
@@ -25,6 +29,12 @@ login_manager.login_view = 'login'
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# --- FUNGSI AGAR SESSION DI-RESET SETIAP ADA AKTIVITAS ---
+@app.before_request
+def make_session_permanent():
+    session.permanent = True
+    # Timer akan di-reset ke 30 menit lagi setiap user membuka halaman baru
 
 def get_google_client():
     if not current_user.is_authenticated: return None
@@ -119,7 +129,7 @@ def fetch_sheet_data(folder, sheet_name):
                         pie_data['clean_exp']['labels'].append(cat.name)
                         pie_data['clean_exp']['data'].append(val)
 
-        # 4. TREND CHART DATA (Filter Logic Baru)
+        # 4. TREND CHART DATA (Filter Logic)
         df_dirty = pd.DataFrame() # Untuk Kotor
         df_clean = pd.DataFrame() # Untuk Bersih
         
@@ -152,7 +162,6 @@ def fetch_sheet_data(folder, sheet_name):
             
             # Filter Pemasukan Bersih
             if folder.col_source_income in df_clean.columns:
-                # Set 0 jika kolom sumber mengandung kata kunci hutang
                 mask_debt_inc = df_clean[folder.col_source_income].astype(str).str.lower().apply(
                     lambda x: any(k in x for k in keywords)
                 )
@@ -160,13 +169,11 @@ def fetch_sheet_data(folder, sheet_name):
 
             # Filter Pengeluaran Bersih
             if folder.col_source_expense in df_clean.columns:
-                # Set 0 jika kolom sumber mengandung kata kunci hutang
                 mask_debt_exp = df_clean[folder.col_source_expense].astype(str).str.lower().apply(
                     lambda x: any(k in x for k in keywords)
                 )
                 df_clean.loc[mask_debt_exp, folder.col_expense] = 0
 
-        # Kita return 2 DataFrame terpisah
         return df_dirty, df_clean, sum_kotor, sum_clean, pie_data, None
 
     except Exception as e:
@@ -246,22 +253,18 @@ def folder_settings(folder_id):
         folder.spreadsheet_url = request.form['url']
         folder.sheet_list_str = request.form['sheet_list']
         
-        # Grafik
         folder.col_date = request.form['col_date']
         folder.col_income = request.form['col_income']
         folder.col_expense = request.form['col_expense']
         
-        # Filter Baru
         folder.col_source_income = request.form['col_source_income']
         folder.col_source_expense = request.form['col_source_expense']
         folder.debt_keywords = request.form['debt_keywords']
         
-        # Mapping Kotor
         folder.cell_addr_income = request.form['cell_addr_income']
         folder.cell_addr_expense = request.form['cell_addr_expense']
         folder.cell_addr_balance = request.form['cell_addr_balance']
         
-        # Mapping Bersih
         folder.clean_income_cells = request.form['clean_income_cells']
         folder.clean_expense_cells = request.form['clean_expense_cells']
         
@@ -308,21 +311,19 @@ def dashboard(folder_id):
     sheet_list = folder.get_sheet_list()
     selected_month = request.args.get('month', sheet_list[0] if sheet_list else 'Sheet1')
     
-    # --- PERBAIKAN DI SINI: Inisialisasi Default Harus Lengkap ---
+    # Inisialisasi Default Lengkap
     sum_kotor = {'income': 0, 'expense': 0, 'balance': 0}
     sum_clean = {'income': 0, 'expense': 0, 'balance': 0}
     
     chart_clean = {'labels': [], 'income': [], 'expense': []}
     chart_dirty = {'labels': [], 'income': [], 'expense': []}
     
-    # Sebelumnya hanya {}, sekarang kita beri struktur lengkap agar tidak error
     pie_data = {
         'clean_inc': {'labels': [], 'data': []},
         'clean_exp': {'labels': [], 'data': []},
         'dirty_inc': {'labels': [], 'data': []},
         'dirty_exp': {'labels': [], 'data': []}
     }
-    
     error_msg = None
 
     # Fetch Data
@@ -331,9 +332,7 @@ def dashboard(folder_id):
     if kotor: sum_kotor = kotor
     if clean: sum_clean = clean
     
-    # Hanya update pie_data jika 'pies' berhasil diambil dan tidak kosong
-    if pies and isinstance(pies, dict): 
-        # Update satu per satu key agar aman
+    if pies and isinstance(pies, dict):
         if 'clean_inc' in pies: pie_data['clean_inc'] = pies['clean_inc']
         if 'clean_exp' in pies: pie_data['clean_exp'] = pies['clean_exp']
         if 'dirty_inc' in pies: pie_data['dirty_inc'] = pies['dirty_inc']
@@ -341,7 +340,7 @@ def dashboard(folder_id):
         
     if err: error_msg = err
 
-    # Logic Grafik (Tidak berubah)
+    # Chart Kotor
     if df_dirty is not None and not df_dirty.empty:
         try:
             grp = df_dirty.groupby(df_dirty[folder.col_date].dt.date).sum(numeric_only=True).reset_index()
@@ -350,6 +349,7 @@ def dashboard(folder_id):
             chart_dirty['expense'] = grp[folder.col_expense].tolist() if folder.col_expense in grp else []
         except: pass
 
+    # Chart Bersih
     if df_clean is not None and not df_clean.empty:
         try:
             grp = df_clean.groupby(df_clean[folder.col_date].dt.date).sum(numeric_only=True).reset_index()
