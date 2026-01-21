@@ -114,12 +114,48 @@
 
 <div style="height: 80px;"></div>
 
-<div class="fixed-bottom d-flex justify-content-center" style="bottom: 70px; z-index: 9999; pointer-events: none;">
-    <div class="bg-white shadow-lg rounded-pill p-1 d-flex border" style="pointer-events: auto;">
+<div class="fixed-bottom d-flex justify-content-center" style="bottom: 80px; z-index: 9999; pointer-events: none;">
+    
+    <div class="glass-panel d-flex p-1" style="pointer-events: auto;">
+        
         <style>
-            .tgl-btn { border: none; background: transparent; padding: 8px 16px; border-radius: 50px; font-weight: bold; color: #777; transition: .3s; font-size: 0.9rem; }
-            .tgl-btn.active { background: #333; color: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+            /* Efek Kaca (Glassmorphism) */
+            .glass-panel {
+                background: rgba(255, 255, 255, 0.25); /* Transparan */
+                backdrop-filter: blur(12px);            /* Efek Buram */
+                -webkit-backdrop-filter: blur(12px);    /* Support Safari */
+                border: 1px solid rgba(255, 255, 255, 0.4); /* Border tipis putih */
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); /* Bayangan lembut */
+                border-radius: 50px;
+            }
+
+            /* Tombol di dalam kaca */
+            .tgl-btn {
+                border: none;
+                background: transparent;
+                padding: 10px 20px;
+                border-radius: 50px;
+                font-weight: 600;
+                color: #444; /* Warna teks biasa */
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-size: 0.9rem;
+            }
+
+            /* Efek Hover */
+            .tgl-btn:hover {
+                background: rgba(255, 255, 255, 0.3);
+            }
+
+            /* State Active (Tombol yang dipilih) */
+            .tgl-btn.active {
+                background: rgba(255, 255, 255, 0.85); /* Putih susu hampir solid */
+                color: #000;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Sedikit menonjol */
+                transform: scale(1.05); /* Sedikit membesar */
+            }
         </style>
+        
         <button class="tgl-btn active" onclick="setMode('semua')" id="btnSemua">Semua</button>
         <button class="tgl-btn" onclick="setMode('bersih')" id="btnBersih">Dana Bersih</button>
         <button class="tgl-btn" onclick="setMode('kotor')" id="btnKotor">Dana Kotor</button>
