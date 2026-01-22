@@ -15,11 +15,9 @@
             min-height: 100vh;
             overflow-x: hidden;
         }
-
-        /* --- ANTI FLICKER PRELOAD --- */
         body.preload * { transition: none !important; }
 
-        /* --- SIDEBAR STYLES --- */
+        /* --- SIDEBAR --- */
         .sidebar {
             height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000;
             background-color: #212529; width: 70px;
@@ -34,13 +32,10 @@
             margin-left: 15px; opacity: 0; pointer-events: none;
             transition: opacity 0.2s ease-in-out;
         }
-
-        /* Expanded State */
         body.sb-expanded .sidebar { width: 250px; }
         body.sb-expanded .main-content { margin-left: 250px; }
         body.sb-expanded .sidebar-text { opacity: 1; pointer-events: auto; transition-delay: 0.1s; }
 
-        /* Components */
         .sidebar a {
             text-decoration: none; color: #ccc; padding: 15px 20px;
             display: flex; align-items: center; transition: 0.2s; height: 55px;
@@ -56,36 +51,72 @@
             height: 70px; margin-bottom: 10px;
         }
 
-        /* --- TOAST NOTIFICATION STYLES (POP-UP) --- */
+        /* --- TOAST NOTIFICATION (CSS TRANSITION SYSTEM) --- */
         .toast-container {
-            z-index: 99999; /* Paling depan */
+            z-index: 99999;
+            /* Flexbox untuk layout container */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        
+
         .custom-toast {
             border: none;
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             overflow: hidden;
             position: relative;
-            min-width: 300px; /* Lebar minimum agar teks enak dibaca */
+            min-width: 300px;
+            
+            /* KUNCI STABILITAS: CSS TRANSITION */
+            /* Kita gunakan transition, bukan animation @keyframes */
+            opacity: 0; /* Awal: Tidak terlihat */
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Efek membal (bouncy) */
         }
 
-        /* Garis Timer Animasi */
+        /* 1. POSISI AWAL (HIDDEN) */
+        
+        /* Desktop: Sembunyi di Kanan */
+        .toast-container { 
+            padding-right: 20px;
+        }
+        .custom-toast {
+            transform: translateX(120%); /* Geser ke kanan luar layar */
+        }
+
+        /* Mobile: Sembunyi di Atas & Center */
+        @media (max-width: 767.98px) {
+            .toast-container {
+                padding-right: 0;
+                top: 0; left: 0; right: 0;
+                width: 100%;
+                align-items: center; /* Center Horizontal */
+                padding-top: 10px;
+            }
+            .custom-toast {
+                width: 90%; 
+                max-width: 400px;
+                transform: translateY(-150%); /* Geser ke atas luar layar */
+            }
+        }
+
+        /* 2. POSISI AKTIF (MUNCUL) */
+        /* Class ini akan ditambahkan oleh JS */
+        .custom-toast.active-toast {
+            opacity: 1 !important;
+            transform: translate(0, 0) !important; /* Reset posisi ke normal */
+        }
+
+        /* Garis Timer */
         .toast-timer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 4px;
+            position: absolute; bottom: 0; left: 0; height: 4px;
             background-color: rgba(255, 255, 255, 0.6);
-            width: 100%;
-            animation: shrink 5s linear forwards;
+            width: 100%; 
+            /* Timer tetap pakai animation karena linear */
+            animation: shrink 5s linear forwards; 
         }
+        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
 
-        @keyframes shrink {
-            from { width: 100%; }
-            to { width: 0%; }
-        }
-
-        /* Mobile Styles */
+        /* --- MOBILE NAV --- */
         @media (max-width: 767.98px) {
             .sidebar { display: none !important; }
             .main-content { margin-left: 0 !important; }
@@ -149,23 +180,25 @@
 
     <div class="main-content">
         
-        <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div class="toast-container position-fixed top-0 end-0 mt-3">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
                         {% set bg_class = 'text-bg-success' if category == 'success' else 'text-bg-danger' if category == 'danger' else 'text-bg-primary' %}
                         
-                        <div class="toast custom-toast align-items-center {{ bg_class }} border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
-                            <div class="d-flex">
-                                <div class="toast-body fw-bold">
+                        <div class="custom-toast align-items-center {{ bg_class }} p-2 rounded" role="alert">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="toast-body fw-bold text-white d-flex align-items-center px-2">
                                     {% if category == 'success' %}
-                                        <i class="bi bi-check-circle-fill me-2"></i>
+                                        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
                                     {% else %}
-                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
                                     {% endif %}
                                     {{ message }}
                                 </div>
-                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Tutup"></button>
+                                <button type="button" class="btn btn-link text-white text-decoration-none fs-4 p-0 me-2 close-toast-btn" aria-label="Tutup">
+                                    <i class="bi bi-x"></i>
+                                </button>
                             </div>
                             <div class="toast-timer"></div>
                         </div>
@@ -189,14 +222,35 @@
         window.addEventListener('load', () => {
             document.body.classList.remove('preload');
             
-            // LOGIC AUTO-CLOSE TOAST (5 Detik)
-            const toasts = document.querySelectorAll('.toast');
+            // --- LOGIC TOAST YANG BARU (TRANSITION BASED) ---
+            const toasts = document.querySelectorAll('.custom-toast');
+            
             toasts.forEach(t => {
+                // 1. Masuk (Enter) - Beri jeda dikit biar browser render dulu
                 setTimeout(() => {
-                    const bsToast = new bootstrap.Toast(t);
-                    bsToast.hide();
-                    t.addEventListener('hidden.bs.toast', () => { t.remove(); });
-                }, 5000);
+                    t.classList.add('active-toast');
+                }, 100);
+
+                // Fungsi untuk Keluar (Exit)
+                const closeToast = () => {
+                    t.classList.remove('active-toast'); // Hapus class, otomatis transisi balik ke hidden
+                    // Tunggu transisi CSS selesai (600ms), lalu hapus dari DOM
+                    setTimeout(() => {
+                        if (t.parentNode) t.parentNode.removeChild(t);
+                    }, 600); 
+                };
+
+                // 2. Auto Keluar setelah 5 detik
+                const autoCloseTimer = setTimeout(closeToast, 5000);
+
+                // 3. Manual Keluar (Klik X)
+                const closeBtn = t.querySelector('.close-toast-btn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        clearTimeout(autoCloseTimer); // Batalkan timer auto
+                        closeToast();
+                    });
+                }
             });
         });
     </script>
