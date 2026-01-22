@@ -46,25 +46,50 @@
             height: 70px; margin-bottom: 10px;
         }
 
-        /* --- PERBAIKAN: KUNCI TINGGI KARTU DITINGGIKAN --- */
-        /* Tinggi dinaikkan jadi 180px agar diagram tidak berhimpit */
+        /* --- STYLING KARTU KPI --- */
+        /* Default Desktop: Tinggi 180px agar sejajar dengan diagram */
         .fixed-body {
-            height: 180px !important; 
+            height: 180px; 
             display: flex;
             flex-direction: column;
             justify-content: center;
             padding: 15px;
         }
         
+        /* Font Responsif untuk Desktop */
+        .kpi-value { font-size: clamp(1.5rem, 2.5vw, 2.5rem); line-height: 1.2; }
+        .kpi-label { font-size: 0.85rem; margin-bottom: 0.5rem; }
+
         .chart-container-fix {
-            position: relative;
-            width: 100%;
-            height: 100%; 
-            overflow: hidden;
+            position: relative; width: 100%; height: 100%; overflow: hidden;
         }
 
-        /* Ukuran Font Responsive untuk KPI */
-        .kpi-value { font-size: clamp(1.5rem, 2.5vw, 2.5rem); }
+        /* --- MOBILE TWEAKS (Layak < 768px) --- */
+        @media (max-width: 767.98px) {
+            /* Khusus Kartu Teks (Hijau/Merah/Biru) jadi PENDEK di HP */
+            .fixed-body.kpi-text-card {
+                height: 100px !important; /* Lebih pendek (Compact) */
+                padding: 10px 15px !important;
+            }
+            
+            /* Font Label mengecil */
+            .kpi-label { 
+                font-size: 0.7rem !important; 
+                margin-bottom: 0px !important; 
+                opacity: 0.9;
+            }
+
+            /* Font Angka mengecil agar muat */
+            .kpi-value { 
+                font-size: 1.4rem !important; 
+                font-weight: 800;
+            }
+
+            /* Kartu Diagram tetap agak tinggi di HP agar chart terlihat */
+            .fixed-body.chart-card-mobile {
+                height: 220px !important; /* Beri ruang untuk chart di HP */
+            }
+        }
 
         /* --- TOAST --- */
         .toast-container { z-index: 99999; display: flex; flex-direction: column; gap: 10px; padding-right: 20px; }
@@ -189,24 +214,24 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <div class="card text-white bg-success shadow-sm border-0">
-                                <div class="card-body fixed-body">
-                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Pemasukan Bersih</div>
+                                <div class="card-body fixed-body kpi-text-card">
+                                    <div class="text-uppercase fw-bold opacity-75 small kpi-label">Pemasukan Bersih</div>
                                     <div class="fw-bold kpi-value">Rp {{ sum_clean.income }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card text-white bg-danger shadow-sm border-0">
-                                <div class="card-body fixed-body">
-                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Pengeluaran Bersih</div>
+                                <div class="card-body fixed-body kpi-text-card">
+                                    <div class="text-uppercase fw-bold opacity-75 small kpi-label">Pengeluaran Bersih</div>
                                     <div class="fw-bold kpi-value">Rp {{ sum_clean.expense }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card text-white bg-primary shadow-sm border-0 opacity-75">
-                                <div class="card-body fixed-body">
-                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Sisa Saldo (Real)</div>
+                                <div class="card-body fixed-body kpi-text-card">
+                                    <div class="text-uppercase fw-bold opacity-75 small kpi-label">Sisa Saldo (Real)</div>
                                     <div class="fw-bold kpi-value">Rp {{ sum_clean.balance }}</div>
                                 </div>
                             </div>
@@ -216,7 +241,7 @@
 
                 <div class="col-xl-5 col-lg-5">
                     <div class="card shadow-sm border-0 w-100">
-                        <div class="card-body fixed-body">
+                        <div class="card-body fixed-body chart-card-mobile">
                             <div class="text-uppercase fw-bold opacity-75 small mb-2 text-muted text-center w-100">Perbandingan (Bersih)</div>
                             <div class="chart-container-fix">
                                 <canvas id="barCompareClean"></canvas>
@@ -251,24 +276,24 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <div class="card bg-success shadow-sm border-0" style="--bs-bg-opacity: .8; color: white;">
-                                <div class="card-body fixed-body">
-                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Total Pemasukan</div>
+                                <div class="card-body fixed-body kpi-text-card">
+                                    <div class="text-uppercase fw-bold opacity-75 small kpi-label">Total Pemasukan</div>
                                     <div class="fw-bold kpi-value">Rp {{ sum_kotor.income }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-danger shadow-sm border-0" style="--bs-bg-opacity: .8; color: white;">
-                                <div class="card-body fixed-body">
-                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Total Pengeluaran</div>
+                                <div class="card-body fixed-body kpi-text-card">
+                                    <div class="text-uppercase fw-bold opacity-75 small kpi-label">Total Pengeluaran</div>
                                     <div class="fw-bold kpi-value">Rp {{ sum_kotor.expense }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="card bg-primary shadow-sm border-0" style="--bs-bg-opacity: .8; color: white;">
-                                <div class="card-body fixed-body">
-                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Sisa Saldo</div>
+                                <div class="card-body fixed-body kpi-text-card">
+                                    <div class="text-uppercase fw-bold opacity-75 small kpi-label">Sisa Saldo</div>
                                     <div class="fw-bold kpi-value">Rp {{ sum_kotor.balance }}</div>
                                 </div>
                             </div>
@@ -278,7 +303,7 @@
 
                 <div class="col-xl-5 col-lg-5">
                     <div class="card shadow-sm border-0 w-100">
-                        <div class="card-body fixed-body">
+                        <div class="card-body fixed-body chart-card-mobile">
                             <div class="text-uppercase fw-bold opacity-75 small mb-2 text-muted text-center w-100">Perbandingan (Kotor)</div>
                             <div class="chart-container-fix">
                                 <canvas id="barCompareDirty"></canvas>
@@ -394,7 +419,6 @@
                         data: [incVal, expVal, balVal],
                         backgroundColor: ['#198754', '#dc3545', '#0d6efd'],
                         borderRadius: 5, 
-                        /* PERBAIKAN: Hapus barThickness fix, gunakan maxBarThickness agar responsif */
                         maxBarThickness: 40 
                     }]
                 },
