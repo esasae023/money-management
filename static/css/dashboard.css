@@ -1,0 +1,37 @@
+/* --- STYLING KARTU KPI --- */
+.fixed-body {
+    height: 180px; 
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 15px;
+}
+.kpi-value { font-size: clamp(1.5rem, 2.5vw, 2.5rem); line-height: 1.2; }
+.kpi-label { font-size: 0.85rem; margin-bottom: 0.5rem; }
+
+.chart-container-fix {
+    position: relative; width: 100%; height: 100%; overflow: hidden;
+}
+
+/* --- GLASS MORPHISM PANEL --- */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); border-radius: 50px;
+}
+.tgl-btn {
+    border: none; background: transparent; padding: 10px 20px;
+    border-radius: 50px; font-weight: 600; color: #444; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem;
+}
+.tgl-btn:hover { background: rgba(255, 255, 255, 0.3); }
+.tgl-btn.active {
+    background: rgba(255, 255, 255, 0.85); color: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transform: scale(1.05);
+}
+
+/* --- MOBILE TWEAKS --- */
+@media (max-width: 767.98px) {
+    .fixed-body.kpi-text-card {
+        height: 100px !important; padding: 10px 15px !important;
+    }
+    .kpi-label { font-size: 0.7rem !important; margin-bottom: 0px !important; opacity: 0.9; }
+    .kpi-value { font-size: 1.4rem !important; font-weight: 800; }
+    .fixed-body.chart-card-mobile { height: 220px !important; }
+}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+<div class="row justify-content-center align-items-center login-wrapper">
     <div class="col-md-4">
         <div class="card shadow-lg border-0">
             <div class="card-header bg-dark text-white text-center py-3">
@@ -34,13 +34,4 @@
         </div>
     </div>
 </div>
-
-<script>
-    // Setiap kali halaman Login terbuka, hapus ingatan posisi sidebar
-    sessionStorage.removeItem('sidebarState');
-    
-    // Hapus class expand di body jika masih menempel
-    document.body.classList.remove('sb-expanded');
-</script>
-
 {% endblock %}

@@ -1,0 +1,252 @@
+/* =========================================
+   1. GLOBAL STYLES & RESET
+   ========================================= */
+body {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Mencegah transisi sidebar saat halaman pertama kali dimuat */
+body.preload * {
+    transition: none !important;
+}
+
+/* =========================================
+   2. SIDEBAR (DESKTOP)
+   ========================================= */
+.sidebar {
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    background-color: #212529;
+    width: 70px; /* Lebar saat collapsed */
+    transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap;
+}
+
+/* Teks menu (hilang saat collapsed) */
+.sidebar-text {
+    margin-left: 15px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Tombol Hamburger di atas sidebar */
+.toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    padding: 15px 20px;
+    cursor: pointer;
+    text-align: left;
+    border-bottom: 1px solid #444;
+    display: flex;
+    align-items: center;
+    height: 70px;
+    margin-bottom: 10px;
+}
+
+/* Link Menu */
+.sidebar a {
+    text-decoration: none;
+    color: #ccc;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+    height: 55px;
+}
+
+.sidebar a:hover, 
+.sidebar a.active {
+    background-color: #343a40;
+    color: white;
+    border-left: 4px solid #0d6efd;
+}
+
+.sidebar i {
+    font-size: 1.4rem;
+    min-width: 30px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+/* --- STATE: EXPANDED (Sidebar Terbuka) --- */
+body.sb-expanded .sidebar {
+    width: 250px;
+}
+body.sb-expanded .sidebar-text {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.1s;
+}
+
+/* =========================================
+   3. MAIN CONTENT AREA
+   ========================================= */
+.main-content {
+    padding: 20px;
+    margin-bottom: 70px; /* Space untuk mobile nav */
+    margin-left: 70px;   /* Sesuai lebar sidebar collapsed */
+    transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+body.sb-expanded .main-content {
+    margin-left: 250px; /* Geser konten saat sidebar buka */
+}
+
+/* =========================================
+   4. TOAST NOTIFICATION (ANIMASI)
+   ========================================= */
+.toast-container {
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-right: 20px;
+}
+
+.custom-toast {
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    overflow: hidden;
+    position: relative;
+    min-width: 300px;
+    
+    /* State Awal: Hidden di kanan */
+    opacity: 0;
+    transform: translateX(120%);
+    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* State Aktif: Muncul */
+.custom-toast.active-toast {
+    opacity: 1 !important;
+    transform: translate(0, 0) !important;
+}
+
+/* Garis Timer Berjalan */
+.toast-timer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.6);
+    width: 100%;
+    animation: shrink 5s linear forwards;
+}
+
+@keyframes shrink {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* =========================================
+   5. PAGE SPECIFIC STYLES
+   ========================================= */
+
+/* Halaman Login */
+.login-wrapper {
+    min-height: 80vh;
+}
+
+/* Halaman Home (Card Hover Effect) */
+.hover-effect {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s;
+}
+.hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+/* Halaman Profile */
+.profile-container {
+    max-width: 600px;
+}
+.profile-avatar {
+    width: 80px; 
+    height: 80px; 
+    font-size: 2rem;
+}
+
+/* Halaman Settings (Agar URL panjang tidak merusak layout) */
+.truncate-200 {
+    max-width: 200px;
+}
+
+/* =========================================
+   6. RESPONSIVE / MOBILE VIEW
+   ========================================= */
+@media (max-width: 767.98px) {
+    /* Sembunyikan Sidebar Desktop */
+    .sidebar { display: none !important; }
+    
+    /* Reset Margin Konten */
+    .main-content { margin-left: 0 !important; }
+    body.sb-expanded .main-content { margin-left: 0 !important; }
+    
+    /* Toast pindah ke atas tengah */
+    .toast-container {
+        padding-right: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        align-items: center;
+        padding-top: 10px;
+    }
+    .custom-toast {
+        width: 90%;
+        max-width: 400px;
+        transform: translateY(-150%); /* Hidden di atas */
+    }
+
+    /* Bottom Navigation Bar (Muncul di HP) */
+    .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #ffffff;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        height: 65px;
+        z-index: 1050;
+    }
+
+    .nav-item-mobile {
+        flex: 1;
+        text-align: center;
+        color: #6c757d;
+        text-decoration: none;
+        font-size: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .nav-item-mobile i {
+        font-size: 1.3rem;
+        margin-bottom: 2px;
+    }
+    .nav-item-mobile.active {
+        color: #0d6efd;
+        font-weight: bold;
+    }
+}
+
+/* Sembunyikan Bottom Nav di Desktop */
+@media (min-width: 768px) {
+    .mobile-bottom-nav { display: none !important; }
+}
