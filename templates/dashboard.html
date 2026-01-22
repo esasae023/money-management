@@ -1,223 +1,433 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>📊 {{ folder.name }}</h2>
-    <div class="dropdown">
-        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            🗓️ {{ selected_month }}
-        </button>
-        <ul class="dropdown-menu">
-            {% for sheet in sheet_list %}
-            <li><a class="dropdown-item" href="{{ url_for('dashboard', folder_id=folder.id, month=sheet) }}">{{ sheet }}</a></li>
-            {% endfor %}
-        </ul>
-        <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-secondary ms-2">⚙️ Config</a>
-    </div>
-</div>
-
-{% if error_msg %}
-<div class="alert alert-danger">{{ error_msg }}</div>
-{% endif %}
-
-<div id="section-clean" class="mb-5 border-bottom pb-4">
-    <h4 class="mb-3 text-success"><i class="bi bi-stars"></i> Dashboard Dana Bersih (Tanpa Hutang)</h4>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Manager</title>
     
-    <div class="row mb-4 g-3">
-        <div class="col-md-4">
-            <div class="card text-white bg-success h-100 hover-effect">
-                <div class="card-body">
-                    <h6 class="card-title">Pemasukan Bersih</h6>
-                    <h3 class="fw-bold">Rp {{ sum_clean.income }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-danger h-100 hover-effect">
-                <div class="card-body">
-                    <h6 class="card-title">Pengeluaran Bersih</h6>
-                    <h3 class="fw-bold">Rp {{ sum_clean.expense }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-primary h-100 hover-effect opacity-75">
-                <div class="card-body">
-                    <h6 class="card-title">Sisa Saldo (Real)</h6>
-                    <h3 class="fw-bold">Rp {{ sum_clean.balance }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header fw-bold text-success">📈 Trend Dana Bersih</div>
-        <div class="card-body"><div style="height: 400px; position: relative;"><canvas id="chartTrendClean"></canvas></div></div>
-    </div>
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="card h-100 border-success"><div class="card-header bg-success text-white">Pie Pemasukan (Bersih)</div>
-            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieIncClean"></canvas></div></div></div>
-        </div>
-        <div class="col-md-6 mb-3">
-            <div class="card h-100 border-danger"><div class="card-header bg-danger text-white">Pie Pengeluaran (Bersih)</div>
-            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieExpClean"></canvas></div></div></div>
-        </div>
-    </div>
-</div>
+    <style>
+        body { background-color: #f8f9fa; min-height: 100vh; overflow-x: hidden; }
+        body.preload * { transition: none !important; }
 
-<div id="section-dirty" class="mb-5">
-    <h4 class="mb-3 text-secondary"><i class="bi bi-wallet2"></i> Dashboard Dana Kotor (Semua)</h4>
-
-    <div class="row mb-4 g-3">
-        <div class="col-md-4">
-            <div class="card bg-success h-100 hover-effect" style="--bs-bg-opacity: .8; color: white;">
-                <div class="card-body">
-                    <h6 class="card-title">Total Pemasukan</h6>
-                    <h3 class="fw-bold">Rp {{ sum_kotor.income }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-danger h-100 hover-effect" style="--bs-bg-opacity: .8; color: white;">
-                <div class="card-body">
-                    <h6 class="card-title">Total Pengeluaran</h6>
-                    <h3 class="fw-bold">Rp {{ sum_kotor.expense }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-primary h-100 hover-effect" style="--bs-bg-opacity: .8; color: white;">
-                <div class="card-body">
-                    <h6 class="card-title">Sisa Saldo</h6>
-                    <h3 class="fw-bold">Rp {{ sum_kotor.balance }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header fw-bold text-secondary">📈 Trend Dana Kotor</div>
-        <div class="card-body"><div style="height: 400px; position: relative;"><canvas id="chartTrendDirty"></canvas></div></div>
-    </div>
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="card h-100"><div class="card-header bg-secondary text-white">Pie Pemasukan (Total)</div>
-            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieIncDirty"></canvas></div></div></div>
-        </div>
-        <div class="col-md-6 mb-3">
-            <div class="card h-100"><div class="card-header bg-secondary text-white">Pie Pengeluaran (Total)</div>
-            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieExpDirty"></canvas></div></div></div>
-        </div>
-    </div>
-</div>
-
-<div style="height: 80px;"></div>
-
-<div class="fixed-bottom d-flex justify-content-center" style="bottom: 80px; z-index: 9999; pointer-events: none;">
-    
-    <div class="glass-panel d-flex p-1" style="pointer-events: auto;">
-        
-        <style>
-            /* Efek Kaca (Glassmorphism) */
-            .glass-panel {
-                background: rgba(255, 255, 255, 0.25); /* Transparan */
-                backdrop-filter: blur(12px);            /* Efek Buram */
-                -webkit-backdrop-filter: blur(12px);    /* Support Safari */
-                border: 1px solid rgba(255, 255, 255, 0.4); /* Border tipis putih */
-                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); /* Bayangan lembut */
-                border-radius: 50px;
-            }
-
-            /* Tombol di dalam kaca */
-            .tgl-btn {
-                border: none;
-                background: transparent;
-                padding: 10px 20px;
-                border-radius: 50px;
-                font-weight: 600;
-                color: #444; /* Warna teks biasa */
-                cursor: pointer;
-                transition: all 0.3s ease;
-                font-size: 0.9rem;
-            }
-
-            /* Efek Hover */
-            .tgl-btn:hover {
-                background: rgba(255, 255, 255, 0.3);
-            }
-
-            /* State Active (Tombol yang dipilih) */
-            .tgl-btn.active {
-                background: rgba(255, 255, 255, 0.85); /* Putih susu hampir solid */
-                color: #000;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Sedikit menonjol */
-                transform: scale(1.05); /* Sedikit membesar */
-            }
-        </style>
-        
-        <button class="tgl-btn active" onclick="setMode('semua')" id="btnSemua">Semua</button>
-        <button class="tgl-btn" onclick="setMode('bersih')" id="btnBersih">Dana Bersih</button>
-        <button class="tgl-btn" onclick="setMode('kotor')" id="btnKotor">Dana Kotor</button>
-    </div>
-</div>
-
-<script>
-    // --- MODE SWITCHER LOGIC ---
-    function setMode(mode) {
-        const secClean = document.getElementById('section-clean');
-        const secDirty = document.getElementById('section-dirty');
-        
-        document.querySelectorAll('.tgl-btn').forEach(b => b.classList.remove('active'));
-
-        if (mode === 'semua') {
-            secClean.style.display = 'block';
-            secDirty.style.display = 'block';
-            document.getElementById('btnSemua').classList.add('active');
-        } else if (mode === 'bersih') {
-            secClean.style.display = 'block';
-            secDirty.style.display = 'none';
-            document.getElementById('btnBersih').classList.add('active');
-        } else if (mode === 'kotor') {
-            secClean.style.display = 'none';
-            secDirty.style.display = 'block';
-            document.getElementById('btnKotor').classList.add('active');
+        /* --- SIDEBAR --- */
+        .sidebar {
+            height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000;
+            background-color: #212529; width: 70px;
+            transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow-x: hidden; display: flex; flex-direction: column; white-space: nowrap;
         }
-    }
+        .main-content {
+            padding: 20px; margin-bottom: 70px; margin-left: 70px;
+            transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .sidebar-text {
+            margin-left: 15px; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
+        }
+        body.sb-expanded .sidebar { width: 250px; }
+        body.sb-expanded .main-content { margin-left: 250px; }
+        body.sb-expanded .sidebar-text { opacity: 1; pointer-events: auto; transition-delay: 0.1s; }
+
+        .sidebar a {
+            text-decoration: none; color: #ccc; padding: 15px 20px;
+            display: flex; align-items: center; transition: 0.2s; height: 55px;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #343a40; color: white; border-left: 4px solid #0d6efd;
+        }
+        .sidebar i { font-size: 1.4rem; min-width: 30px; text-align: center; display: flex; justify-content: center; }
+        .toggle-btn {
+            background: none; border: none; color: white; font-size: 1.5rem;
+            padding: 15px 20px; cursor: pointer; text-align: left;
+            border-bottom: 1px solid #444; display: flex; align-items: center;
+            height: 70px; margin-bottom: 10px;
+        }
+
+        /* --- TOAST NOTIFICATION --- */
+        .toast-container { z-index: 99999; display: flex; flex-direction: column; gap: 10px; padding-right: 20px; }
+        .custom-toast {
+            border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden; position: relative; min-width: 300px;
+            opacity: 0; transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform: translateX(120%);
+        }
+
+        @media (max-width: 767.98px) {
+            .toast-container { padding-right: 0; top: 0; left: 0; right: 0; width: 100%; align-items: center; padding-top: 10px; }
+            .custom-toast { width: 90%; max-width: 400px; transform: translateY(-150%); }
+        }
+
+        .custom-toast.active-toast { opacity: 1 !important; transform: translate(0, 0) !important; }
+        .toast-timer {
+            position: absolute; bottom: 0; left: 0; height: 4px;
+            background-color: rgba(255, 255, 255, 0.6); width: 100%; animation: shrink 5s linear forwards; 
+        }
+        @keyframes shrink { from { width: 100%; } to { width: 0%; } }
+
+        /* --- GLASS BUTTONS --- */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); border-radius: 50px;
+        }
+        .tgl-btn {
+            border: none; background: transparent; padding: 10px 20px;
+            border-radius: 50px; font-weight: 600; color: #444; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem;
+        }
+        .tgl-btn:hover { background: rgba(255, 255, 255, 0.3); }
+        .tgl-btn.active {
+            background: rgba(255, 255, 255, 0.85); color: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transform: scale(1.05);
+        }
+
+        /* --- MOBILE NAV --- */
+        @media (max-width: 767.98px) {
+            .sidebar { display: none !important; }
+            .main-content { margin-left: 0 !important; }
+            body.sb-expanded .main-content { margin-left: 0 !important; }
+            .mobile-bottom-nav {
+                position: fixed; bottom: 0; left: 0; width: 100%;
+                background-color: #ffffff; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+                display: flex; justify-content: space-around; align-items: center;
+                height: 65px; z-index: 1050;
+            }
+            .nav-item-mobile {
+                flex: 1; text-align: center; color: #6c757d; text-decoration: none;
+                font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            }
+            .nav-item-mobile i { font-size: 1.3rem; margin-bottom: 2px; }
+            .nav-item-mobile.active { color: #0d6efd; font-weight: bold; }
+        }
+        @media (min-width: 768px) { .mobile-bottom-nav { display: none !important; } }
+    </style>
+</head>
+
+<body class="preload">
     
-    // Default: Semua
-    setMode('semua');
+    <script>
+        (function() {
+            const state = sessionStorage.getItem('sidebarState');
+            if (state === 'expanded') { document.body.classList.add('sb-expanded'); }
+        })();
+    </script>
 
-    // --- CHART GENERATORS ---
-    function renderLine(id, labels, inc, exp) {
-        new Chart(document.getElementById(id), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: 'Masuk', data: inc, borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)', tension: 0.3, fill: true },
-                    { label: 'Keluar', data: exp, borderColor: '#dc3545', backgroundColor: 'rgba(220, 53, 69, 0.1)', tension: 0.3, fill: true }
-                ]
-            }, options: { responsive: true, maintainAspectRatio: false }
+    {% if current_user.is_authenticated %}
+    <div id="sidebar" class="sidebar">
+        <button class="toggle-btn" onclick="toggleSidebar()"><i class="bi bi-list"></i><span class="sidebar-text fw-bold">Money Mgr</span></button>
+        <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint == 'home' else '' }}"><i class="bi bi-house-door"></i><span class="sidebar-text">Dashboard</span></a>
+        <a href="{{ url_for('settings_global') }}" class="{{ 'active' if request.endpoint == 'settings_global' else '' }}"><i class="bi bi-key"></i><span class="sidebar-text">API Key</span></a>
+        <div class="flex-grow-1"></div>
+        <a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }} border-top border-secondary"><i class="bi bi-person-circle"></i><span class="sidebar-text">{{ current_user.username }}</span></a>
+    </div>
+
+    <nav class="mobile-bottom-nav">
+        <a href="{{ url_for('home') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'home' else '' }}"><i class="bi bi-house-door-fill"></i><span>Home</span></a>
+        <a href="{{ url_for('settings_global') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'settings_global' else '' }}"><i class="bi bi-key-fill"></i><span>API Key</span></a>
+        <a href="{{ url_for('profile') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'profile' else '' }}"><i class="bi bi-person-circle"></i><span>{{ current_user.username }}</span></a>
+    </nav>
+    {% endif %}
+
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>📊 {{ folder.name }}</h2>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">🗓️ {{ selected_month }}</button>
+                <ul class="dropdown-menu">
+                    {% for sheet in sheet_list %}<li><a class="dropdown-item" href="{{ url_for('dashboard', folder_id=folder.id, month=sheet) }}">{{ sheet }}</a></li>{% endfor %}
+                </ul>
+                <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-secondary ms-2">⚙️ Config</a>
+            </div>
+        </div>
+
+        {% if error_msg %}<div class="alert alert-danger">{{ error_msg }}</div>{% endif %}
+
+        <div class="toast-container position-fixed top-0 end-0 mt-3">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        {% set bg_class = 'text-bg-success' if category == 'success' else 'text-bg-danger' if category == 'danger' else 'text-bg-primary' %}
+                        <div class="custom-toast align-items-center {{ bg_class }} p-2 rounded" role="alert">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="toast-body fw-bold text-white d-flex align-items-center px-2">
+                                    {% if category == 'success' %}<i class="bi bi-check-circle-fill me-2 fs-5"></i>{% else %}<i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>{% endif %}
+                                    {{ message }}
+                                </div>
+                                <button type="button" class="btn btn-link text-white text-decoration-none fs-4 p-0 me-2 close-toast-btn"><i class="bi bi-x"></i></button>
+                            </div>
+                            <div class="toast-timer"></div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div id="section-clean" class="mb-5 border-bottom pb-4">
+            <h4 class="mb-3 text-success"><i class="bi bi-stars"></i> Dashboard Dana Bersih (Tanpa Hutang)</h4>
+            
+            <div class="row g-3 mb-4 align-items-stretch">
+                <div class="col-lg-8 d-flex flex-column">
+                    <div class="row g-3 h-100">
+                        <div class="col-md-4">
+                            <div class="card text-white bg-success h-100 hover-effect shadow-sm">
+                                <div class="card-body d-flex flex-column justify-content-center">
+                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Pemasukan Bersih</div>
+                                    <div class="fw-bold fs-2">Rp {{ sum_clean.income }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-white bg-danger h-100 hover-effect shadow-sm">
+                                <div class="card-body d-flex flex-column justify-content-center">
+                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Pengeluaran Bersih</div>
+                                    <div class="fw-bold fs-2">Rp {{ sum_clean.expense }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-white bg-primary h-100 hover-effect opacity-75 shadow-sm">
+                                <div class="card-body d-flex flex-column justify-content-center">
+                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Sisa Saldo (Real)</div>
+                                    <div class="fw-bold fs-2">Rp {{ sum_clean.balance }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 d-flex flex-column">
+                    <div class="card h-100 shadow-sm border-0 w-100">
+                        <div class="card-body p-2 d-flex flex-column">
+                            <h6 class="text-center text-muted text-uppercase small fw-bold mb-2">PERBANDINGAN (BERSIH)</h6>
+                            <div style="flex-grow: 1; position: relative; width: 100%; min-height: 0;">
+                                <canvas id="barCompareClean"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header fw-bold text-success">📈 Trend Dana Bersih</div>
+                <div class="card-body"><div style="height: 400px; position: relative;"><canvas id="chartTrendClean"></canvas></div></div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 border-success"><div class="card-header bg-success text-white">Pie Pemasukan (Bersih)</div>
+                    <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieIncClean"></canvas></div></div></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 border-danger"><div class="card-header bg-danger text-white">Pie Pengeluaran (Bersih)</div>
+                    <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieExpClean"></canvas></div></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-dirty" class="mb-5">
+            <h4 class="mb-3 text-secondary"><i class="bi bi-wallet2"></i> Dashboard Dana Kotor (Semua)</h4>
+
+            <div class="row g-3 mb-4 align-items-stretch">
+                <div class="col-lg-8 d-flex flex-column">
+                    <div class="row g-3 h-100">
+                        <div class="col-md-4">
+                            <div class="card bg-success h-100 hover-effect shadow-sm" style="--bs-bg-opacity: .8; color: white;">
+                                <div class="card-body d-flex flex-column justify-content-center">
+                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Total Pemasukan</div>
+                                    <div class="fw-bold fs-2">Rp {{ sum_kotor.income }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-danger h-100 hover-effect shadow-sm" style="--bs-bg-opacity: .8; color: white;">
+                                <div class="card-body d-flex flex-column justify-content-center">
+                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Total Pengeluaran</div>
+                                    <div class="fw-bold fs-2">Rp {{ sum_kotor.expense }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-primary h-100 hover-effect shadow-sm" style="--bs-bg-opacity: .8; color: white;">
+                                <div class="card-body d-flex flex-column justify-content-center">
+                                    <div class="text-uppercase fw-bold opacity-75 small mb-2">Sisa Saldo</div>
+                                    <div class="fw-bold fs-2">Rp {{ sum_kotor.balance }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 d-flex flex-column">
+                    <div class="card h-100 shadow-sm border-0 w-100">
+                        <div class="card-body p-2 d-flex flex-column">
+                            <h6 class="text-center text-muted text-uppercase small fw-bold mb-2">PERBANDINGAN (KOTOR)</h6>
+                            <div style="flex-grow: 1; position: relative; width: 100%; min-height: 0;">
+                                <canvas id="barCompareDirty"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header fw-bold text-secondary">📈 Trend Dana Kotor</div>
+                <div class="card-body"><div style="height: 400px; position: relative;"><canvas id="chartTrendDirty"></canvas></div></div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100"><div class="card-header bg-secondary text-white">Pie Pemasukan (Total)</div>
+                    <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieIncDirty"></canvas></div></div></div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100"><div class="card-header bg-secondary text-white">Pie Pengeluaran (Total)</div>
+                    <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieExpDirty"></canvas></div></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div style="height: 80px;"></div>
+
+        <div class="fixed-bottom d-flex justify-content-center" style="bottom: 80px; z-index: 9999; pointer-events: none;">
+            <div class="glass-panel d-flex p-1" style="pointer-events: auto;">
+                <button class="tgl-btn active" onclick="setMode('semua')" id="btnSemua">Semua</button>
+                <button class="tgl-btn" onclick="setMode('bersih')" id="btnBersih">Dana Bersih</button>
+                <button class="tgl-btn" onclick="setMode('kotor')" id="btnKotor">Dana Kotor</button>
+            </div>
+        </div>
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function toggleSidebar() {
+            document.body.classList.toggle('sb-expanded');
+            const isExpanded = document.body.classList.contains('sb-expanded');
+            sessionStorage.setItem('sidebarState', isExpanded ? 'expanded' : 'collapsed');
+        }
+
+        function setMode(mode) {
+            const secClean = document.getElementById('section-clean');
+            const secDirty = document.getElementById('section-dirty');
+            document.querySelectorAll('.tgl-btn').forEach(b => b.classList.remove('active'));
+            if (mode === 'semua') {
+                secClean.style.display = 'block'; secDirty.style.display = 'block';
+                document.getElementById('btnSemua').classList.add('active');
+            } else if (mode === 'bersih') {
+                secClean.style.display = 'block'; secDirty.style.display = 'none';
+                document.getElementById('btnBersih').classList.add('active');
+            } else if (mode === 'kotor') {
+                secClean.style.display = 'none'; secDirty.style.display = 'block';
+                document.getElementById('btnKotor').classList.add('active');
+            }
+        }
+        setMode('semua');
+
+        window.addEventListener('load', () => {
+            document.body.classList.remove('preload');
+            const toasts = document.querySelectorAll('.custom-toast');
+            toasts.forEach(t => {
+                setTimeout(() => { t.classList.add('active-toast'); }, 100);
+                const closeToast = () => {
+                    t.classList.remove('active-toast');
+                    setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, 600); 
+                };
+                const autoCloseTimer = setTimeout(closeToast, 5000);
+                const closeBtn = t.querySelector('.close-toast-btn');
+                if (closeBtn) { closeBtn.addEventListener('click', () => { clearTimeout(autoCloseTimer); closeToast(); }); }
+            });
         });
-    }
 
-    function renderPie(id, labels, data, colors) {
-        new Chart(document.getElementById(id), {
-            type: 'doughnut',
-            data: { labels: labels, datasets: [{ data: data, backgroundColor: colors }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
-        });
-    }
+        function renderLine(id, labels, inc, exp) {
+            new Chart(document.getElementById(id), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Masuk', data: inc, borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)', tension: 0.3, fill: true },
+                        { label: 'Keluar', data: exp, borderColor: '#dc3545', backgroundColor: 'rgba(220, 53, 69, 0.1)', tension: 0.3, fill: true }
+                    ]
+                }, options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
 
-    // 1. Render Clean Charts
-    renderLine('chartTrendClean', {{ chart_clean.labels|tojson }}, {{ chart_clean.income|tojson }}, {{ chart_clean.expense|tojson }});
-    renderPie('pieIncClean', {{ pie_data.clean_inc.labels|tojson }}, {{ pie_data.clean_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
-    renderPie('pieExpClean', {{ pie_data.clean_exp.labels|tojson }}, {{ pie_data.clean_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
+        function renderPie(id, labels, data, colors) {
+            new Chart(document.getElementById(id), {
+                type: 'doughnut',
+                data: { labels: labels, datasets: [{ data: data, backgroundColor: colors }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+        }
 
-    // 2. Render Dirty Charts
-    renderLine('chartTrendDirty', {{ chart_dirty.labels|tojson }}, {{ chart_dirty.income|tojson }}, {{ chart_dirty.expense|tojson }});
-    renderPie('pieIncDirty', {{ pie_data.dirty_inc.labels|tojson }}, {{ pie_data.dirty_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
-    renderPie('pieExpDirty', {{ pie_data.dirty_exp.labels|tojson }}, {{ pie_data.dirty_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
-</script>
-{% endblock %}
+        function renderBarCompare(id, income, expense, balance) {
+            const parseIdr = (str) => { if(!str) return 0; return parseFloat(str.toString().replace(/[^0-9,-]/g, '').replace(',', '.')); };
+            const incVal = parseIdr(income);
+            const expVal = parseIdr(expense);
+            const balVal = parseIdr(balance);
+
+            new Chart(document.getElementById(id), {
+                type: 'bar',
+                data: {
+                    labels: ['Masuk', 'Keluar', 'Saldo'],
+                    datasets: [{
+                        data: [incVal, expVal, balVal],
+                        backgroundColor: ['#198754', '#dc3545', '#0d6efd'],
+                        borderRadius: 5, barThickness: 30
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    let val = ctx.raw;
+                                    let percent = incVal > 0 ? ((val / incVal) * 100).toFixed(1) + '%' : '0%';
+                                    return `Rp ${val.toLocaleString('id-ID')} (${percent})`;
+                                }
+                            }
+                        }
+                    },
+                    scales: { x: { display: false }, y: { grid: { display: false } } },
+                },
+                plugins: [{
+                    id: 'percentLabel',
+                    afterDatasetsDraw(chart) {
+                        const { ctx } = chart;
+                        chart.data.datasets.forEach((dataset, i) => {
+                            const meta = chart.getDatasetMeta(i);
+                            meta.data.forEach((bar, index) => {
+                                const value = dataset.data[index];
+                                let percent = incVal > 0 ? (value / incVal * 100).toFixed(1) + '%' : '0%';
+                                ctx.font = 'bold 11px sans-serif';
+                                ctx.fillStyle = '#666';
+                                ctx.textAlign = 'left';
+                                ctx.textBaseline = 'middle';
+                                const xPos = bar.x + 5; const yPos = bar.y;
+                                ctx.fillText(percent, xPos, yPos);
+                            });
+                        });
+                    }
+                }]
+            });
+        }
+
+        renderLine('chartTrendClean', {{ chart_clean.labels|tojson }}, {{ chart_clean.income|tojson }}, {{ chart_clean.expense|tojson }});
+        renderPie('pieIncClean', {{ pie_data.clean_inc.labels|tojson }}, {{ pie_data.clean_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
+        renderPie('pieExpClean', {{ pie_data.clean_exp.labels|tojson }}, {{ pie_data.clean_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
+        renderBarCompare('barCompareClean', '{{ sum_clean.income }}', '{{ sum_clean.expense }}', '{{ sum_clean.balance }}');
+
+        renderLine('chartTrendDirty', {{ chart_dirty.labels|tojson }}, {{ chart_dirty.income|tojson }}, {{ chart_dirty.expense|tojson }});
+        renderPie('pieIncDirty', {{ pie_data.dirty_inc.labels|tojson }}, {{ pie_data.dirty_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
+        renderPie('pieExpDirty', {{ pie_data.dirty_exp.labels|tojson }}, {{ pie_data.dirty_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
+        renderBarCompare('barCompareDirty', '{{ sum_kotor.income }}', '{{ sum_kotor.expense }}', '{{ sum_kotor.balance }}');
+    </script>
+</body>
+</html>
