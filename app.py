@@ -2,7 +2,7 @@ import os
 import json
 import pandas as pd
 import gspread
-from datetime import timedelta  # <--- IMPORT PENTING
+from datetime import timedelta
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread.utils import a1_to_rowcol
 from flask import Flask, render_template, request, redirect, url_for, flash, abort, session
@@ -18,23 +18,27 @@ app.config['SECRET_KEY'] = 'rahasia_banget_123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///money_manager.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# --- CONFIG SESSION TIMEOUT 30 MENIT ---
+# Session Timeout 30 Menit
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
 db.init_app(app)
 bcrypt = Bcrypt(app)
+
+# --- KONFIGURASI FLASK LOGIN ---
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
+# [BARU] Terjemahkan pesan "Please log in..." ke Bahasa Indonesia
+login_manager.login_message = "Silakan login untuk mengakses halaman ini."
+login_manager.login_message_category = "danger"  # Agar alert berwarna merah
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# --- FUNGSI AGAR SESSION DI-RESET SETIAP ADA AKTIVITAS ---
 @app.before_request
 def make_session_permanent():
     session.permanent = True
-    # Timer akan di-reset ke 30 menit lagi setiap user membuka halaman baru
 
 def get_google_client():
     if not current_user.is_authenticated: return None
@@ -53,7 +57,7 @@ def get_google_client():
 
 def fetch_sheet_data(folder, sheet_name):
     client = get_google_client()
-    if not client: return None, {}, {}, {}, {}, {}, {}, "Google Account belum disetting."
+    if not client: return None, {}, {}, {}, {}, {}, {}, "Akun Google belum diatur."
     
     try:
         sheet = client.open_by_url(folder.spreadsheet_url)
@@ -85,14 +89,13 @@ def fetch_sheet_data(folder, sheet_name):
                     total += get_cell_value(cell)
             return total
 
-        # 1. SUMMARY KOTOR
+        # Summary
         sum_kotor = {
             'income': f"{get_cell_value(folder.cell_addr_income):,.0f}",
             'expense': f"{get_cell_value(folder.cell_addr_expense):,.0f}",
             'balance': f"{get_cell_value(folder.cell_addr_balance):,.0f}"
         }
         
-        # 2. SUMMARY BERSIH
         clean_inc_val = sum_cells(folder.clean_income_cells)
         clean_exp_val = sum_cells(folder.clean_expense_cells)
         sum_clean = {
@@ -101,7 +104,7 @@ def fetch_sheet_data(folder, sheet_name):
             'balance': sum_kotor['balance']
         }
 
-        # 3. PIE CHART DATA
+        # Pie Chart
         pie_data = {
             'clean_inc': {'labels': [], 'data': []},
             'clean_exp': {'labels': [], 'data': []},
@@ -112,7 +115,6 @@ def fetch_sheet_data(folder, sheet_name):
         for cat in folder.categories:
             val = get_cell_value(cat.cell_addr)
             if val > 0:
-                # Dirty (Semua)
                 if cat.type == 'income':
                     pie_data['dirty_inc']['labels'].append(cat.name)
                     pie_data['dirty_inc']['data'].append(val)
@@ -120,7 +122,6 @@ def fetch_sheet_data(folder, sheet_name):
                     pie_data['dirty_exp']['labels'].append(cat.name)
                     pie_data['dirty_exp']['data'].append(val)
                 
-                # Clean (Filter is_clean)
                 if cat.is_clean:
                     if cat.type == 'income':
                         pie_data['clean_inc']['labels'].append(cat.name)
@@ -129,9 +130,9 @@ def fetch_sheet_data(folder, sheet_name):
                         pie_data['clean_exp']['labels'].append(cat.name)
                         pie_data['clean_exp']['data'].append(val)
 
-        # 4. TREND CHART DATA (Filter Logic)
-        df_dirty = pd.DataFrame() # Untuk Kotor
-        df_clean = pd.DataFrame() # Untuk Bersih
+        # Trend Chart
+        df_dirty = pd.DataFrame()
+        df_clean = pd.DataFrame()
         
         header_index = 0
         found = False
@@ -142,10 +143,8 @@ def fetch_sheet_data(folder, sheet_name):
                 break
         
         if found and len(raw_data) > header_index + 1:
-            # Buat DF Dasar
             df = pd.DataFrame(raw_data[header_index+1:], columns=raw_data[header_index])
             
-            # Konversi Angka & Tanggal
             if folder.col_income in df.columns:
                 df[folder.col_income] = df[folder.col_income].apply(clean_indo_number)
             if folder.col_expense in df.columns:
@@ -153,21 +152,16 @@ def fetch_sheet_data(folder, sheet_name):
             
             df[folder.col_date] = pd.to_datetime(df[folder.col_date], errors='coerce')
             
-            # --- DF KOTOR (Ambil Semua) ---
             df_dirty = df.copy()
-
-            # --- DF BERSIH (Filter Buang Hutang) ---
             df_clean = df.copy()
             keywords = [k.strip().lower() for k in folder.debt_keywords.split(',') if k.strip()]
             
-            # Filter Pemasukan Bersih
             if folder.col_source_income in df_clean.columns:
                 mask_debt_inc = df_clean[folder.col_source_income].astype(str).str.lower().apply(
                     lambda x: any(k in x for k in keywords)
                 )
                 df_clean.loc[mask_debt_inc, folder.col_income] = 0
 
-            # Filter Pengeluaran Bersih
             if folder.col_source_expense in df_clean.columns:
                 mask_debt_exp = df_clean[folder.col_source_expense].astype(str).str.lower().apply(
                     lambda x: any(k in x for k in keywords)
@@ -190,7 +184,8 @@ def login():
         if user and bcrypt.check_password_hash(user.password, request.form.get('password')):
             login_user(user)
             return redirect(url_for('home'))
-        flash('Login gagal', 'danger')
+        # FLASH MESSAGE BAHASA INDONESIA
+        flash('Login gagal. Periksa username atau password Anda.', 'danger')
     return render_template('login.html')
 
 @app.route('/logout')
@@ -203,11 +198,13 @@ def profile():
     if request.method == 'POST':
         new_password = request.form.get('new_password')
         if len(new_password) < 6:
+            # FLASH MESSAGE BAHASA INDONESIA
             flash('Gagal: Password minimal 6 karakter.', 'danger')
             return redirect(url_for('profile'))
         current_user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
         db.session.commit()
-        flash('Sukses: Password berhasil diubah!', 'success')
+        # FLASH MESSAGE BAHASA INDONESIA
+        flash('Berhasil: Password Anda telah diubah!', 'success')
         return redirect(url_for('profile'))
     return render_template('profile.html')
 
@@ -269,7 +266,8 @@ def folder_settings(folder_id):
         folder.clean_expense_cells = request.form['clean_expense_cells']
         
         db.session.commit()
-        flash('Pengaturan tersimpan.', 'success')
+        # FLASH MESSAGE BAHASA INDONESIA
+        flash('Pengaturan berhasil disimpan.', 'success')
         return redirect(url_for('folder_settings', folder_id=folder.id))
     
     cats_income = [c for c in folder.categories if c.type == 'income']
@@ -289,7 +287,9 @@ def add_category(folder_id):
         new_cat = CategoryMap(folder_id=folder.id, name=name, cell_addr=addr, type=tipe, is_clean=is_clean)
         db.session.add(new_cat)
         db.session.commit()
-        flash(f'Kategori {tipe} ditambahkan!', 'success')
+        # FLASH MESSAGE BAHASA INDONESIA
+        label = "Pemasukan" if tipe == 'income' else "Pengeluaran"
+        flash(f'Kategori {label} berhasil ditambahkan!', 'success')
     return redirect(url_for('folder_settings', folder_id=folder.id))
 
 @app.route('/category/delete/<int:cat_id>')
@@ -311,7 +311,6 @@ def dashboard(folder_id):
     sheet_list = folder.get_sheet_list()
     selected_month = request.args.get('month', sheet_list[0] if sheet_list else 'Sheet1')
     
-    # Inisialisasi Default Lengkap
     sum_kotor = {'income': 0, 'expense': 0, 'balance': 0}
     sum_clean = {'income': 0, 'expense': 0, 'balance': 0}
     
@@ -326,7 +325,6 @@ def dashboard(folder_id):
     }
     error_msg = None
 
-    # Fetch Data
     df_dirty, df_clean, kotor, clean, pies, err = fetch_sheet_data(folder, selected_month)
     
     if kotor: sum_kotor = kotor
@@ -340,7 +338,6 @@ def dashboard(folder_id):
         
     if err: error_msg = err
 
-    # Chart Kotor
     if df_dirty is not None and not df_dirty.empty:
         try:
             grp = df_dirty.groupby(df_dirty[folder.col_date].dt.date).sum(numeric_only=True).reset_index()
@@ -349,7 +346,6 @@ def dashboard(folder_id):
             chart_dirty['expense'] = grp[folder.col_expense].tolist() if folder.col_expense in grp else []
         except: pass
 
-    # Chart Bersih
     if df_clean is not None and not df_clean.empty:
         try:
             grp = df_clean.groupby(df_clean[folder.col_date].dt.date).sum(numeric_only=True).reset_index()
