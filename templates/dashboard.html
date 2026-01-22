@@ -39,7 +39,6 @@
         .sidebar a:hover, .sidebar a.active {
             background-color: #343a40; color: white; border-left: 4px solid #0d6efd;
         }
-        .sidebar i { font-size: 1.4rem; min-width: 30px; text-align: center; display: flex; justify-content: center; }
         .toggle-btn {
             background: none; border: none; color: white; font-size: 1.5rem;
             padding: 15px 20px; cursor: pointer; text-align: left;
@@ -47,7 +46,27 @@
             height: 70px; margin-bottom: 10px;
         }
 
-        /* --- TOAST NOTIFICATION --- */
+        /* --- PERBAIKAN: KUNCI TINGGI KARTU DITINGGIKAN --- */
+        /* Tinggi dinaikkan jadi 180px agar diagram tidak berhimpit */
+        .fixed-body {
+            height: 180px !important; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 15px;
+        }
+        
+        .chart-container-fix {
+            position: relative;
+            width: 100%;
+            height: 100%; 
+            overflow: hidden;
+        }
+
+        /* Ukuran Font Responsive untuk KPI */
+        .kpi-value { font-size: clamp(1.5rem, 2.5vw, 2.5rem); }
+
+        /* --- TOAST --- */
         .toast-container { z-index: 99999; display: flex; flex-direction: column; gap: 10px; padding-right: 20px; }
         .custom-toast {
             border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
@@ -55,12 +74,10 @@
             opacity: 0; transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             transform: translateX(120%);
         }
-
         @media (max-width: 767.98px) {
             .toast-container { padding-right: 0; top: 0; left: 0; right: 0; width: 100%; align-items: center; padding-top: 10px; }
             .custom-toast { width: 90%; max-width: 400px; transform: translateY(-150%); }
         }
-
         .custom-toast.active-toast { opacity: 1 !important; transform: translate(0, 0) !important; }
         .toast-timer {
             position: absolute; bottom: 0; left: 0; height: 4px;
@@ -68,7 +85,7 @@
         }
         @keyframes shrink { from { width: 100%; } to { width: 0%; } }
 
-        /* --- GLASS BUTTONS --- */
+        /* --- GLASS --- */
         .glass-panel {
             background: rgba(255, 255, 255, 0.25); backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4);
@@ -167,41 +184,41 @@
         <div id="section-clean" class="mb-5 border-bottom pb-4">
             <h4 class="mb-3 text-success"><i class="bi bi-stars"></i> Dashboard Dana Bersih (Tanpa Hutang)</h4>
             
-            <div class="row g-3 mb-4 align-items-stretch">
-                <div class="col-lg-8 d-flex flex-column">
-                    <div class="row g-3 h-100">
+            <div class="row g-3 mb-4">
+                <div class="col-xl-7 col-lg-7">
+                    <div class="row g-3">
                         <div class="col-md-4">
-                            <div class="card text-white bg-success h-100 hover-effect shadow-sm">
-                                <div class="card-body d-flex flex-column justify-content-center">
+                            <div class="card text-white bg-success shadow-sm border-0">
+                                <div class="card-body fixed-body">
                                     <div class="text-uppercase fw-bold opacity-75 small mb-2">Pemasukan Bersih</div>
-                                    <div class="fw-bold fs-2">Rp {{ sum_clean.income }}</div>
+                                    <div class="fw-bold kpi-value">Rp {{ sum_clean.income }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card text-white bg-danger h-100 hover-effect shadow-sm">
-                                <div class="card-body d-flex flex-column justify-content-center">
+                            <div class="card text-white bg-danger shadow-sm border-0">
+                                <div class="card-body fixed-body">
                                     <div class="text-uppercase fw-bold opacity-75 small mb-2">Pengeluaran Bersih</div>
-                                    <div class="fw-bold fs-2">Rp {{ sum_clean.expense }}</div>
+                                    <div class="fw-bold kpi-value">Rp {{ sum_clean.expense }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card text-white bg-primary h-100 hover-effect opacity-75 shadow-sm">
-                                <div class="card-body d-flex flex-column justify-content-center">
+                            <div class="card text-white bg-primary shadow-sm border-0 opacity-75">
+                                <div class="card-body fixed-body">
                                     <div class="text-uppercase fw-bold opacity-75 small mb-2">Sisa Saldo (Real)</div>
-                                    <div class="fw-bold fs-2">Rp {{ sum_clean.balance }}</div>
+                                    <div class="fw-bold kpi-value">Rp {{ sum_clean.balance }}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-4 d-flex flex-column">
-                    <div class="card h-100 shadow-sm border-0 w-100">
-                        <div class="card-body p-2 d-flex flex-column">
-                            <h6 class="text-center text-muted text-uppercase small fw-bold mb-2">PERBANDINGAN (BERSIH)</h6>
-                            <div style="flex-grow: 1; position: relative; width: 100%; min-height: 0;">
+                <div class="col-xl-5 col-lg-5">
+                    <div class="card shadow-sm border-0 w-100">
+                        <div class="card-body fixed-body">
+                            <div class="text-uppercase fw-bold opacity-75 small mb-2 text-muted text-center w-100">Perbandingan (Bersih)</div>
+                            <div class="chart-container-fix">
                                 <canvas id="barCompareClean"></canvas>
                             </div>
                         </div>
@@ -229,41 +246,41 @@
         <div id="section-dirty" class="mb-5">
             <h4 class="mb-3 text-secondary"><i class="bi bi-wallet2"></i> Dashboard Dana Kotor (Semua)</h4>
 
-            <div class="row g-3 mb-4 align-items-stretch">
-                <div class="col-lg-8 d-flex flex-column">
-                    <div class="row g-3 h-100">
+            <div class="row g-3 mb-4">
+                <div class="col-xl-7 col-lg-7">
+                    <div class="row g-3">
                         <div class="col-md-4">
-                            <div class="card bg-success h-100 hover-effect shadow-sm" style="--bs-bg-opacity: .8; color: white;">
-                                <div class="card-body d-flex flex-column justify-content-center">
+                            <div class="card bg-success shadow-sm border-0" style="--bs-bg-opacity: .8; color: white;">
+                                <div class="card-body fixed-body">
                                     <div class="text-uppercase fw-bold opacity-75 small mb-2">Total Pemasukan</div>
-                                    <div class="fw-bold fs-2">Rp {{ sum_kotor.income }}</div>
+                                    <div class="fw-bold kpi-value">Rp {{ sum_kotor.income }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card bg-danger h-100 hover-effect shadow-sm" style="--bs-bg-opacity: .8; color: white;">
-                                <div class="card-body d-flex flex-column justify-content-center">
+                            <div class="card bg-danger shadow-sm border-0" style="--bs-bg-opacity: .8; color: white;">
+                                <div class="card-body fixed-body">
                                     <div class="text-uppercase fw-bold opacity-75 small mb-2">Total Pengeluaran</div>
-                                    <div class="fw-bold fs-2">Rp {{ sum_kotor.expense }}</div>
+                                    <div class="fw-bold kpi-value">Rp {{ sum_kotor.expense }}</div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="card bg-primary h-100 hover-effect shadow-sm" style="--bs-bg-opacity: .8; color: white;">
-                                <div class="card-body d-flex flex-column justify-content-center">
+                            <div class="card bg-primary shadow-sm border-0" style="--bs-bg-opacity: .8; color: white;">
+                                <div class="card-body fixed-body">
                                     <div class="text-uppercase fw-bold opacity-75 small mb-2">Sisa Saldo</div>
-                                    <div class="fw-bold fs-2">Rp {{ sum_kotor.balance }}</div>
+                                    <div class="fw-bold kpi-value">Rp {{ sum_kotor.balance }}</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-lg-4 d-flex flex-column">
-                    <div class="card h-100 shadow-sm border-0 w-100">
-                        <div class="card-body p-2 d-flex flex-column">
-                            <h6 class="text-center text-muted text-uppercase small fw-bold mb-2">PERBANDINGAN (KOTOR)</h6>
-                            <div style="flex-grow: 1; position: relative; width: 100%; min-height: 0;">
+                <div class="col-xl-5 col-lg-5">
+                    <div class="card shadow-sm border-0 w-100">
+                        <div class="card-body fixed-body">
+                            <div class="text-uppercase fw-bold opacity-75 small mb-2 text-muted text-center w-100">Perbandingan (Kotor)</div>
+                            <div class="chart-container-fix">
                                 <canvas id="barCompareDirty"></canvas>
                             </div>
                         </div>
@@ -376,13 +393,15 @@
                     datasets: [{
                         data: [incVal, expVal, balVal],
                         backgroundColor: ['#198754', '#dc3545', '#0d6efd'],
-                        borderRadius: 5, barThickness: 30
+                        borderRadius: 5, 
+                        /* PERBAIKAN: Hapus barThickness fix, gunakan maxBarThickness agar responsif */
+                        maxBarThickness: 40 
                     }]
                 },
                 options: {
                     indexAxis: 'y',
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: false, 
                     plugins: { 
                         legend: { display: false },
                         tooltip: {
