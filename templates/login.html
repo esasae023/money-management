@@ -1,28 +1,46 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
     <div class="col-md-4">
-        <div class="card">
-            <div class="card-header text-center bg-primary text-white">
-                <h4>Login User</h4>
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-dark text-white text-center py-3">
+                <h4 class="mb-0">💰 Money Manager</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form method="POST">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <label class="form-label text-muted small fw-bold">USERNAME</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                            <input type="text" name="username" class="form-control" required placeholder="Masukan username">
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">PASSWORD</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" class="form-control" required placeholder="Masukan password">
+                        </div>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Masuk</button>
+                        <button type="submit" class="btn btn-primary fw-bold">MASUK</button>
                     </div>
                 </form>
+            </div>
+            <div class="card-footer text-center bg-white py-3">
+                <small class="text-muted">&copy; 2026 Personal Finance App</small>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Setiap kali halaman Login terbuka, hapus ingatan posisi sidebar
+    sessionStorage.removeItem('sidebarState');
+    
+    // Hapus class expand di body jika masih menempel
+    document.body.classList.remove('sb-expanded');
+</script>
+
 {% endblock %}

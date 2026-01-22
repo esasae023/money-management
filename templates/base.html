@@ -16,42 +16,36 @@
             overflow-x: hidden;
         }
 
-        /* --- ANTI FLICKER: PRELOAD --- */
-        /* Matikan animasi saat halaman baru dimuat */
+        /* --- PRELOAD: Matikan animasi saat load awal --- */
         body.preload * {
             transition: none !important;
         }
 
         /* --- STYLES DEFAULT (COLLAPSED) --- */
-        /* Default Sidebar: Lebar 70px */
         .sidebar {
             height: 100vh;
             position: fixed;
             top: 0; left: 0; z-index: 1000;
             background-color: #212529;
-            width: 70px; /* Default */
+            width: 70px; /* Default Kecil */
             transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             overflow-x: hidden;
             display: flex; flex-direction: column; white-space: nowrap;
         }
 
-        /* Default Content: Margin 70px */
         .main-content {
             padding: 20px;
             margin-bottom: 70px;
-            margin-left: 70px; /* Default */
+            margin-left: 70px; /* Default Margin Kecil */
             transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         
-        /* Default Teks: Hidden */
         .sidebar-text {
             margin-left: 15px; opacity: 0; pointer-events: none;
             transition: opacity 0.2s ease-in-out;
         }
 
-        /* --- STATE: EXPANDED (Diaktifkan lewat Class di BODY) --- */
-        /* Jika body punya class 'sb-expanded', ubah properti anak-anaknya */
-        
+        /* --- STATE: EXPANDED (Diatur oleh JS Session) --- */
         body.sb-expanded .sidebar {
             width: 250px;
         }
@@ -88,7 +82,7 @@
         @media (max-width: 767.98px) {
             .sidebar { display: none !important; }
             .main-content { margin-left: 0 !important; }
-            body.sb-expanded .main-content { margin-left: 0 !important; } /* Reset override */
+            body.sb-expanded .main-content { margin-left: 0 !important; }
             
             .mobile-bottom-nav {
                 position: fixed; bottom: 0; left: 0; width: 100%;
@@ -105,7 +99,6 @@
             .nav-item-mobile.active { color: #0d6efd; font-weight: bold; }
         }
         
-        /* Desktop: Sembunyikan bottom nav */
         @media (min-width: 768px) {
             .mobile-bottom-nav { display: none !important; }
         }
@@ -116,9 +109,10 @@
     
     <script>
         (function() {
-            // Cek LocalStorage
-            const state = localStorage.getItem('sidebarState');
-            // Jika user sebelumnya expand, langsung pasang class ke body
+            // Gunakan sessionStorage (Hilang saat browser ditutup / tab baru)
+            const state = sessionStorage.getItem('sidebarState');
+            
+            // Hanya expand jika session bilang 'expanded'
             if (state === 'expanded') {
                 document.body.classList.add('sb-expanded');
             }
@@ -184,16 +178,15 @@
     
     <script>
         function toggleSidebar() {
-            // Toggle class langsung di BODY
+            // Toggle class
             document.body.classList.toggle('sb-expanded');
             
-            // Simpan state
+            // Simpan status ke sessionStorage (Hanya bertahan selama tab aktif)
             const isExpanded = document.body.classList.contains('sb-expanded');
-            localStorage.setItem('sidebarState', isExpanded ? 'expanded' : 'collapsed');
+            sessionStorage.setItem('sidebarState', isExpanded ? 'expanded' : 'collapsed');
         }
 
-        // Hapus class 'preload' setelah halaman selesai dirender
-        // Agar animasi transisi bisa jalan saat tombol diklik manual nanti
+        // Hapus class preload setelah halaman siap
         window.addEventListener('load', () => {
             document.body.classList.remove('preload');
         });
