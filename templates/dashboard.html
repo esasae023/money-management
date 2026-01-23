@@ -180,11 +180,24 @@
 
 <div style="height: 100px;"></div>
 
-<div class="fixed-bottom d-flex justify-content-center pb-4" style="bottom: 50px; z-index: 1040; pointer-events: none;">
-    <div class="glass-panel d-flex p-1 shadow" style="pointer-events: auto;">
-        <button class="tgl-btn active" onclick="setMode('semua')" id="btnSemua">Semua</button>
-        <button class="tgl-btn" onclick="setMode('bersih')" id="btnBersih">Dana Bersih</button>
-        <button class="tgl-btn" onclick="setMode('kotor')" id="btnKotor">Dana Kotor</button>
+<div class="glass-control-wrapper">
+    
+    <div class="glass-capsule-container shadow-sm position-relative">
+        
+        <div id="slidePill" class="slide-pill"></div>
+
+        <button class="glass-switch-btn" onclick="setMode('semua')" id="btnSemua">
+            Semua
+        </button>
+        
+        <button class="glass-switch-btn" onclick="setMode('bersih')" id="btnBersih">
+            <i class="bi bi-stars"></i> Bersih
+        </button>
+        
+        <button class="glass-switch-btn" onclick="setMode('kotor')" id="btnKotor">
+            <i class="bi bi-wallet2"></i> Kotor
+        </button>
+
     </div>
 </div>
 {% endblock %}
@@ -201,9 +214,9 @@
             setMode('semua');
         }
 
-        // --- RENDER GRAFIK (DATA DARI PYTHON DI-PASS KE SINI) ---
+        // --- RENDER GRAFIK ---
         try {
-            // 1. DANA BERSIH
+            // DANA BERSIH
             renderLine('chartTrendClean', 
                 {{ chart_clean.labels|tojson }}, 
                 {{ chart_clean.income|tojson }}, 
@@ -228,7 +241,7 @@
                 '{{ sum_clean.balance }}'
             );
 
-            // 2. DANA KOTOR
+            // DANA KOTOR
             renderLine('chartTrendDirty', 
                 {{ chart_dirty.labels|tojson }}, 
                 {{ chart_dirty.income|tojson }}, 
@@ -255,7 +268,6 @@
 
         } catch (error) {
             console.error("❌ Gagal render grafik:", error);
-            // Tidak perlu alert agar tidak mengganggu user jika error minor
         }
     });
 </script>

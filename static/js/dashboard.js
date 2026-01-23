@@ -1,14 +1,12 @@
 /**
  * static/js/dashboard.js
- * Berisi fungsi-fungsi untuk menggambar grafik dan mengatur tampilan (Mode).
  */
 
-// 1. Fungsi Render Grafik Garis (Trend)
+// 1. Fungsi Render Grafik Garis
 function renderLine(elementId, labels, dataIncome, dataExpense) {
     const ctx = document.getElementById(elementId);
-    if (!ctx) return; // Stop jika canvas tidak ditemukan
+    if (!ctx) return; 
 
-    // Hapus chart lama jika ada (mencegah tumpuk-menumpuk/flickering)
     const existingChart = Chart.getChart(ctx);
     if (existingChart) existingChart.destroy();
 
@@ -20,7 +18,7 @@ function renderLine(elementId, labels, dataIncome, dataExpense) {
                 {
                     label: 'Pemasukan',
                     data: dataIncome || [],
-                    borderColor: '#198754', // Hijau
+                    borderColor: '#198754', 
                     backgroundColor: 'rgba(25, 135, 84, 0.1)',
                     tension: 0.3,
                     fill: true
@@ -28,7 +26,7 @@ function renderLine(elementId, labels, dataIncome, dataExpense) {
                 {
                     label: 'Pengeluaran',
                     data: dataExpense || [],
-                    borderColor: '#dc3545', // Merah
+                    borderColor: '#dc3545', 
                     backgroundColor: 'rgba(220, 53, 69, 0.1)',
                     tension: 0.3,
                     fill: true
@@ -47,7 +45,7 @@ function renderLine(elementId, labels, dataIncome, dataExpense) {
     });
 }
 
-// 2. Fungsi Render Grafik Pie (Donat)
+// 2. Fungsi Render Grafik Pie
 function renderPie(elementId, labels, dataValues, colors) {
     const ctx = document.getElementById(elementId);
     if (!ctx) return;
@@ -55,9 +53,7 @@ function renderPie(elementId, labels, dataValues, colors) {
     const existingChart = Chart.getChart(ctx);
     if (existingChart) existingChart.destroy();
 
-    // Cek jika data kosong
     if (!dataValues || dataValues.length === 0 || dataValues.every(v => v === 0)) {
-        // Opsional: Tampilkan teks "No Data" atau biarkan kosong
         return; 
     }
 
@@ -81,7 +77,7 @@ function renderPie(elementId, labels, dataValues, colors) {
     });
 }
 
-// 3. Fungsi Render Bar Comparison (Masuk vs Keluar vs Saldo)
+// 3. Fungsi Render Bar Comparison
 function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const ctx = document.getElementById(elementId);
     if (!ctx) return;
@@ -89,10 +85,8 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const existingChart = Chart.getChart(ctx);
     if (existingChart) existingChart.destroy();
 
-    // Helper: Parse string "Rp 1.000.000" jadi float 1000000
     const parseIdr = (str) => {
         if (!str) return 0;
-        // Hapus "Rp", titik, dan spasi, ganti koma dengan titik (jika desimal)
         let clean = str.toString().replace(/[^0-9,-]/g, '').replace(',', '.');
         return parseFloat(clean) || 0;
     };
@@ -108,17 +102,13 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
             datasets: [{
                 label: 'Nominal',
                 data: [incVal, expVal, balVal],
-                backgroundColor: [
-                    '#198754', // Hijau
-                    '#dc3545', // Merah
-                    '#0d6efd'  // Biru
-                ],
+                backgroundColor: ['#198754', '#dc3545', '#0d6efd'],
                 borderRadius: 5,
                 maxBarThickness: 50
             }]
         },
         options: {
-            indexAxis: 'y', // Horizontal Bar
+            indexAxis: 'y', 
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -127,42 +117,65 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                     callbacks: {
                         label: function(context) {
                             let val = context.raw;
-                            // Format ulang ke Rupiah untuk tooltip
                             return "Rp " + val.toLocaleString('id-ID');
                         }
                     }
                 }
             },
-            scales: {
-                x: { display: false }, // Sembunyikan garis grid X
-                y: { grid: { display: false } } // Sembunyikan garis grid Y
-            }
+            scales: { x: { display: false }, y: { grid: { display: false } } }
         }
     });
 }
 
-// 4. Logic Ganti Mode (Semua / Bersih / Kotor)
+// 4. Logic Ganti Mode dengan Efek Sliding (Geser Background)
 function setMode(mode) {
     const secClean = document.getElementById('section-clean');
     const secDirty = document.getElementById('section-dirty');
     
-    // Reset tombol active
-    document.querySelectorAll('.tgl-btn').forEach(b => b.classList.remove('active'));
+    // 1. Reset: Hapus class active dari SEMUA tombol switch
+    document.querySelectorAll('.glass-switch-btn').forEach(b => b.classList.remove('active'));
     
+    // 2. Tentukan Tombol Aktif & Atur Section
+    let activeBtnId = '';
+
     if (mode === 'semua') {
         if(secClean) secClean.style.display = 'block'; 
         if(secDirty) secDirty.style.display = 'block';
-        const btn = document.getElementById('btnSemua');
-        if(btn) btn.classList.add('active');
+        activeBtnId = 'btnSemua';
     } else if (mode === 'bersih') {
         if(secClean) secClean.style.display = 'block'; 
         if(secDirty) secDirty.style.display = 'none';
-        const btn = document.getElementById('btnBersih');
-        if(btn) btn.classList.add('active');
+        activeBtnId = 'btnBersih';
     } else if (mode === 'kotor') {
         if(secClean) secClean.style.display = 'none'; 
         if(secDirty) secDirty.style.display = 'block';
-        const btn = document.getElementById('btnKotor');
-        if(btn) btn.classList.add('active');
+        activeBtnId = 'btnKotor';
+    }
+
+    // 3. Tambah class active & Jalankan Animasi Slide
+    const btn = document.getElementById(activeBtnId);
+    if(btn) {
+        btn.classList.add('active');
+        movePill(btn); // Fungsi geser background
     }
 }
+
+// Helper: Menggeser Background Putih (Slide Pill)
+function movePill(targetBtn) {
+    const pill = document.getElementById('slidePill');
+    if (pill && targetBtn) {
+        // Ambil lebar dan posisi tombol yang diklik
+        const width = targetBtn.offsetWidth;
+        const left = targetBtn.offsetLeft;
+        
+        // Terapkan ke pill
+        pill.style.width = `${width}px`;
+        pill.style.left = `${left}px`; // Geser pill ke posisi tombol
+    }
+}
+
+// Tambahkan event listener agar saat layar di-resize, pill tetap pas
+window.addEventListener('resize', () => {
+    const activeBtn = document.querySelector('.glass-switch-btn.active');
+    if(activeBtn) movePill(activeBtn);
+});

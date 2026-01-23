@@ -4,10 +4,9 @@
 body {
     background-color: #f8f9fa;
     min-height: 100vh;
-    overflow-x: hidden; /* Mencegah scroll horizontal jika ada elemen melebar */
+    overflow-x: hidden;
 }
 
-/* Mencegah transisi sidebar berkedip saat halaman pertama kali dimuat */
 body.preload * {
     transition: none !important;
 }
@@ -22,7 +21,7 @@ body.preload * {
     left: 0;
     z-index: 1000;
     background-color: #212529;
-    width: 70px; /* Lebar saat kuncup (collapsed) */
+    width: 70px;
     transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     overflow-x: hidden;
     display: flex;
@@ -30,7 +29,6 @@ body.preload * {
     white-space: nowrap;
 }
 
-/* Teks menu (sembunyi saat collapsed) */
 .sidebar-text {
     margin-left: 15px;
     opacity: 0;
@@ -38,7 +36,6 @@ body.preload * {
     transition: opacity 0.2s ease-in-out;
 }
 
-/* Tombol Hamburger di pojok kiri atas */
 .toggle-btn {
     background: none;
     border: none;
@@ -54,7 +51,6 @@ body.preload * {
     margin-bottom: 10px;
 }
 
-/* Link Menu Sidebar */
 .sidebar a {
     text-decoration: none;
     color: #ccc;
@@ -80,207 +76,160 @@ body.preload * {
     justify-content: center;
 }
 
-/* --- STATE: EXPANDED (Sidebar Terbuka) --- */
-body.sb-expanded .sidebar {
-    width: 250px;
-}
-body.sb-expanded .sidebar-text {
-    opacity: 1;
-    pointer-events: auto;
-    transition-delay: 0.1s;
-}
+/* State Expanded */
+body.sb-expanded .sidebar { width: 250px; }
+body.sb-expanded .sidebar-text { opacity: 1; pointer-events: auto; transition-delay: 0.1s; }
 
 /* =========================================
    3. MAIN CONTENT AREA
    ========================================= */
 .main-content {
     padding: 20px;
-    margin-bottom: 70px; /* Jaga-jaga untuk footer/mobile nav */
-    margin-left: 70px;   /* Sesuai lebar sidebar collapsed */
+    margin-bottom: 70px;
+    margin-left: 70px;
     transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-body.sb-expanded .main-content {
-    margin-left: 250px; /* Geser konten saat sidebar buka */
-}
+body.sb-expanded .main-content { margin-left: 250px; }
 
 /* =========================================
-   4. TOAST NOTIFICATION (ANIMASI)
+   4. COMPONENTS (TOAST & GLASS SWITCH)
    ========================================= */
+
+/* --- Toast Notification --- */
 .toast-container {
     z-index: 99999;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-right: 20px;
+    display: flex; flex-direction: column; gap: 10px; padding-right: 20px;
 }
-
 .custom-toast {
-    border: none;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    overflow: hidden;
-    position: relative;
-    min-width: 300px;
-    
-    /* State Awal: Hidden di kanan */
-    opacity: 0;
-    transform: translateX(120%);
+    border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    overflow: hidden; position: relative; min-width: 300px;
+    opacity: 0; transform: translateX(120%);
     transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
-
-/* State Aktif: Muncul */
-.custom-toast.active-toast {
-    opacity: 1 !important;
-    transform: translate(0, 0) !important;
-}
-
-/* Garis Timer Berjalan */
+.custom-toast.active-toast { opacity: 1 !important; transform: translate(0, 0) !important; }
 .toast-timer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 4px;
+    position: absolute; bottom: 0; left: 0; height: 4px;
     background-color: rgba(255, 255, 255, 0.6);
+    width: 100%; animation: shrink 5s linear forwards; 
+}
+@keyframes shrink { from { width: 100%; } to { width: 0%; } }
+
+/* --- GLASS CAPSULE SWITCH (SLIDING EFFECT) --- */
+
+/* [BARU] Wrapper Posisi: Mengatur posisi tombol di layar */
+.glass-control-wrapper {
+    position: fixed;
+    left: 0;
     width: 100%;
-    animation: shrink 5s linear forwards;
+    z-index: 1040;
+    pointer-events: none; /* Klik tembus di area kosong */
+    display: flex;
+    justify-content: center;
+    
+    /* POSISI DEFAULT (DESKTOP): Lebih turun */
+    bottom: 30px; 
 }
 
-@keyframes shrink {
-    from { width: 100%; }
-    to { width: 0%; }
+/* Container Kapsul Kaca */
+.glass-capsule-container {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5); 
+    border-radius: 100px;
+    padding: 5px; 
+    display: inline-flex;
+    position: relative; 
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    pointer-events: auto; /* Tombol bisa diklik */
+}
+
+/* Background Putih yang Bergerak (Slide Pill) */
+.slide-pill {
+    position: absolute;
+    top: 5px;  
+    left: 5px; 
+    height: calc(100% - 10px); 
+    background: #ffffff;
+    border-radius: 100px;
+    z-index: 0; 
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    width: 0; 
+}
+
+/* Tombol Switch */
+.glass-switch-btn {
+    position: relative;
+    z-index: 1; 
+    border: none;
+    background: transparent !important; 
+    color: #495057;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.3s;
+    white-space: nowrap;
+}
+
+.glass-switch-btn:hover { color: #000; }
+.glass-switch-btn.active { color: #0d6efd; }
+
+@media (max-width: 576px) {
+    .glass-switch-btn { padding: 8px 15px; font-size: 0.8rem; }
 }
 
 /* =========================================
    5. PAGE SPECIFIC STYLES
    ========================================= */
-
-/* Halaman Login */
-.login-wrapper {
-    min-height: 80vh;
-}
-
-/* Halaman Home (Card Hover Effect) */
-.hover-effect {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s;
-}
-.hover-effect:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-}
-
-/* Halaman Profile */
-.profile-container {
-    max-width: 600px;
-}
-.profile-avatar {
-    width: 80px; 
-    height: 80px; 
-    font-size: 2rem;
-}
-
-/* Halaman Settings (Agar URL panjang tidak merusak layout) */
-.truncate-200 {
-    max-width: 200px;
-}
+.login-wrapper { min-height: 80vh; }
+.hover-effect { transition: transform 0.2s ease-in-out, box-shadow 0.2s; }
+.hover-effect:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+.profile-container { max-width: 600px; }
+.profile-avatar { width: 80px; height: 80px; font-size: 2rem; }
+.truncate-200 { max-width: 200px; }
 
 /* =========================================
    6. RESPONSIVE / MOBILE VIEW
    ========================================= */
 @media (max-width: 767.98px) {
-    /* 1. MATIKAN SIDEBAR TOTAL DI MOBILE */
-    /* Ini wajib agar tombol hamburger tidak muncul di kiri atas */
-    .sidebar, 
-    .toggle-btn, 
-    #sidebar { 
-        display: none !important; 
-        width: 0 !important;
-    }
-    
-    /* 2. RESET MARGIN KONTEN */
-    /* Konten full width karena sidebar hilang */
-    .main-content { 
-        margin-left: 0 !important; 
-        padding-bottom: 90px; /* Ruang lebih besar agar tidak tertutup nav bawah */
-    }
+    .sidebar, .toggle-btn, #sidebar { display: none !important; width: 0 !important; }
+    .main-content { margin-left: 0 !important; padding-bottom: 90px; }
     body.sb-expanded .main-content { margin-left: 0 !important; }
     
-    /* 3. TOAST PINDAH KE ATAS */
     .toast-container {
         padding-right: 0; top: 0; left: 0; right: 0; width: 100%;
         align-items: center; padding-top: 10px;
     }
-    .custom-toast {
-        width: 90%; max-width: 400px; transform: translateY(-150%);
+    .custom-toast { width: 90%; max-width: 400px; transform: translateY(-150%); }
+
+    /* [BARU] POSISI TOMBOL SWITCH DI MOBILE: Lebih naik agar tidak kena Navbar */
+    .glass-control-wrapper {
+        bottom: 90px;
     }
 
-    /* 4. BOTTOM NAVIGATION BAR (FIXED) */
+    /* Bottom Nav */
     .mobile-bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background-color: #ffffff;
-        border-top: 1px solid #dee2e6;
+        position: fixed; bottom: 0; left: 0; width: 100%;
+        background-color: #ffffff; border-top: 1px solid #dee2e6;
         box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        display: flex;
-        justify-content: space-between; /* Rata Kiri-Kanan */
-        align-items: center;
-        height: 70px; /* Tinggi sedikit ditambah agar muat teks */
-        z-index: 1050;
-        padding: 0 10px;
+        display: flex; justify-content: space-between; align-items: center;
+        height: 70px; z-index: 1050; padding: 0 10px;
     }
-
-    /* Item Navigasi */
     .nav-item-mobile {
-        flex: 1; /* Membagi rata lebar */
-        text-align: center;
-        color: #6c757d;
-        text-decoration: none;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        transition: color 0.2s;
+        flex: 1; text-align: center; color: #6c757d; text-decoration: none;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        height: 100%; transition: color 0.2s;
     }
+    .nav-item-mobile i { font-size: 1.4rem; margin-bottom: 2px; }
+    .nav-item-mobile span { font-size: 0.7rem; font-weight: 500; }
+    .nav-item-mobile.active { color: #0d6efd; }
+    .nav-item-mobile.active i { transform: translateY(-2px); }
 
-    /* Icon Navigasi */
-    .nav-item-mobile i {
-        font-size: 1.4rem;
-        margin-bottom: 2px;
-    }
-
-    /* Teks Keterangan Navigasi */
-    .nav-item-mobile span {
-        font-size: 0.7rem; /* Ukuran font kecil tapi terbaca */
-        font-weight: 500;
-    }
-
-    /* State Aktif */
-    .nav-item-mobile.active {
-        color: #0d6efd;
-    }
-    .nav-item-mobile.active i {
-        transform: translateY(-2px); /* Efek naik dikit */
-    }
-
-    /* 5. DRAWER / LACI (OFFCANVAS) */
-    /* Styling untuk laci menu tambahan */
-    .offcanvas-bottom {
-        height: auto !important; /* Tinggi menyesuaikan isi */
-        max-height: 80vh;
-        border-top-left-radius: 20px;
-        border-top-right-radius: 20px;
-    }
-    
-    /* Garis handle kecil di atas laci */
-    .drawer-handle {
-        width: 40px; height: 5px; background: #dee2e6;
-        border-radius: 5px; margin: 10px auto;
-    }
+    /* Drawer/Laci */
+    .offcanvas-bottom { height: auto !important; max-height: 80vh; border-top-left-radius: 20px; border-top-right-radius: 20px; }
+    .drawer-handle { width: 40px; height: 5px; background: #dee2e6; border-radius: 5px; margin: 10px auto; }
 }
-
-/* Sembunyikan Bottom Nav di Desktop */
-@media (min-width: 768px) {
-    .mobile-bottom-nav { display: none !important; }
-}
+@media (min-width: 768px) { .mobile-bottom-nav { display: none !important; } }
