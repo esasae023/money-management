@@ -23,6 +23,7 @@
     </script>
 
     {% if current_user.is_authenticated %}
+    
     <div id="sidebar" class="sidebar">
         <button class="toggle-btn" onclick="toggleSidebar()">
             <i class="bi bi-list"></i><span class="sidebar-text fw-bold">Money Mgr</span>
@@ -33,23 +34,55 @@
         <a href="{{ url_for('settings_global') }}" class="{{ 'active' if request.endpoint == 'settings_global' else '' }}">
             <i class="bi bi-key"></i><span class="sidebar-text">API Key</span>
         </a>
+        <a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">
+            <i class="bi bi-person-circle"></i><span class="sidebar-text">Profil</span>
+        </a>
+        
         <div class="flex-grow-1"></div>
-        <a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }} border-top border-secondary">
-            <i class="bi bi-person-circle"></i><span class="sidebar-text">{{ current_user.username }}</span>
+        <a href="{{ url_for('logout') }}" class="border-top border-secondary text-danger">
+            <i class="bi bi-box-arrow-left"></i><span class="sidebar-text">Keluar</span>
         </a>
     </div>
 
     <nav class="mobile-bottom-nav">
         <a href="{{ url_for('home') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'home' else '' }}">
-            <i class="bi bi-house-door-fill"></i><span>Home</span>
+            <i class="bi bi-house-door-fill"></i>
+            <span>Beranda</span>
         </a>
+
         <a href="{{ url_for('settings_global') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'settings_global' else '' }}">
-            <i class="bi bi-key-fill"></i><span>API Key</span>
+            <i class="bi bi-key-fill"></i>
+            <span>API Key</span>
         </a>
+
         <a href="{{ url_for('profile') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'profile' else '' }}">
-            <i class="bi bi-person-circle"></i><span>{{ current_user.username }}</span>
+            <i class="bi bi-person-circle"></i>
+            <span>Akun</span>
+        </a>
+
+        <a href="#" class="nav-item-mobile" data-bs-toggle="offcanvas" data-bs-target="#drawerLainnya">
+            <i class="bi bi-grid-fill"></i>
+            <span>Lainnya</span>
         </a>
     </nav>
+
+    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="drawerLainnya" aria-labelledby="drawerLabel">
+        <div class="offcanvas-header pb-0 justify-content-center">
+            <div class="drawer-handle"></div> </div>
+        <div class="offcanvas-body small">
+            <h5 class="offcanvas-title fw-bold mb-3 text-center" id="drawerLabel">Menu Lainnya</h5>
+            
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('logout') }}" class="list-group-item list-group-item-action text-danger d-flex align-items-center py-3">
+                    <i class="bi bi-box-arrow-right fs-4 me-3"></i>
+                    <span class="fw-bold">Logout / Keluar Aplikasi</span>
+                </a>
+            </div>
+            
+            <button type="button" class="btn btn-light w-100 mt-4 rounded-pill" data-bs-dismiss="offcanvas">Tutup</button>
+        </div>
+    </div>
+
     {% endif %}
 
     <div class="main-content">
