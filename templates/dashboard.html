@@ -6,17 +6,29 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>📊 {{ folder.name }}</h2>
+    <h2 class="text-truncate" style="max-width: 60%;">📊 {{ folder.name }}</h2>
     <div class="dropdown">
-        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">🗓️ {{ selected_month }}</button>
+        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            🗓️ {{ selected_month }}
+        </button>
         <ul class="dropdown-menu">
-            {% for sheet in sheet_list %}<li><a class="dropdown-item" href="{{ url_for('dashboard', folder_id=folder.id, month=sheet) }}">{{ sheet }}</a></li>{% endfor %}
+            {% for sheet in sheet_list %}
+            <li><a class="dropdown-item" href="{{ url_for('dashboard', folder_id=folder.id, month=sheet) }}">{{ sheet }}</a></li>
+            {% endfor %}
         </ul>
         <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-secondary ms-2">⚙️ Config</a>
     </div>
 </div>
 
-{% if error_msg %}<div class="alert alert-danger">{{ error_msg }}</div>{% endif %}
+{% if error_msg %}
+<div class="alert alert-danger d-flex align-items-center">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <div>
+        <strong>Gagal mengambil data:</strong> {{ error_msg }}
+        <br><small>Pastikan nama sheet dan konfigurasi cell sudah benar di menu Config.</small>
+    </div>
+</div>
+{% endif %}
 
 <div id="section-clean" class="mb-5 border-bottom pb-4">
     <h4 class="mb-3 text-success"><i class="bi bi-stars"></i> Dashboard Dana Bersih (Tanpa Hutang)</h4>
@@ -25,7 +37,7 @@
         <div class="col-xl-7 col-lg-7">
             <div class="row g-3">
                 <div class="col-md-4">
-                    <div class="card text-white bg-success shadow-sm border-0">
+                    <div class="card text-white bg-success shadow-sm border-0 h-100">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Pemasukan Bersih</div>
                             <div class="fw-bold kpi-value">Rp {{ sum_clean.income }}</div>
@@ -33,7 +45,7 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card text-white bg-danger shadow-sm border-0">
+                    <div class="card text-white bg-danger shadow-sm border-0 h-100">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Pengeluaran Bersih</div>
                             <div class="fw-bold kpi-value">Rp {{ sum_clean.expense }}</div>
@@ -41,7 +53,7 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card text-white bg-primary shadow-sm border-0 opacity-75">
+                    <div class="card text-white bg-primary shadow-sm border-0 opacity-75 h-100">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Sisa Saldo (Real)</div>
                             <div class="fw-bold kpi-value">Rp {{ sum_clean.balance }}</div>
@@ -52,7 +64,7 @@
         </div>
 
         <div class="col-xl-5 col-lg-5">
-            <div class="card shadow-sm border-0 w-100">
+            <div class="card shadow-sm border-0 w-100 h-100">
                 <div class="card-body fixed-body chart-card-mobile">
                     <div class="text-uppercase fw-bold opacity-75 small mb-2 text-muted text-center w-100">Perbandingan (Bersih)</div>
                     <div class="chart-container-fix">
@@ -65,17 +77,29 @@
 
     <div class="card mb-4 shadow-sm">
         <div class="card-header fw-bold text-success">📈 Trend Dana Bersih</div>
-        <div class="card-body"><div style="height: 400px; position: relative;"><canvas id="chartTrendClean"></canvas></div></div>
+        <div class="card-body">
+            <div style="height: 350px; position: relative;">
+                <canvas id="chartTrendClean"></canvas>
+            </div>
+        </div>
     </div>
     
     <div class="row">
         <div class="col-md-6 mb-3">
-            <div class="card h-100 border-success"><div class="card-header bg-success text-white">Pie Pemasukan (Bersih)</div>
-            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieIncClean"></canvas></div></div></div>
+            <div class="card h-100 border-success">
+                <div class="card-header bg-success text-white">Pie Pemasukan (Bersih)</div>
+                <div class="card-body">
+                    <div style="height: 300px; position: relative;"><canvas id="pieIncClean"></canvas></div>
+                </div>
+            </div>
         </div>
         <div class="col-md-6 mb-3">
-            <div class="card h-100 border-danger"><div class="card-header bg-danger text-white">Pie Pengeluaran (Bersih)</div>
-            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieExpClean"></canvas></div></div></div>
+            <div class="card h-100 border-danger">
+                <div class="card-header bg-danger text-white">Pie Pengeluaran (Bersih)</div>
+                <div class="card-body">
+                    <div style="height: 300px; position: relative;"><canvas id="pieExpClean"></canvas></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -87,7 +111,7 @@
         <div class="col-xl-7 col-lg-7">
             <div class="row g-3">
                 <div class="col-md-4">
-                    <div class="card bg-success shadow-sm border-0" style="--bs-bg-opacity: .8; color: white;">
+                    <div class="card bg-success shadow-sm border-0 h-100" style="--bs-bg-opacity: .8; color: white;">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Total Pemasukan</div>
                             <div class="fw-bold kpi-value">Rp {{ sum_kotor.income }}</div>
@@ -95,7 +119,7 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card bg-danger shadow-sm border-0" style="--bs-bg-opacity: .8; color: white;">
+                    <div class="card bg-danger shadow-sm border-0 h-100" style="--bs-bg-opacity: .8; color: white;">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Total Pengeluaran</div>
                             <div class="fw-bold kpi-value">Rp {{ sum_kotor.expense }}</div>
@@ -103,7 +127,7 @@
                     </div>
                 </div>
                 <div class="col-md-4">
-                    <div class="card bg-primary shadow-sm border-0" style="--bs-bg-opacity: .8; color: white;">
+                    <div class="card bg-primary shadow-sm border-0 h-100" style="--bs-bg-opacity: .8; color: white;">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Sisa Saldo</div>
                             <div class="fw-bold kpi-value">Rp {{ sum_kotor.balance }}</div>
@@ -114,7 +138,7 @@
         </div>
 
         <div class="col-xl-5 col-lg-5">
-            <div class="card shadow-sm border-0 w-100">
+            <div class="card shadow-sm border-0 w-100 h-100">
                 <div class="card-body fixed-body chart-card-mobile">
                     <div class="text-uppercase fw-bold opacity-75 small mb-2 text-muted text-center w-100">Perbandingan (Kotor)</div>
                     <div class="chart-container-fix">
@@ -127,82 +151,112 @@
 
     <div class="card mb-4 shadow-sm">
         <div class="card-header fw-bold text-secondary">📈 Trend Dana Kotor</div>
-        <div class="card-body"><div style="height: 400px; position: relative;"><canvas id="chartTrendDirty"></canvas></div></div>
+        <div class="card-body">
+            <div style="height: 350px; position: relative;">
+                <canvas id="chartTrendDirty"></canvas>
+            </div>
+        </div>
     </div>
     
     <div class="row">
         <div class="col-md-6 mb-3">
-            <div class="card h-100"><div class="card-header bg-secondary text-white">Pie Pemasukan (Total)</div>
-            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieIncDirty"></canvas></div></div></div>
+            <div class="card h-100">
+                <div class="card-header bg-secondary text-white">Pie Pemasukan (Total)</div>
+                <div class="card-body">
+                    <div style="height: 300px; position: relative;"><canvas id="pieIncDirty"></canvas></div>
+                </div>
+            </div>
         </div>
         <div class="col-md-6 mb-3">
-            <div class="card h-100"><div class="card-header bg-secondary text-white">Pie Pengeluaran (Total)</div>
-            <div class="card-body"><div style="height: 300px; position: relative;"><canvas id="pieExpDirty"></canvas></div></div></div>
+            <div class="card h-100">
+                <div class="card-header bg-secondary text-white">Pie Pengeluaran (Total)</div>
+                <div class="card-body">
+                    <div style="height: 300px; position: relative;"><canvas id="pieExpDirty"></canvas></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div style="height: 80px;"></div>
+<div style="height: 100px;"></div>
 
-<div class="fixed-bottom d-flex justify-content-center" style="bottom: 80px; z-index: 9999; pointer-events: none;">
-    <div class="glass-panel d-flex p-1" style="pointer-events: auto;">
+<div class="fixed-bottom d-flex justify-content-center pb-4" style="bottom: 50px; z-index: 1040; pointer-events: none;">
+    <div class="glass-panel d-flex p-1 shadow" style="pointer-events: auto;">
         <button class="tgl-btn active" onclick="setMode('semua')" id="btnSemua">Semua</button>
         <button class="tgl-btn" onclick="setMode('bersih')" id="btnBersih">Dana Bersih</button>
         <button class="tgl-btn" onclick="setMode('kotor')" id="btnKotor">Dana Kotor</button>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 
 <script>
-    // Set Mode Awal
-    setMode('semua');
+    document.addEventListener("DOMContentLoaded", function() {
+        console.log("🚀 Dashboard Loaded...");
 
-    // Render Data Bersih
-    renderLine('chartTrendClean', 
-        {{ chart_clean.labels|tojson }}, 
-        {{ chart_clean.income|tojson }}, 
-        {{ chart_clean.expense|tojson }}
-    );
-    renderPie('pieIncClean', 
-        {{ pie_data.clean_inc.labels|tojson }}, 
-        {{ pie_data.clean_inc.data|tojson }}, 
-        ['#20c997','#198754','#0f5132']
-    );
-    renderPie('pieExpClean', 
-        {{ pie_data.clean_exp.labels|tojson }}, 
-        {{ pie_data.clean_exp.data|tojson }}, 
-        ['#dc3545','#fd7e14','#ffc107']
-    );
-    renderBarCompare('barCompareClean', 
-        '{{ sum_clean.income }}', 
-        '{{ sum_clean.expense }}', 
-        '{{ sum_clean.balance }}'
-    );
+        // Jalankan Mode Awal
+        if (typeof setMode === "function") {
+            setMode('semua');
+        }
 
-    // Render Data Kotor
-    renderLine('chartTrendDirty', 
-        {{ chart_dirty.labels|tojson }}, 
-        {{ chart_dirty.income|tojson }}, 
-        {{ chart_dirty.expense|tojson }}
-    );
-    renderPie('pieIncDirty', 
-        {{ pie_data.dirty_inc.labels|tojson }}, 
-        {{ pie_data.dirty_inc.data|tojson }}, 
-        ['#20c997','#198754','#0f5132']
-    );
-    renderPie('pieExpDirty', 
-        {{ pie_data.dirty_exp.labels|tojson }}, 
-        {{ pie_data.dirty_exp.data|tojson }}, 
-        ['#dc3545','#fd7e14','#ffc107']
-    );
-    renderBarCompare('barCompareDirty', 
-        '{{ sum_kotor.income }}', 
-        '{{ sum_kotor.expense }}', 
-        '{{ sum_kotor.balance }}'
-    );
+        // --- RENDER GRAFIK (DATA DARI PYTHON DI-PASS KE SINI) ---
+        try {
+            // 1. DANA BERSIH
+            renderLine('chartTrendClean', 
+                {{ chart_clean.labels|tojson }}, 
+                {{ chart_clean.income|tojson }}, 
+                {{ chart_clean.expense|tojson }}
+            );
+            
+            renderPie('pieIncClean', 
+                {{ pie_data.clean_inc.labels|tojson }}, 
+                {{ pie_data.clean_inc.data|tojson }}, 
+                ['#20c997','#198754','#0f5132']
+            );
+            
+            renderPie('pieExpClean', 
+                {{ pie_data.clean_exp.labels|tojson }}, 
+                {{ pie_data.clean_exp.data|tojson }}, 
+                ['#dc3545','#fd7e14','#ffc107']
+            );
+
+            renderBarCompare('barCompareClean', 
+                '{{ sum_clean.income }}', 
+                '{{ sum_clean.expense }}', 
+                '{{ sum_clean.balance }}'
+            );
+
+            // 2. DANA KOTOR
+            renderLine('chartTrendDirty', 
+                {{ chart_dirty.labels|tojson }}, 
+                {{ chart_dirty.income|tojson }}, 
+                {{ chart_dirty.expense|tojson }}
+            );
+
+            renderPie('pieIncDirty', 
+                {{ pie_data.dirty_inc.labels|tojson }}, 
+                {{ pie_data.dirty_inc.data|tojson }}, 
+                ['#20c997','#198754','#0f5132']
+            );
+
+            renderPie('pieExpDirty', 
+                {{ pie_data.dirty_exp.labels|tojson }}, 
+                {{ pie_data.dirty_exp.data|tojson }}, 
+                ['#dc3545','#fd7e14','#ffc107']
+            );
+
+            renderBarCompare('barCompareDirty', 
+                '{{ sum_kotor.income }}', 
+                '{{ sum_kotor.expense }}', 
+                '{{ sum_kotor.balance }}'
+            );
+
+        } catch (error) {
+            console.error("❌ Gagal render grafik:", error);
+            // Tidak perlu alert agar tidak mengganggu user jika error minor
+        }
+    });
 </script>
 {% endblock %}

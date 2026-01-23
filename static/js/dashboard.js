@@ -1,92 +1,147 @@
-// Fungsi Render Grafik Garis (Trend)
-function renderLine(id, labels, inc, exp) {
-    if(!document.getElementById(id)) return;
-    new Chart(document.getElementById(id), {
+/**
+ * static/js/dashboard.js
+ * Berisi fungsi-fungsi untuk menggambar grafik dan mengatur tampilan (Mode).
+ */
+
+// 1. Fungsi Render Grafik Garis (Trend)
+function renderLine(elementId, labels, dataIncome, dataExpense) {
+    const ctx = document.getElementById(elementId);
+    if (!ctx) return; // Stop jika canvas tidak ditemukan
+
+    // Hapus chart lama jika ada (mencegah tumpuk-menumpuk/flickering)
+    const existingChart = Chart.getChart(ctx);
+    if (existingChart) existingChart.destroy();
+
+    new Chart(ctx, {
         type: 'line',
         data: {
-            labels: labels,
+            labels: labels || [],
             datasets: [
-                { label: 'Masuk', data: inc, borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)', tension: 0.3, fill: true },
-                { label: 'Keluar', data: exp, borderColor: '#dc3545', backgroundColor: 'rgba(220, 53, 69, 0.1)', tension: 0.3, fill: true }
+                {
+                    label: 'Pemasukan',
+                    data: dataIncome || [],
+                    borderColor: '#198754', // Hijau
+                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                },
+                {
+                    label: 'Pengeluaran',
+                    data: dataExpense || [],
+                    borderColor: '#dc3545', // Merah
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.3,
+                    fill: true
+                }
             ]
-        }, options: { responsive: true, maintainAspectRatio: false }
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { mode: 'index', intersect: false }
+            },
+            interaction: { mode: 'nearest', axis: 'x', intersect: false }
+        }
     });
 }
 
-// Fungsi Render Grafik Pie
-function renderPie(id, labels, data, colors) {
-    if(!document.getElementById(id)) return;
-    new Chart(document.getElementById(id), {
+// 2. Fungsi Render Grafik Pie (Donat)
+function renderPie(elementId, labels, dataValues, colors) {
+    const ctx = document.getElementById(elementId);
+    if (!ctx) return;
+
+    const existingChart = Chart.getChart(ctx);
+    if (existingChart) existingChart.destroy();
+
+    // Cek jika data kosong
+    if (!dataValues || dataValues.length === 0 || dataValues.every(v => v === 0)) {
+        // Opsional: Tampilkan teks "No Data" atau biarkan kosong
+        return; 
+    }
+
+    new Chart(ctx, {
         type: 'doughnut',
-        data: { labels: labels, datasets: [{ data: data, backgroundColor: colors }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+        data: {
+            labels: labels || [],
+            datasets: [{
+                data: dataValues || [],
+                backgroundColor: colors || ['#ccc'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
+            }
+        }
     });
 }
 
-// Fungsi Render Bar Comparison (Kiri vs Kanan)
-function renderBarCompare(id, income, expense, balance) {
-    if(!document.getElementById(id)) return;
-    
-    // Helper parse IDR string ke Float
-    const parseIdr = (str) => { 
-        if(!str) return 0; 
-        return parseFloat(str.toString().replace(/[^0-9,-]/g, '').replace(',', '.')); 
-    };
-    
-    const incVal = parseIdr(income);
-    const expVal = parseIdr(expense);
-    const balVal = parseIdr(balance);
+// 3. Fungsi Render Bar Comparison (Masuk vs Keluar vs Saldo)
+function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
+    const ctx = document.getElementById(elementId);
+    if (!ctx) return;
 
-    new Chart(document.getElementById(id), {
+    const existingChart = Chart.getChart(ctx);
+    if (existingChart) existingChart.destroy();
+
+    // Helper: Parse string "Rp 1.000.000" jadi float 1000000
+    const parseIdr = (str) => {
+        if (!str) return 0;
+        // Hapus "Rp", titik, dan spasi, ganti koma dengan titik (jika desimal)
+        let clean = str.toString().replace(/[^0-9,-]/g, '').replace(',', '.');
+        return parseFloat(clean) || 0;
+    };
+
+    const incVal = parseIdr(strIncome);
+    const expVal = parseIdr(strExpense);
+    const balVal = parseIdr(strBalance);
+
+    new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['Masuk', 'Keluar', 'Saldo'],
             datasets: [{
+                label: 'Nominal',
                 data: [incVal, expVal, balVal],
-                backgroundColor: ['#198754', '#dc3545', '#0d6efd'],
-                borderRadius: 5, maxBarThickness: 40 
+                backgroundColor: [
+                    '#198754', // Hijau
+                    '#dc3545', // Merah
+                    '#0d6efd'  // Biru
+                ],
+                borderRadius: 5,
+                maxBarThickness: 50
             }]
         },
         options: {
-            indexAxis: 'y',
+            indexAxis: 'y', // Horizontal Bar
             responsive: true,
-            maintainAspectRatio: false, 
-            plugins: { 
+            maintainAspectRatio: false,
+            plugins: {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: function(ctx) {
-                            let val = ctx.raw;
-                            let percent = incVal > 0 ? ((val / incVal) * 100).toFixed(1) + '%' : '0%';
-                            return `Rp ${val.toLocaleString('id-ID')} (${percent})`;
+                        label: function(context) {
+                            let val = context.raw;
+                            // Format ulang ke Rupiah untuk tooltip
+                            return "Rp " + val.toLocaleString('id-ID');
                         }
                     }
                 }
             },
-            scales: { x: { display: false }, y: { grid: { display: false } } },
-        },
-        plugins: [{
-            id: 'percentLabel',
-            afterDatasetsDraw(chart) {
-                const { ctx } = chart;
-                chart.data.datasets.forEach((dataset, i) => {
-                    const meta = chart.getDatasetMeta(i);
-                    meta.data.forEach((bar, index) => {
-                        const value = dataset.data[index];
-                        let percent = incVal > 0 ? (value / incVal * 100).toFixed(1) + '%' : '0%';
-                        ctx.font = 'bold 11px sans-serif';
-                        ctx.fillStyle = '#666';
-                        ctx.textAlign = 'left';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(percent, bar.x + 5, bar.y);
-                    });
-                });
+            scales: {
+                x: { display: false }, // Sembunyikan garis grid X
+                y: { grid: { display: false } } // Sembunyikan garis grid Y
             }
-        }]
+        }
     });
 }
 
-// Logic Ganti Mode (Semua / Bersih / Kotor)
+// 4. Logic Ganti Mode (Semua / Bersih / Kotor)
 function setMode(mode) {
     const secClean = document.getElementById('section-clean');
     const secDirty = document.getElementById('section-dirty');
