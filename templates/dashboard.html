@@ -34,8 +34,9 @@
     <h4 class="mb-3 text-success"><i class="bi bi-stars"></i> Dashboard Dana Bersih (Tanpa Hutang)</h4>
     
     <div class="row g-3 mb-4">
+        
         <div class="col-xl-7 col-lg-7">
-            <div class="row g-3">
+            <div class="row g-3 h-100">
                 <div class="col-md-4">
                     <div class="card text-white bg-success shadow-sm border-0 h-100">
                         <div class="card-body fixed-body kpi-text-card">
@@ -109,7 +110,7 @@
 
     <div class="row g-3 mb-4">
         <div class="col-xl-7 col-lg-7">
-            <div class="row g-3">
+            <div class="row g-3 h-100">
                 <div class="col-md-4">
                     <div class="card bg-success shadow-sm border-0 h-100" style="--bs-bg-opacity: .8; color: white;">
                         <div class="card-body fixed-body kpi-text-card">
@@ -181,23 +182,12 @@
 <div style="height: 100px;"></div>
 
 <div class="glass-control-wrapper">
-    
     <div class="glass-capsule-container shadow-sm position-relative">
-        
         <div id="slidePill" class="slide-pill"></div>
 
-        <button class="glass-switch-btn" onclick="setMode('semua')" id="btnSemua">
-            Semua
-        </button>
-        
-        <button class="glass-switch-btn" onclick="setMode('bersih')" id="btnBersih">
-            <i class="bi bi-stars"></i> Bersih
-        </button>
-        
-        <button class="glass-switch-btn" onclick="setMode('kotor')" id="btnKotor">
-            <i class="bi bi-wallet2"></i> Kotor
-        </button>
-
+        <button class="glass-switch-btn" onclick="setMode('semua')" id="btnSemua">Semua</button>
+        <button class="glass-switch-btn" onclick="setMode('bersih')" id="btnBersih"><i class="bi bi-stars"></i> Bersih</button>
+        <button class="glass-switch-btn" onclick="setMode('kotor')" id="btnKotor"><i class="bi bi-wallet2"></i> Kotor</button>
     </div>
 </div>
 {% endblock %}
@@ -216,55 +206,15 @@
 
         // --- RENDER GRAFIK ---
         try {
-            // DANA BERSIH
-            renderLine('chartTrendClean', 
-                {{ chart_clean.labels|tojson }}, 
-                {{ chart_clean.income|tojson }}, 
-                {{ chart_clean.expense|tojson }}
-            );
-            
-            renderPie('pieIncClean', 
-                {{ pie_data.clean_inc.labels|tojson }}, 
-                {{ pie_data.clean_inc.data|tojson }}, 
-                ['#20c997','#198754','#0f5132']
-            );
-            
-            renderPie('pieExpClean', 
-                {{ pie_data.clean_exp.labels|tojson }}, 
-                {{ pie_data.clean_exp.data|tojson }}, 
-                ['#dc3545','#fd7e14','#ffc107']
-            );
+            renderLine('chartTrendClean', {{ chart_clean.labels|tojson }}, {{ chart_clean.income|tojson }}, {{ chart_clean.expense|tojson }});
+            renderPie('pieIncClean', {{ pie_data.clean_inc.labels|tojson }}, {{ pie_data.clean_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
+            renderPie('pieExpClean', {{ pie_data.clean_exp.labels|tojson }}, {{ pie_data.clean_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
+            renderBarCompare('barCompareClean', '{{ sum_clean.income }}', '{{ sum_clean.expense }}', '{{ sum_clean.balance }}');
 
-            renderBarCompare('barCompareClean', 
-                '{{ sum_clean.income }}', 
-                '{{ sum_clean.expense }}', 
-                '{{ sum_clean.balance }}'
-            );
-
-            // DANA KOTOR
-            renderLine('chartTrendDirty', 
-                {{ chart_dirty.labels|tojson }}, 
-                {{ chart_dirty.income|tojson }}, 
-                {{ chart_dirty.expense|tojson }}
-            );
-
-            renderPie('pieIncDirty', 
-                {{ pie_data.dirty_inc.labels|tojson }}, 
-                {{ pie_data.dirty_inc.data|tojson }}, 
-                ['#20c997','#198754','#0f5132']
-            );
-
-            renderPie('pieExpDirty', 
-                {{ pie_data.dirty_exp.labels|tojson }}, 
-                {{ pie_data.dirty_exp.data|tojson }}, 
-                ['#dc3545','#fd7e14','#ffc107']
-            );
-
-            renderBarCompare('barCompareDirty', 
-                '{{ sum_kotor.income }}', 
-                '{{ sum_kotor.expense }}', 
-                '{{ sum_kotor.balance }}'
-            );
+            renderLine('chartTrendDirty', {{ chart_dirty.labels|tojson }}, {{ chart_dirty.income|tojson }}, {{ chart_dirty.expense|tojson }});
+            renderPie('pieIncDirty', {{ pie_data.dirty_inc.labels|tojson }}, {{ pie_data.dirty_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
+            renderPie('pieExpDirty', {{ pie_data.dirty_exp.labels|tojson }}, {{ pie_data.dirty_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
+            renderBarCompare('barCompareDirty', '{{ sum_kotor.income }}', '{{ sum_kotor.expense }}', '{{ sum_kotor.balance }}');
 
         } catch (error) {
             console.error("❌ Gagal render grafik:", error);

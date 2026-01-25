@@ -77,7 +77,7 @@ function renderPie(elementId, labels, dataValues, colors) {
     });
 }
 
-// 3. Fungsi Render Bar Comparison (UPDATE: Dengan Persentase)
+// 3. Fungsi Render Bar Comparison (UPDATED: RESPONSIVE & PERSENTASE)
 function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const ctx = document.getElementById(elementId);
     if (!ctx) return;
@@ -96,8 +96,7 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const expVal = parseIdr(strExpense);
     const balVal = parseIdr(strBalance);
 
-    // Hitung Total Ketiganya untuk penyebut Persentase
-    // Rumus: Total = Masuk + Keluar + Saldo
+    // Hitung Total untuk Persentase
     const totalAll = incVal + expVal + balVal;
 
     new Chart(ctx, {
@@ -109,52 +108,43 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                 data: [incVal, expVal, balVal],
                 backgroundColor: ['#198754', '#dc3545', '#0d6efd'],
                 borderRadius: 5,
-                maxBarThickness: 40 // Sedikit dikecilkan agar teks muat
+                
+                // --- PENGATURAN KETEBALAN (RESPONSIF) ---
+                maxBarThickness: 40, // Batang maksimal 40px, tapi bisa mengecil
+                // ---------------------------------------
             }]
         },
         options: {
             indexAxis: 'y', // Horizontal
             responsive: true,
-            maintainAspectRatio: false,
-            layout: {
-                padding: { right: 50 } // Beri ruang di kanan untuk teks persentase
-            },
+            maintainAspectRatio: false, // Penting agar ngikut tinggi container
+            layout: { padding: { right: 50 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            let val = context.raw;
-                            return "Rp " + val.toLocaleString('id-ID');
+                            return "Rp " + context.raw.toLocaleString('id-ID');
                         }
                     }
                 }
             },
             scales: { x: { display: false }, y: { grid: { display: false } } }
         },
-        // --- PLUGIN KHUSUS MENGGAMBAR TEKS PERSENTASE ---
+        // --- PLUGIN PERSENTASE ---
         plugins: [{
             id: 'percentageLabel',
             afterDatasetsDraw(chart) {
                 const { ctx, data } = chart;
-                
                 chart.getDatasetMeta(0).data.forEach((bar, index) => {
                     const value = data.datasets[0].data[index];
-                    
-                    // Hitung Persentase Sesuai Rumus Anda
-                    // (Nilai / Total Ketiganya) * 100
                     let percent = 0;
-                    if (totalAll > 0) {
-                        percent = (value / totalAll * 100).toFixed(1);
-                    }
+                    if (totalAll > 0) percent = (value / totalAll * 100).toFixed(1);
 
-                    // Styling Teks
                     ctx.font = 'bold 11px sans-serif';
-                    ctx.fillStyle = '#555'; // Warna teks abu gelap
+                    ctx.fillStyle = '#555';
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'middle';
-                    
-                    // Posisi Teks: Di ujung kanan batang + 5px margin
                     ctx.fillText(percent + '%', bar.x + 5, bar.y);
                 });
             }
@@ -162,17 +152,14 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     });
 }
 
-// 4. Logic Ganti Mode dengan Efek Sliding (Geser Background)
+// 4. Logic Ganti Mode dengan Efek Sliding
 function setMode(mode) {
     const secClean = document.getElementById('section-clean');
     const secDirty = document.getElementById('section-dirty');
     
-    // 1. Reset: Hapus class active dari SEMUA tombol switch
     document.querySelectorAll('.glass-switch-btn').forEach(b => b.classList.remove('active'));
     
-    // 2. Tentukan Tombol Aktif & Atur Section
     let activeBtnId = '';
-
     if (mode === 'semua') {
         if(secClean) secClean.style.display = 'block'; 
         if(secDirty) secDirty.style.display = 'block';
@@ -187,29 +174,23 @@ function setMode(mode) {
         activeBtnId = 'btnKotor';
     }
 
-    // 3. Tambah class active & Jalankan Animasi Slide
     const btn = document.getElementById(activeBtnId);
     if(btn) {
         btn.classList.add('active');
-        movePill(btn); // Fungsi geser background
+        movePill(btn);
     }
 }
 
-// Helper: Menggeser Background Putih (Slide Pill)
 function movePill(targetBtn) {
     const pill = document.getElementById('slidePill');
     if (pill && targetBtn) {
-        // Ambil lebar dan posisi tombol yang diklik
         const width = targetBtn.offsetWidth;
         const left = targetBtn.offsetLeft;
-        
-        // Terapkan ke pill
         pill.style.width = `${width}px`;
-        pill.style.left = `${left}px`; // Geser pill ke posisi tombol
+        pill.style.left = `${left}px`;
     }
 }
 
-// Tambahkan event listener agar saat layar di-resize, pill tetap pas
 window.addEventListener('resize', () => {
     const activeBtn = document.querySelector('.glass-switch-btn.active');
     if(activeBtn) movePill(activeBtn);
