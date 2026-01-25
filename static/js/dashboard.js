@@ -77,7 +77,7 @@ function renderPie(elementId, labels, dataValues, colors) {
     });
 }
 
-// 3. Fungsi Render Bar Comparison
+// 3. Fungsi Render Bar Comparison (UPDATE: Dengan Persentase)
 function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const ctx = document.getElementById(elementId);
     if (!ctx) return;
@@ -85,6 +85,7 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const existingChart = Chart.getChart(ctx);
     if (existingChart) existingChart.destroy();
 
+    // Helper Parse Rupiah
     const parseIdr = (str) => {
         if (!str) return 0;
         let clean = str.toString().replace(/[^0-9,-]/g, '').replace(',', '.');
@@ -95,6 +96,10 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const expVal = parseIdr(strExpense);
     const balVal = parseIdr(strBalance);
 
+    // Hitung Total Ketiganya untuk penyebut Persentase
+    // Rumus: Total = Masuk + Keluar + Saldo
+    const totalAll = incVal + expVal + balVal;
+
     new Chart(ctx, {
         type: 'bar',
         data: {
@@ -104,13 +109,16 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                 data: [incVal, expVal, balVal],
                 backgroundColor: ['#198754', '#dc3545', '#0d6efd'],
                 borderRadius: 5,
-                maxBarThickness: 50
+                maxBarThickness: 40 // Sedikit dikecilkan agar teks muat
             }]
         },
         options: {
-            indexAxis: 'y', 
+            indexAxis: 'y', // Horizontal
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+                padding: { right: 50 } // Beri ruang di kanan untuk teks persentase
+            },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -123,7 +131,34 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                 }
             },
             scales: { x: { display: false }, y: { grid: { display: false } } }
-        }
+        },
+        // --- PLUGIN KHUSUS MENGGAMBAR TEKS PERSENTASE ---
+        plugins: [{
+            id: 'percentageLabel',
+            afterDatasetsDraw(chart) {
+                const { ctx, data } = chart;
+                
+                chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                    const value = data.datasets[0].data[index];
+                    
+                    // Hitung Persentase Sesuai Rumus Anda
+                    // (Nilai / Total Ketiganya) * 100
+                    let percent = 0;
+                    if (totalAll > 0) {
+                        percent = (value / totalAll * 100).toFixed(1);
+                    }
+
+                    // Styling Teks
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.fillStyle = '#555'; // Warna teks abu gelap
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    
+                    // Posisi Teks: Di ujung kanan batang + 5px margin
+                    ctx.fillText(percent + '%', bar.x + 5, bar.y);
+                });
+            }
+        }]
     });
 }
 
