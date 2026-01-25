@@ -96,42 +96,77 @@ body.sb-expanded .main-content { margin-left: 250px; }
    4. COMPONENTS (TOAST & GLASS SWITCH)
    ========================================= */
 
-/* --- Toast Notification --- */
+/* --- Toast Notification (FIXED) --- */
 .toast-container {
     z-index: 99999;
-    display: flex; flex-direction: column; gap: 10px; padding-right: 20px;
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    padding-right: 20px;
+    
+    /* [PENTING] Agar area kosong container tidak menghalangi klik ke elemen di bawahnya */
+    pointer-events: none; 
 }
+
 .custom-toast {
-    border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    overflow: hidden; position: relative; min-width: 300px;
-    opacity: 0; transform: translateX(120%);
+    border: none; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    overflow: hidden; 
+    position: relative; 
+    min-width: 300px;
+    opacity: 0; 
+    transform: translateX(120%);
     transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    /* [PENTING] Aktifkan pointer event hanya pada kotak notifikasi */
+    pointer-events: auto; 
 }
-.custom-toast.active-toast { opacity: 1 !important; transform: translate(0, 0) !important; }
+
+.custom-toast.active-toast { 
+    opacity: 1 !important; 
+    transform: translate(0, 0) !important; 
+}
+
+/* Tombol Close */
+.close-toast-btn {
+    position: relative;
+    z-index: 20; /* Pastikan di atas timer dan text */
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    border: none; /* Reset border */
+    background: transparent; /* Reset background */
+}
+.close-toast-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Timer Bar */
 .toast-timer {
-    position: absolute; bottom: 0; left: 0; height: 4px;
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    height: 4px;
     background-color: rgba(255, 255, 255, 0.6);
-    width: 100%; animation: shrink 5s linear forwards; 
+    width: 100%; 
+    animation: shrink 5s linear forwards; 
+    z-index: 5; 
 }
 @keyframes shrink { from { width: 100%; } to { width: 0%; } }
 
-/* --- GLASS CAPSULE SWITCH (SLIDING EFFECT) --- */
-
-/* [BARU] Wrapper Posisi: Mengatur posisi tombol di layar */
+/* --- GLASS CAPSULE SWITCH --- */
 .glass-control-wrapper {
     position: fixed;
     left: 0;
     width: 100%;
     z-index: 1040;
-    pointer-events: none; /* Klik tembus di area kosong */
+    pointer-events: none; 
     display: flex;
     justify-content: center;
-    
-    /* POSISI DEFAULT (DESKTOP): Lebih turun */
     bottom: 30px; 
 }
 
-/* Container Kapsul Kaca */
 .glass-capsule-container {
     background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(16px);
@@ -142,10 +177,9 @@ body.sb-expanded .main-content { margin-left: 250px; }
     display: inline-flex;
     position: relative; 
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-    pointer-events: auto; /* Tombol bisa diklik */
+    pointer-events: auto; 
 }
 
-/* Background Putih yang Bergerak (Slide Pill) */
 .slide-pill {
     position: absolute;
     top: 5px;  
@@ -159,7 +193,6 @@ body.sb-expanded .main-content { margin-left: 250px; }
     width: 0; 
 }
 
-/* Tombol Switch */
 .glass-switch-btn {
     position: relative;
     z-index: 1; 
@@ -205,12 +238,8 @@ body.sb-expanded .main-content { margin-left: 250px; }
     }
     .custom-toast { width: 90%; max-width: 400px; transform: translateY(-150%); }
 
-    /* [BARU] POSISI TOMBOL SWITCH DI MOBILE: Lebih naik agar tidak kena Navbar */
-    .glass-control-wrapper {
-        bottom: 90px;
-    }
+    .glass-control-wrapper { bottom: 90px; }
 
-    /* Bottom Nav */
     .mobile-bottom-nav {
         position: fixed; bottom: 0; left: 0; width: 100%;
         background-color: #ffffff; border-top: 1px solid #dee2e6;
@@ -228,7 +257,6 @@ body.sb-expanded .main-content { margin-left: 250px; }
     .nav-item-mobile.active { color: #0d6efd; }
     .nav-item-mobile.active i { transform: translateY(-2px); }
 
-    /* Drawer/Laci */
     .offcanvas-bottom { height: auto !important; max-height: 80vh; border-top-left-radius: 20px; border-top-right-radius: 20px; }
     .drawer-handle { width: 40px; height: 5px; background: #dee2e6; border-radius: 5px; margin: 10px auto; }
 }
