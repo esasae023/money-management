@@ -1,9 +1,10 @@
 /* --- STYLING KARTU KPI --- */
 
-/* 1. Default (Mobile First & Umum) */
+/* 1. SETUP DEFAULT (TAMPILAN MOBILE) */
 .fixed-body {
-    /* Tinggi default untuk mobile/tablet kecil agar compact */
-    height: 110px; 
+    /* Mobile: Tinggi otomatis menyesuaikan isi teks */
+    height: auto; 
+    min-height: 100px; /* Minimal agar tidak terlalu tipis */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -11,15 +12,20 @@
     transition: all 0.3s ease;
 }
 
+/* Khusus Container Chart di Mobile: Harus punya tinggi tetap agar muncul */
+.chart-card-mobile {
+    height: 250px !important; /* Tinggi chart di HP */
+}
+
 .kpi-value {
-    font-size: clamp(1.2rem, 2vw, 2rem); /* Font responsif */
+    font-size: 1.5rem; /* Ukuran font standar mobile */
     line-height: 1.2;
     font-weight: 700;
 }
 
 .kpi-label {
-    font-size: 0.8rem;
-    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
     opacity: 0.9;
 }
 
@@ -30,12 +36,16 @@
     overflow: hidden;
 }
 
-/* 2. TAMPILAN DESKTOP (Layar > 992px) */
-/* Kartu menjadi lebih tinggi (180px) agar diagram lebih lega */
+/* 2. TAMPILAN DESKTOP (Layar Laptop/PC > 992px) */
+/* Di sini kita 'paksa' ukuran menjadi 180px agar sejajar */
 @media (min-width: 992px) {
-    .fixed-body {
+    
+    /* Paksa tinggi kartu KPI dan Chart sama */
+    .fixed-body, 
+    .chart-card-mobile {
         height: 180px !important; 
         justify-content: center; 
+        padding: 15px 20px !important;
     }
     
     .kpi-value {
@@ -45,11 +55,6 @@
     .kpi-label {
         font-size: 0.95rem;
         margin-bottom: 1rem;
-    }
-
-    /* Khusus Chart Card di Desktop: Padding sedikit disesuaikan */
-    .chart-card-mobile {
-        padding: 10px 20px !important;
     }
 }
 
