@@ -1,6 +1,6 @@
 /**
  * static/js/dashboard.js
- * FIXED: Masalah parsing desimal yang membuat angka melonjak 10x-100x lipat.
+ * FINAL FIX V2: Logika Cerdas Deteksi Koma (Ribuan vs Desimal)
  */
 
 // 1. Fungsi Render Grafik Garis
@@ -78,7 +78,7 @@ function renderPie(elementId, labels, dataValues, colors) {
     });
 }
 
-// 3. Fungsi Render Bar Comparison (FIXED PARSING LOGIC)
+// 3. Fungsi Render Bar Comparison (SMART PARSING FIX)
 function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const ctx = document.getElementById(elementId);
     if (!ctx) return;
@@ -86,35 +86,74 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const existingChart = Chart.getChart(ctx);
     if (existingChart) existingChart.destroy();
 
-    // --- LOGIKA PARSING BARU (LEBIH AMAN) ---
-    const parseIdr = (input) => {
-        // 1. Jika input sudah berupa angka (bukan teks), langsung kembalikan
+    // --- LOGIKA PARSING ANGKA CERDAS ---
+    const parseIdr = (input, label) => {
+        // 1. Jika input murni angka, langsung pakai
         if (typeof input === 'number') return input;
         
         // 2. Jika kosong/null
         if (!input) return 0;
 
-        let str = input.toString();
+        let original = input.toString();
+        // Hanya ambil angka, titik, koma, minus
+        let str = original.replace(/[^0-9,.-]/g, '');
 
-        // 3. Deteksi Format
-        // Jika mengandung KOMA (Format Indo: 10.000,00), maka hapus titik ribuan
-        if (str.includes(',')) {
-            str = str.replace(/\./g, ''); // Hapus titik ribuan
-            str = str.replace(',', '.');  // Ganti koma jadi titik desimal
-        } else {
-            // Jika TIDAK mengandung koma, asumsi format Raw/Inggris (10000.00)
-            // Hapus karakter aneh (misal "Rp "), TAPI JANGAN HAPUS TITIK DESIMAL
-            str = str.replace(/[^0-9.-]/g, ''); 
+        // 3. DETEKSI FORMAT (US vs INDO)
+        
+        // Cek apakah ada Titik DAN Koma sekaligus?
+        if (str.includes('.') && str.includes(',')) {
+            // Jika posisi Titik > Koma (Contoh: 10,000.00) -> US Format
+            if (str.lastIndexOf('.') > str.lastIndexOf(',')) {
+                str = str.replace(/,/g, ''); // Hapus koma (ribuan)
+                // Titik biarkan (desimal)
+            } 
+            // Jika posisi Koma > Titik (Contoh: 10.000,00) -> Indo Format
+            else {
+                str = str.replace(/\./g, ''); // Hapus titik (ribuan)
+                str = str.replace(',', '.');  // Koma jadi titik (desimal)
+            }
+        }
+        // Cek jika HANYA ada Koma (Kasus Anda: 11,161,000 atau 778,500)
+        else if (str.includes(',')) {
+            const parts = str.split(',');
+            const lastPart = parts[parts.length - 1];
+
+            // Jika di belakang koma pas 3 digit (Contoh: 500 atau 000)
+            // ATAU jika komanya lebih dari satu (11,161,000)
+            if (lastPart.length === 3 || parts.length > 2) {
+                // Ini Ribuan (US Format) -> Hapus semua koma
+                str = str.replace(/,/g, '');
+            } else {
+                // Ini Desimal (Indo Format) -> Ganti koma jadi titik
+                str = str.replace(',', '.');
+            }
+        }
+        // Cek jika HANYA ada Titik (Contoh: 10.000 atau 10.5)
+        else if (str.includes('.')) {
+            const parts = str.split('.');
+            const lastPart = parts[parts.length - 1];
+            
+            // Jika di belakang titik pas 3 digit (10.000)
+            if (lastPart.length === 3 || parts.length > 2) {
+                // Ini Ribuan (Indo Format) -> Hapus semua titik
+                str = str.replace(/\./g, '');
+            } else {
+                // Ini Desimal -> Biarkan
+            }
         }
 
-        return parseFloat(str) || 0;
+        let result = parseFloat(str) || 0;
+        
+        // Debugging di Console
+        console.log(`[${label}] Input: "${original}" -> Parsed: ${result}`);
+        
+        return result;
     };
 
-    const incVal = parseIdr(strIncome);
-    const expVal = parseIdr(strExpense);
-    const balVal = parseIdr(strBalance);
+    const incVal = parseIdr(strIncome, 'Pemasukan');
+    const expVal = parseIdr(strExpense, 'Pengeluaran');
+    const balVal = parseIdr(strBalance, 'Saldo');
 
-    // Hitung Total Absolut untuk Persentase (Agar persentase minus tetap masuk akal)
     const totalAll = Math.abs(incVal) + Math.abs(expVal) + Math.abs(balVal);
 
     new Chart(ctx, {
@@ -153,8 +192,6 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                 chart.getDatasetMeta(0).data.forEach((bar, index) => {
                     const value = data.datasets[0].data[index];
                     let percent = 0;
-                    
-                    // Gunakan totalAll (absolute sum) agar tidak error saat ada minus
                     if (totalAll > 0) percent = (value / totalAll * 100).toFixed(1);
 
                     ctx.font = 'bold 11px sans-serif';
@@ -162,9 +199,8 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'middle';
                     
-                    // Jika batang minus (ke kiri), taruh teks di sebelah kanan axis 0 biar rapi
-                    // Atau simpelnya taruh di ujung batang
-                    let xPos = value >= 0 ? bar.x + 5 : bar.x - 35; 
+                    let xPos = value >= 0 ? bar.x + 5 : bar.x - 40;
+                    if (value < 0 && percent === "0.0") xPos = bar.x + 5;
                     
                     ctx.fillText(percent + '%', xPos, bar.y);
                 });
@@ -173,7 +209,7 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     });
 }
 
-// 4. Logic Ganti Mode dengan Efek Sliding
+// 4. Logic Ganti Mode
 function setMode(mode) {
     const secClean = document.getElementById('section-clean');
     const secDirty = document.getElementById('section-dirty');
