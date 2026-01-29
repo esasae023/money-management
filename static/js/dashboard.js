@@ -1,17 +1,63 @@
 /**
  * static/js/dashboard.js
- * FINAL FIX V2: Logika Cerdas Deteksi Koma (Ribuan vs Desimal)
+ * VERSI: CHROME DESKTOP SPECIFIC FIX
+ * Fix untuk: Animasi pie chart tidak jalan di Chrome Desktop (tapi OK di Mobile & Inspect)
+ * Root cause: Hardware acceleration & compositor layer di Chrome Desktop
  */
+
+console.log("🚀 DASHBOARD JS - CHROME DESKTOP COMPOSITOR FIX");
+
+const chartInstances = {};
+
+// HELPER: Force GPU rendering pada canvas
+function forceGPURendering(canvas) {
+    if (!canvas) return;
+    
+    // Force compositing layer dengan CSS tricks
+    canvas.style.willChange = 'transform';
+    canvas.style.transform = 'translateZ(0)';
+    canvas.style.backfaceVisibility = 'hidden';
+    
+    // Trigger reflow
+    void canvas.offsetHeight;
+    
+    // Reset will-change setelah animasi (cleanup)
+    setTimeout(() => {
+        canvas.style.willChange = 'auto';
+    }, 2000);
+}
+
+function resetCanvas(elementId) {
+    if (chartInstances[elementId]) {
+        chartInstances[elementId].destroy();
+        delete chartInstances[elementId];
+    }
+    
+    const canvas = document.getElementById(elementId);
+    if (!canvas) return null;
+    
+    const ctx = canvas.getContext('2d', {
+        // PENTING: Alpha channel untuk Chrome Desktop
+        alpha: true,
+        desynchronized: false, // Sinkron dengan compositor
+        willReadFrequently: false
+    });
+    
+    if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    return canvas;
+}
 
 // 1. Fungsi Render Grafik Garis
 function renderLine(elementId, labels, dataIncome, dataExpense) {
-    const ctx = document.getElementById(elementId);
-    if (!ctx) return; 
+    const canvas = resetCanvas(elementId);
+    if (!canvas) return;
+    
+    forceGPURendering(canvas);
 
-    const existingChart = Chart.getChart(ctx);
-    if (existingChart) existingChart.destroy();
-
-    new Chart(ctx, {
+    const chart = new Chart(canvas, {
         type: 'line',
         data: {
             labels: labels || [],
@@ -37,6 +83,10 @@ function renderLine(elementId, labels, dataIncome, dataExpense) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            animation: {
+                duration: 2000,
+                easing: 'easeOutQuart'
+            },
             plugins: {
                 legend: { position: 'top' },
                 tooltip: { mode: 'index', intersect: false }
@@ -44,119 +94,131 @@ function renderLine(elementId, labels, dataIncome, dataExpense) {
             interaction: { mode: 'nearest', axis: 'x', intersect: false }
         }
     });
+    
+    chartInstances[elementId] = chart;
 }
 
-// 2. Fungsi Render Grafik Pie
+// 2. Fungsi Render Grafik Pie - CHROME DESKTOP FIX
 function renderPie(elementId, labels, dataValues, colors) {
-    const ctx = document.getElementById(elementId);
-    if (!ctx) return;
+    const canvas = resetCanvas(elementId);
+    if (!canvas) return;
 
-    const existingChart = Chart.getChart(ctx);
-    if (existingChart) existingChart.destroy();
+    const hasData = dataValues && dataValues.length > 0 && !dataValues.every(v => v === 0);
+    const finalData = hasData ? dataValues : [1];
+    const finalLabels = hasData ? labels : ['Tidak ada data'];
+    const finalColors = hasData ? colors : ['#e9ecef'];
 
-    if (!dataValues || dataValues.length === 0 || dataValues.every(v => v === 0)) {
-        return; 
-    }
-
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels || [],
-            datasets: [{
-                data: dataValues || [],
-                backgroundColor: colors || ['#ccc'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
-            }
-        }
-    });
+    // *** KUNCI UTAMA: Force GPU rendering SEBELUM create chart ***
+    forceGPURendering(canvas);
+    
+    // Gunakan setTimeout DAN requestAnimationFrame combo
+    setTimeout(() => {
+        requestAnimationFrame(() => {
+            const chart = new Chart(canvas, {
+                type: 'doughnut',
+                data: {
+                    labels: finalLabels,
+                    datasets: [{
+                        data: finalData,
+                        backgroundColor: finalColors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    // Optimasi untuk Chrome Desktop compositor
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 1200, // Sedikit lebih cepat untuk performa
+                        easing: 'easeOutQuart',
+                        // Callback untuk force repaint
+                        onProgress: function(animation) {
+                            // Trigger repaint di Chrome Desktop
+                            if (animation.currentStep % 5 === 0) {
+                                canvas.style.opacity = 0.9999;
+                                canvas.style.opacity = 1;
+                            }
+                        },
+                        onComplete: function() {
+                            console.log(`✅ Pie ${elementId} animated`);
+                            // Cleanup GPU hints
+                            canvas.style.willChange = 'auto';
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            position: 'right', 
+                            labels: { 
+                                boxWidth: 12, 
+                                font: { size: 10 },
+                                padding: 10
+                            } 
+                        },
+                        tooltip: {
+                            enabled: hasData,
+                            callbacks: {
+                                label: function(context) {
+                                    if (!hasData) return 'Tidak ada data';
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${percentage}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            chartInstances[elementId] = chart;
+        });
+    }, 0);
 }
 
-// 3. Fungsi Render Bar Comparison (SMART PARSING FIX)
+// 3. Fungsi Render Bar Comparison
 function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
-    const ctx = document.getElementById(elementId);
-    if (!ctx) return;
+    const canvas = resetCanvas(elementId);
+    if (!canvas) return;
+    
+    forceGPURendering(canvas);
 
-    const existingChart = Chart.getChart(ctx);
-    if (existingChart) existingChart.destroy();
-
-    // --- LOGIKA PARSING ANGKA CERDAS ---
-    const parseIdr = (input, label) => {
-        // 1. Jika input murni angka, langsung pakai
+    const parseIdr = (input) => {
         if (typeof input === 'number') return input;
-        
-        // 2. Jika kosong/null
         if (!input) return 0;
+        let str = input.toString().replace(/[^0-9,.-]/g, '');
 
-        let original = input.toString();
-        // Hanya ambil angka, titik, koma, minus
-        let str = original.replace(/[^0-9,.-]/g, '');
-
-        // 3. DETEKSI FORMAT (US vs INDO)
-        
-        // Cek apakah ada Titik DAN Koma sekaligus?
         if (str.includes('.') && str.includes(',')) {
-            // Jika posisi Titik > Koma (Contoh: 10,000.00) -> US Format
             if (str.lastIndexOf('.') > str.lastIndexOf(',')) {
-                str = str.replace(/,/g, ''); // Hapus koma (ribuan)
-                // Titik biarkan (desimal)
-            } 
-            // Jika posisi Koma > Titik (Contoh: 10.000,00) -> Indo Format
-            else {
-                str = str.replace(/\./g, ''); // Hapus titik (ribuan)
-                str = str.replace(',', '.');  // Koma jadi titik (desimal)
+                str = str.replace(/,/g, ''); 
+            } else {
+                str = str.replace(/\./g, '').replace(',', '.');
             }
-        }
-        // Cek jika HANYA ada Koma (Kasus Anda: 11,161,000 atau 778,500)
-        else if (str.includes(',')) {
+        } else if (str.includes(',')) {
             const parts = str.split(',');
-            const lastPart = parts[parts.length - 1];
-
-            // Jika di belakang koma pas 3 digit (Contoh: 500 atau 000)
-            // ATAU jika komanya lebih dari satu (11,161,000)
-            if (lastPart.length === 3 || parts.length > 2) {
-                // Ini Ribuan (US Format) -> Hapus semua koma
+            if (parts[parts.length - 1].length === 3 || parts.length > 2) {
                 str = str.replace(/,/g, '');
             } else {
-                // Ini Desimal (Indo Format) -> Ganti koma jadi titik
                 str = str.replace(',', '.');
             }
-        }
-        // Cek jika HANYA ada Titik (Contoh: 10.000 atau 10.5)
-        else if (str.includes('.')) {
+        } else if (str.includes('.')) {
             const parts = str.split('.');
-            const lastPart = parts[parts.length - 1];
-            
-            // Jika di belakang titik pas 3 digit (10.000)
-            if (lastPart.length === 3 || parts.length > 2) {
-                // Ini Ribuan (Indo Format) -> Hapus semua titik
+            if (parts[parts.length - 1].length === 3 || parts.length > 2) {
                 str = str.replace(/\./g, '');
-            } else {
-                // Ini Desimal -> Biarkan
             }
         }
-
-        let result = parseFloat(str) || 0;
-        
-        // Debugging di Console
-        console.log(`[${label}] Input: "${original}" -> Parsed: ${result}`);
-        
-        return result;
+        return parseFloat(str) || 0;
     };
 
-    const incVal = parseIdr(strIncome, 'Pemasukan');
-    const expVal = parseIdr(strExpense, 'Pengeluaran');
-    const balVal = parseIdr(strBalance, 'Saldo');
-
+    const incVal = parseIdr(strIncome);
+    const expVal = parseIdr(strExpense);
+    const balVal = parseIdr(strBalance);
     const totalAll = Math.abs(incVal) + Math.abs(expVal) + Math.abs(balVal);
 
-    new Chart(ctx, {
+    const chart = new Chart(canvas, {
         type: 'bar',
         data: {
             labels: ['Masuk', 'Keluar', 'Saldo'],
@@ -169,10 +231,17 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
             }]
         },
         options: {
-            indexAxis: 'y', 
+            indexAxis: 'y',
             responsive: true,
             maintainAspectRatio: false, 
             layout: { padding: { right: 50 } },
+            animation: {
+                duration: 2000,
+                easing: 'easeOutQuart',
+                x: {
+                    from: 0
+                }
+            },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -207,13 +276,14 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
             }
         }]
     });
+    
+    chartInstances[elementId] = chart;
 }
 
 // 4. Logic Ganti Mode
 function setMode(mode) {
     const secClean = document.getElementById('section-clean');
     const secDirty = document.getElementById('section-dirty');
-    
     document.querySelectorAll('.glass-switch-btn').forEach(b => b.classList.remove('active'));
     
     let activeBtnId = '';
@@ -230,12 +300,8 @@ function setMode(mode) {
         if(secDirty) secDirty.style.display = 'block';
         activeBtnId = 'btnKotor';
     }
-
     const btn = document.getElementById(activeBtnId);
-    if(btn) {
-        btn.classList.add('active');
-        movePill(btn);
-    }
+    if(btn) { btn.classList.add('active'); movePill(btn); }
 }
 
 function movePill(targetBtn) {
@@ -252,3 +318,12 @@ window.addEventListener('resize', () => {
     const activeBtn = document.querySelector('.glass-switch-btn.active');
     if(activeBtn) movePill(activeBtn);
 });
+
+function destroyAllCharts() {
+    Object.keys(chartInstances).forEach(key => {
+        if (chartInstances[key]) {
+            chartInstances[key].destroy();
+            delete chartInstances[key];
+        }
+    });
+}

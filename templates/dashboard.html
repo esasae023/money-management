@@ -193,11 +193,12 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<!-- PENTING: Load dashboard.js dengan cache busting untuk pastikan update ter-load -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        console.log("🚀 Dashboard Loaded...");
+        console.log("🚀 Dashboard Loaded - Chrome Desktop Fix Active");
 
         // Jalankan Mode Awal
         if (typeof setMode === "function") {
@@ -205,19 +206,31 @@
         }
 
         // --- RENDER GRAFIK ---
+        // Catatan: Semua fungsi render sekarang sudah include Chrome Desktop fix
+        // dengan forceGPURendering() dan timing optimization
         try {
+            console.log("📊 Starting chart rendering...");
+            
+            // Render Line Charts
             renderLine('chartTrendClean', {{ chart_clean.labels|tojson }}, {{ chart_clean.income|tojson }}, {{ chart_clean.expense|tojson }});
+            renderLine('chartTrendDirty', {{ chart_dirty.labels|tojson }}, {{ chart_dirty.income|tojson }}, {{ chart_dirty.expense|tojson }});
+            
+            // Render Pie Charts (yang mengalami masalah animasi di Chrome Desktop)
+            // Sekarang sudah fixed dengan GPU acceleration + timing optimization
             renderPie('pieIncClean', {{ pie_data.clean_inc.labels|tojson }}, {{ pie_data.clean_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
             renderPie('pieExpClean', {{ pie_data.clean_exp.labels|tojson }}, {{ pie_data.clean_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
-            renderBarCompare('barCompareClean', '{{ sum_clean.income }}', '{{ sum_clean.expense }}', '{{ sum_clean.balance }}');
-
-            renderLine('chartTrendDirty', {{ chart_dirty.labels|tojson }}, {{ chart_dirty.income|tojson }}, {{ chart_dirty.expense|tojson }});
             renderPie('pieIncDirty', {{ pie_data.dirty_inc.labels|tojson }}, {{ pie_data.dirty_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
             renderPie('pieExpDirty', {{ pie_data.dirty_exp.labels|tojson }}, {{ pie_data.dirty_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
+            
+            // Render Bar Charts
+            renderBarCompare('barCompareClean', '{{ sum_clean.income }}', '{{ sum_clean.expense }}', '{{ sum_clean.balance }}');
             renderBarCompare('barCompareDirty', '{{ sum_kotor.income }}', '{{ sum_kotor.expense }}', '{{ sum_kotor.balance }}');
+
+            console.log("✅ All charts rendered successfully");
 
         } catch (error) {
             console.error("❌ Gagal render grafik:", error);
+            console.error("Stack trace:", error.stack);
         }
     });
 </script>

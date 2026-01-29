@@ -67,3 +67,102 @@
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
     border-radius: 50px;
 }
+
+/* ==========================================
+   🔧 CHROME DESKTOP FIX - ANIMATION CANVAS
+   ========================================== */
+
+/**
+ * Fix untuk masalah animasi pie chart yang tidak jalan di Chrome Desktop
+ * (tapi jalan di Chrome Mobile dan saat Inspect Element dibuka)
+ * 
+ * Root cause: Hardware acceleration & compositor layer
+ * Solution: Force GPU rendering dengan CSS transforms
+ */
+
+/* Force hardware acceleration untuk semua canvas chart */
+canvas {
+    /* Trigger GPU compositing - INI YANG PALING PENTING */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    
+    /* Backface visibility untuk force compositing layer */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    
+    /* Perspective untuk 3D acceleration */
+    perspective: 1000px;
+    -webkit-perspective: 1000px;
+    
+    /* Will-change hint untuk browser optimizer */
+    will-change: transform, opacity;
+    
+    /* Anti-aliasing untuk render quality */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    
+    /* Pastikan canvas tidak di-compress oleh browser */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+/* Khusus untuk container chart (membantu isolasi layer) */
+.chart-container-fix,
+div[style*="position: relative"] {
+    /* Isolasi compositor layer */
+    isolation: isolate;
+    
+    /* Force compositing */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+/* State saat chart sedang animasi (optional, untuk debugging) */
+canvas.chart-animating {
+    will-change: transform, opacity;
+}
+
+/* Cleanup setelah animasi selesai */
+canvas.chart-rendered {
+    will-change: auto;
+}
+
+/* Fix untuk parent dengan overflow yang mungkin block animation */
+.card-body {
+    /* Jangan block rendering dengan overflow hidden saat ada canvas */
+    overflow: visible;
+}
+
+/* Khusus untuk chart di dalam card yang punya position relative */
+.card-body > div[style*="position: relative"] {
+    transform: translateZ(0);
+    isolation: isolate;
+}
+
+/* Performance optimization untuk multiple charts */
+@media (min-width: 992px) {
+    /* Di desktop, pastikan semua canvas dapat GPU acceleration */
+    canvas {
+        /* Slightly better performance hint */
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+/* Fallback untuk browser yang tidak support will-change */
+@supports not (will-change: transform) {
+    canvas {
+        /* Gunakan translateZ sebagai fallback */
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+}
+
+/* Fix untuk Safari jika ada masalah */
+@media not all and (min-resolution:.001dpcm) {
+    @supports (-webkit-appearance:none) {
+        canvas {
+            -webkit-transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0);
+        }
+    }
+}
