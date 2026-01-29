@@ -41,7 +41,7 @@
                     <div class="card text-white bg-success shadow-sm border-0 h-100">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Pemasukan Bersih</div>
-                            <div class="fw-bold kpi-value">Rp {{ sum_clean.income }}</div>
+                            <div class="fw-bold kpi-value" id="clean-income-val">Rp {{ sum_clean.income }}</div>
                         </div>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
                     <div class="card text-white bg-danger shadow-sm border-0 h-100">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Pengeluaran Bersih</div>
-                            <div class="fw-bold kpi-value">Rp {{ sum_clean.expense }}</div>
+                            <div class="fw-bold kpi-value" id="clean-expense-val">Rp {{ sum_clean.expense }}</div>
                         </div>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
                     <div class="card text-white bg-primary shadow-sm border-0 opacity-75 h-100">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Sisa Saldo (Real)</div>
-                            <div class="fw-bold kpi-value">Rp {{ sum_clean.balance }}</div>
+                            <div class="fw-bold kpi-value" id="clean-balance-val">Rp {{ sum_clean.balance }}</div>
                         </div>
                     </div>
                 </div>
@@ -115,7 +115,7 @@
                     <div class="card bg-success shadow-sm border-0 h-100" style="--bs-bg-opacity: .8; color: white;">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Total Pemasukan</div>
-                            <div class="fw-bold kpi-value">Rp {{ sum_kotor.income }}</div>
+                            <div class="fw-bold kpi-value" id="dirty-income-val">Rp {{ sum_kotor.income }}</div>
                         </div>
                     </div>
                 </div>
@@ -123,7 +123,7 @@
                     <div class="card bg-danger shadow-sm border-0 h-100" style="--bs-bg-opacity: .8; color: white;">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Total Pengeluaran</div>
-                            <div class="fw-bold kpi-value">Rp {{ sum_kotor.expense }}</div>
+                            <div class="fw-bold kpi-value" id="dirty-expense-val">Rp {{ sum_kotor.expense }}</div>
                         </div>
                     </div>
                 </div>
@@ -131,7 +131,7 @@
                     <div class="card bg-primary shadow-sm border-0 h-100" style="--bs-bg-opacity: .8; color: white;">
                         <div class="card-body fixed-body kpi-text-card">
                             <div class="text-uppercase fw-bold opacity-75 small kpi-label">Sisa Saldo</div>
-                            <div class="fw-bold kpi-value">Rp {{ sum_kotor.balance }}</div>
+                            <div class="fw-bold kpi-value" id="dirty-balance-val">Rp {{ sum_kotor.balance }}</div>
                         </div>
                     </div>
                 </div>
@@ -193,36 +193,34 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- PENTING: Load dashboard.js dengan cache busting untuk pastikan update ter-load -->
-<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=3"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        console.log("🚀 Dashboard Loaded - Chrome Desktop Fix Active");
+        console.log("🚀 Dashboard Loaded - Animation Enabled");
 
         // Jalankan Mode Awal
         if (typeof setMode === "function") {
             setMode('semua');
         }
 
+        // Jalankan Animasi Angka (Pastikan dashboard.js sudah diupdate)
+        if (typeof initCountingAnimation === "function") {
+            initCountingAnimation();
+        }
+
         // --- RENDER GRAFIK ---
-        // Catatan: Semua fungsi render sekarang sudah include Chrome Desktop fix
-        // dengan forceGPURendering() dan timing optimization
         try {
             console.log("📊 Starting chart rendering...");
             
-            // Render Line Charts
             renderLine('chartTrendClean', {{ chart_clean.labels|tojson }}, {{ chart_clean.income|tojson }}, {{ chart_clean.expense|tojson }});
             renderLine('chartTrendDirty', {{ chart_dirty.labels|tojson }}, {{ chart_dirty.income|tojson }}, {{ chart_dirty.expense|tojson }});
             
-            // Render Pie Charts (yang mengalami masalah animasi di Chrome Desktop)
-            // Sekarang sudah fixed dengan GPU acceleration + timing optimization
             renderPie('pieIncClean', {{ pie_data.clean_inc.labels|tojson }}, {{ pie_data.clean_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
             renderPie('pieExpClean', {{ pie_data.clean_exp.labels|tojson }}, {{ pie_data.clean_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
             renderPie('pieIncDirty', {{ pie_data.dirty_inc.labels|tojson }}, {{ pie_data.dirty_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
             renderPie('pieExpDirty', {{ pie_data.dirty_exp.labels|tojson }}, {{ pie_data.dirty_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
             
-            // Render Bar Charts
             renderBarCompare('barCompareClean', '{{ sum_clean.income }}', '{{ sum_clean.expense }}', '{{ sum_clean.balance }}');
             renderBarCompare('barCompareDirty', '{{ sum_kotor.income }}', '{{ sum_kotor.expense }}', '{{ sum_kotor.balance }}');
 
@@ -230,7 +228,6 @@
 
         } catch (error) {
             console.error("❌ Gagal render grafik:", error);
-            console.error("Stack trace:", error.stack);
         }
     });
 </script>

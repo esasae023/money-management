@@ -1,12 +1,64 @@
 /**
  * static/js/dashboard.js
- * FITUR BARU: Tooltip Pie Chart menampilkan Nominal + Persentase.
- * (Termasuk perbaikan Animasi Bar & Smart Currency sebelumnya)
+ * VERSI: V3 - ANIMASI COUNTING FIX
  */
 
-console.log("🚀 DASHBOARD JS - PIE TOOLTIP ENHANCED");
+console.log("🚀 DASHBOARD JS V3 LOADED");
 
-// HELPER: Reset Canvas
+// =========================================
+// 1. FUNGSI ANIMASI ANGKA (HITUNG MAJU)
+// =========================================
+function animateCountUp(elementId, endValue, duration = 2000) {
+    const obj = document.getElementById(elementId);
+    if (!obj || endValue === 0) return;
+
+    let startTimestamp = null;
+    const startValue = 0;
+
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+        const currentVal = Math.floor(easeOutQuart * (endValue - startValue) + startValue);
+        
+        obj.innerHTML = "Rp " + currentVal.toLocaleString('id-ID');
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            obj.innerHTML = "Rp " + endValue.toLocaleString('id-ID');
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+function initCountingAnimation() {
+    const targetIds = [
+        'clean-income-val', 'clean-expense-val', 'clean-balance-val', 
+        'dirty-income-val', 'dirty-expense-val', 'dirty-balance-val'
+    ];
+
+    targetIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            const rawText = el.innerText;
+            // Hapus semua karakter kecuali angka dan minus
+            // Ini lebih aman karena data Anda dari Python sudah bulat (.0f)
+            let cleanStr = rawText.replace(/[^0-9-]/g, ''); 
+            
+            const finalNumber = parseFloat(cleanStr) || 0;
+            el.innerHTML = "Rp 0"; // Reset ke 0
+            
+            setTimeout(() => {
+                 animateCountUp(id, finalNumber);
+            }, Math.random() * 300);
+        }
+    });
+}
+
+// =========================================
+// 2. FUNGSI RENDER GRAFIK (HELPER)
+// =========================================
 function resetCanvas(elementId) {
     const canvas = document.getElementById(elementId);
     if (!canvas) return null;
@@ -15,142 +67,82 @@ function resetCanvas(elementId) {
     return newCanvas;
 }
 
-// 1. Fungsi Render Grafik Garis (Trend)
+// Render Line
 function renderLine(elementId, labels, dataIncome, dataExpense) {
     const canvas = resetCanvas(elementId);
     if (!canvas) return;
-
     new Chart(canvas, {
         type: 'line',
         data: {
             labels: labels || [],
             datasets: [
-                {
-                    label: 'Pemasukan',
-                    data: dataIncome || [],
-                    borderColor: '#198754', 
-                    backgroundColor: 'rgba(25, 135, 84, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                },
-                {
-                    label: 'Pengeluaran',
-                    data: dataExpense || [],
-                    borderColor: '#dc3545', 
-                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                    tension: 0.3,
-                    fill: true
-                }
+                { label: 'Pemasukan', data: dataIncome || [], borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)', tension: 0.3, fill: true },
+                { label: 'Pengeluaran', data: dataExpense || [], borderColor: '#dc3545', backgroundColor: 'rgba(220, 53, 69, 0.1)', tension: 0.3, fill: true }
             ]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: {
-                duration: 2000,
-                easing: 'easeOutQuart'
-            },
-            plugins: {
-                legend: { position: 'top' },
-                tooltip: { mode: 'index', intersect: false }
-            },
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 2000, easing: 'easeOutQuart' },
+            plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
             interaction: { mode: 'nearest', axis: 'x', intersect: false }
         }
     });
 }
 
-// 2. Fungsi Render Grafik Pie (Donat) - DENGAN TOOLTIP PERSENTASE
+// Render Pie (Dengan Tooltip Lengkap)
 function renderPie(elementId, labels, dataValues, colors) {
     const canvas = resetCanvas(elementId);
     if (!canvas) return;
-
-    if (!dataValues || dataValues.length === 0 || dataValues.every(v => v === 0)) {
-        return; 
-    }
+    if (!dataValues || dataValues.length === 0 || dataValues.every(v => v === 0)) return;
 
     new Chart(canvas, {
         type: 'doughnut',
         data: {
             labels: labels || [],
-            datasets: [{
-                data: dataValues || [],
-                backgroundColor: colors || ['#ccc'],
-                borderWidth: 1
-            }]
+            datasets: [{ data: dataValues || [], backgroundColor: colors || ['#ccc'], borderWidth: 1 }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: {
-                duration: 2000,
-                easing: 'easeOutQuart',
-                animateRotate: true,
-                animateScale: true
-            },
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 2000, easing: 'easeOutQuart', animateRotate: true, animateScale: true },
             plugins: {
-                legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } },
-                
-                // --- BAGIAN INI YANG DIMODIFIKASI ---
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            // 1. Ambil Nama Label (Contoh: "Makan")
                             let label = context.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            
-                            // 2. Ambil Nilai Rupiah
+                            if (label) label += ': ';
                             const value = context.raw;
-                            
-                            // 3. Hitung Total Semua Data untuk mencari Persentase
-                            const dataset = context.chart.data.datasets[0].data;
-                            const total = dataset.reduce((acc, curr) => acc + curr, 0);
+                            const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
                             const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-
-                            // 4. Format Rupiah
-                            const formattedValue = "Rp " + value.toLocaleString('id-ID');
-
-                            // 5. Gabungkan: "Makan: Rp 500.000 (25.5%)"
-                            return `${label}${formattedValue} (${percentage}%)`;
+                            return `${label}Rp ${value.toLocaleString('id-ID')} (${percentage}%)`;
                         }
                     }
-                }
-                // -------------------------------------
+                },
+                legend: { position: 'right', labels: { boxWidth: 12, font: { size: 10 } } }
             }
         }
     });
 }
 
-// 3. Fungsi Render Bar Comparison
+// Render Bar (Dengan Animasi Geser & Fix Mata Uang)
 function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const canvas = resetCanvas(elementId);
     if (!canvas) return;
 
-    // --- LOGIKA MATA UANG (Smart Parsing) ---
     const parseIdr = (input) => {
         if (typeof input === 'number') return input;
         if (!input) return 0;
         let str = input.toString().replace(/[^0-9,.-]/g, '');
-
+        // Logika Smart Parsing
         if (str.includes('.') && str.includes(',')) {
-            if (str.lastIndexOf('.') > str.lastIndexOf(',')) {
-                str = str.replace(/,/g, ''); 
-            } else {
-                str = str.replace(/\./g, '').replace(',', '.');
-            }
+            if (str.lastIndexOf('.') > str.lastIndexOf(',')) str = str.replace(/,/g, ''); 
+            else str = str.replace(/\./g, '').replace(',', '.');
         } else if (str.includes(',')) {
             const parts = str.split(',');
-            if (parts[parts.length - 1].length === 3 || parts.length > 2) {
-                str = str.replace(/,/g, '');
-            } else {
-                str = str.replace(',', '.');
-            }
+            if (parts[parts.length - 1].length === 3 || parts.length > 2) str = str.replace(/,/g, '');
+            else str = str.replace(',', '.');
         } else if (str.includes('.')) {
             const parts = str.split('.');
-            if (parts[parts.length - 1].length === 3 || parts.length > 2) {
-                str = str.replace(/\./g, '');
-            }
+            if (parts[parts.length - 1].length === 3 || parts.length > 2) str = str.replace(/\./g, '');
         }
         return parseFloat(str) || 0;
     };
@@ -168,29 +160,16 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                 label: 'Nominal',
                 data: [incVal, expVal, balVal],
                 backgroundColor: ['#198754', '#dc3545', '#0d6efd'],
-                borderRadius: 5,
-                maxBarThickness: 40, 
+                borderRadius: 5, maxBarThickness: 40, 
             }]
         },
         options: {
-            indexAxis: 'y', // Horizontal
-            responsive: true,
-            maintainAspectRatio: false, 
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
             layout: { padding: { right: 50 } },
-            animation: {
-                duration: 2000,
-                easing: 'easeOutQuart',
-                x: { from: 0 } // Efek Geser
-            },
+            animation: { duration: 2000, easing: 'easeOutQuart', x: { from: 0 } },
             plugins: {
                 legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return "Rp " + context.raw.toLocaleString('id-ID');
-                        }
-                    }
-                }
+                tooltip: { callbacks: { label: function(context) { return "Rp " + context.raw.toLocaleString('id-ID'); } } }
             },
             scales: { x: { display: false }, y: { grid: { display: false } } }
         },
@@ -202,15 +181,9 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                     const value = data.datasets[0].data[index];
                     let percent = 0;
                     if (totalAll > 0) percent = (value / totalAll * 100).toFixed(1);
-
-                    ctx.font = 'bold 11px sans-serif';
-                    ctx.fillStyle = '#555';
-                    ctx.textAlign = 'left';
-                    ctx.textBaseline = 'middle';
-                    
+                    ctx.font = 'bold 11px sans-serif'; ctx.fillStyle = '#555'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
                     let xPos = value >= 0 ? bar.x + 5 : bar.x - 40;
                     if (value < 0 && percent === "0.0") xPos = bar.x + 5;
-                    
                     ctx.fillText(percent + '%', xPos, bar.y);
                 });
             }
@@ -218,7 +191,7 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     });
 }
 
-// 4. Logic Ganti Mode
+// 3. LOGIC GANTI MODE
 function setMode(mode) {
     const secClean = document.getElementById('section-clean');
     const secDirty = document.getElementById('section-dirty');
@@ -245,13 +218,10 @@ function setMode(mode) {
 function movePill(targetBtn) {
     const pill = document.getElementById('slidePill');
     if (pill && targetBtn) {
-        const width = targetBtn.offsetWidth;
-        const left = targetBtn.offsetLeft;
-        pill.style.width = `${width}px`;
-        pill.style.left = `${left}px`;
+        pill.style.width = `${targetBtn.offsetWidth}px`;
+        pill.style.left = `${targetBtn.offsetLeft}px`;
     }
 }
-
 window.addEventListener('resize', () => {
     const activeBtn = document.querySelector('.glass-switch-btn.active');
     if(activeBtn) movePill(activeBtn);
