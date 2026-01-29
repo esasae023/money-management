@@ -1,5 +1,6 @@
 /**
  * static/js/dashboard.js
+ * FIXED: Masalah parsing desimal yang membuat angka melonjak 10x-100x lipat.
  */
 
 // 1. Fungsi Render Grafik Garis
@@ -77,7 +78,7 @@ function renderPie(elementId, labels, dataValues, colors) {
     });
 }
 
-// 3. Fungsi Render Bar Comparison (UPDATED: RESPONSIVE & PERSENTASE)
+// 3. Fungsi Render Bar Comparison (FIXED PARSING LOGIC)
 function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const ctx = document.getElementById(elementId);
     if (!ctx) return;
@@ -85,19 +86,36 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const existingChart = Chart.getChart(ctx);
     if (existingChart) existingChart.destroy();
 
-    // Helper Parse Rupiah
-    const parseIdr = (str) => {
-        if (!str) return 0;
-        let clean = str.toString().replace(/[^0-9,-]/g, '').replace(',', '.');
-        return parseFloat(clean) || 0;
+    // --- LOGIKA PARSING BARU (LEBIH AMAN) ---
+    const parseIdr = (input) => {
+        // 1. Jika input sudah berupa angka (bukan teks), langsung kembalikan
+        if (typeof input === 'number') return input;
+        
+        // 2. Jika kosong/null
+        if (!input) return 0;
+
+        let str = input.toString();
+
+        // 3. Deteksi Format
+        // Jika mengandung KOMA (Format Indo: 10.000,00), maka hapus titik ribuan
+        if (str.includes(',')) {
+            str = str.replace(/\./g, ''); // Hapus titik ribuan
+            str = str.replace(',', '.');  // Ganti koma jadi titik desimal
+        } else {
+            // Jika TIDAK mengandung koma, asumsi format Raw/Inggris (10000.00)
+            // Hapus karakter aneh (misal "Rp "), TAPI JANGAN HAPUS TITIK DESIMAL
+            str = str.replace(/[^0-9.-]/g, ''); 
+        }
+
+        return parseFloat(str) || 0;
     };
 
     const incVal = parseIdr(strIncome);
     const expVal = parseIdr(strExpense);
     const balVal = parseIdr(strBalance);
 
-    // Hitung Total untuk Persentase
-    const totalAll = incVal + expVal + balVal;
+    // Hitung Total Absolut untuk Persentase (Agar persentase minus tetap masuk akal)
+    const totalAll = Math.abs(incVal) + Math.abs(expVal) + Math.abs(balVal);
 
     new Chart(ctx, {
         type: 'bar',
@@ -108,16 +126,13 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                 data: [incVal, expVal, balVal],
                 backgroundColor: ['#198754', '#dc3545', '#0d6efd'],
                 borderRadius: 5,
-                
-                // --- PENGATURAN KETEBALAN (RESPONSIF) ---
-                maxBarThickness: 40, // Batang maksimal 40px, tapi bisa mengecil
-                // ---------------------------------------
+                maxBarThickness: 40, 
             }]
         },
         options: {
-            indexAxis: 'y', // Horizontal
+            indexAxis: 'y', 
             responsive: true,
-            maintainAspectRatio: false, // Penting agar ngikut tinggi container
+            maintainAspectRatio: false, 
             layout: { padding: { right: 50 } },
             plugins: {
                 legend: { display: false },
@@ -131,7 +146,6 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
             },
             scales: { x: { display: false }, y: { grid: { display: false } } }
         },
-        // --- PLUGIN PERSENTASE ---
         plugins: [{
             id: 'percentageLabel',
             afterDatasetsDraw(chart) {
@@ -139,13 +153,20 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                 chart.getDatasetMeta(0).data.forEach((bar, index) => {
                     const value = data.datasets[0].data[index];
                     let percent = 0;
+                    
+                    // Gunakan totalAll (absolute sum) agar tidak error saat ada minus
                     if (totalAll > 0) percent = (value / totalAll * 100).toFixed(1);
 
                     ctx.font = 'bold 11px sans-serif';
                     ctx.fillStyle = '#555';
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText(percent + '%', bar.x + 5, bar.y);
+                    
+                    // Jika batang minus (ke kiri), taruh teks di sebelah kanan axis 0 biar rapi
+                    // Atau simpelnya taruh di ujung batang
+                    let xPos = value >= 0 ? bar.x + 5 : bar.x - 35; 
+                    
+                    ctx.fillText(percent + '%', xPos, bar.y);
                 });
             }
         }]
