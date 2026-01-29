@@ -98,10 +98,11 @@ def fetch_sheet_data(folder, sheet_name):
         
         clean_inc_val = sum_cells(folder.clean_income_cells)
         clean_exp_val = sum_cells(folder.clean_expense_cells)
+        clean_bal_val = clean_inc_val - clean_exp_val
         sum_clean = {
             'income': f"{clean_inc_val:,.0f}",
             'expense': f"{clean_exp_val:,.0f}",
-            'balance': sum_kotor['balance']
+            'balance': f"{clean_bal_val:,.0f}"
         }
 
         # Pie Chart
