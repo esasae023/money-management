@@ -2,62 +2,94 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<style>
+    /* 1. Aturan Margin Section Terakhir */
+    .no-margin-bottom {
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* 2. Pengatur Jarak Bawah (Spacer) */
+    .bottom-spacer-force {
+        /* Desktop: Tipis (20px) */
+        height: 20px !important; 
+        display: block; 
+    }
+    
+    /* Mobile: Dikecilkan drastis dari 85px menjadi 30px */
+    @media (max-width: 768px) {
+        .bottom-spacer-force {
+            height: 30px !important; /* UPDATE: Lebih Rapat */
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-truncate" style="max-width: 60%;">📊 {{ folder.name }}</h2>
-    <div class="dropdown">
-        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            🗓️ {{ selected_month }}
-        </button>
-        <ul class="dropdown-menu">
-            {% for sheet in sheet_list %}
-            <li><a class="dropdown-item" href="{{ url_for('dashboard', folder_id=folder.id, month=sheet) }}">{{ sheet }}</a></li>
-            {% endfor %}
-        </ul>
-        <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-secondary ms-2">⚙️ Config</a>
+<div class="d-flex justify-content-between align-items-center mb-5 mt-3">
+    <div>
+        <h6 class="text-uppercase text-muted mb-1 small fw-bold" style="letter-spacing: 1px;">Dashboard Keuangan</h6>
+        <h2 class="fw-bold text-dark m-0">{{ folder.name }}</h2>
+    </div>
+    
+    <div class="d-flex align-items-center gap-2">
+        <div class="dropdown">
+            <button class="btn btn-white bg-white shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-calendar4-week me-2 text-primary"></i> {{ selected_month }}
+            </button>
+            <ul class="dropdown-menu shadow border-0 rounded-4 mt-2">
+                {% for sheet in sheet_list %}
+                <li><a class="dropdown-item py-2 px-3" href="{{ url_for('dashboard', folder_id=folder.id, month=sheet) }}">{{ sheet }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-white bg-white shadow-sm border rounded-circle p-2" style="width: 40px; height: 40px; display:flex; align-items:center; justify-content:center;" title="Konfigurasi">
+            <i class="bi bi-sliders text-secondary"></i>
+        </a>
     </div>
 </div>
 
 {% if error_msg %}
-<div class="alert alert-danger d-flex align-items-center">
-    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-    <div>
-        <strong>Gagal mengambil data:</strong> {{ error_msg }}
-        <br><small>Pastikan nama sheet dan konfigurasi cell sudah benar di menu Config.</small>
-    </div>
+<div class="alert alert-danger border-0 shadow-sm rounded-4 d-flex align-items-center mb-4">
+    <i class="bi bi-exclamation-circle-fill me-3 fs-4"></i>
+    <div><strong>Gagal mengambil data</strong><br><small>{{ error_msg }}</small></div>
 </div>
 {% endif %}
 
-<div id="section-clean" class="mb-5 border-bottom pb-4">
-    <h4 class="mb-3 text-success"><i class="bi bi-stars"></i> Dashboard Dana Bersih (Tanpa Hutang)</h4>
+<div id="section-clean" class="mb-5 pb-4">
+    <div class="d-flex align-items-center mb-4">
+        <span class="badge badge-clean rounded-pill px-3 py-2 me-2">
+            <i class="bi bi-shield-check me-1"></i> Mode Bersih
+        </span>
+        <small class="text-muted">Data operasional tanpa hutang & pindahan dana</small>
+    </div>
     
-    <div class="row g-3 mb-4">
-        
+    <div class="row g-4 mb-4">
         <div class="col-xl-7 col-lg-7">
             <div class="row g-3 h-100">
-                <div class="col-md-4">
-                    <div class="card text-white bg-success shadow-sm border-0 h-100">
+                <div class="col-md-4 col-sm-12">
+                    <div class="card card-soft-success h-100">
                         <div class="card-body fixed-body kpi-text-card">
-                            <div class="text-uppercase fw-bold opacity-75 small kpi-label">Pemasukan Bersih</div>
-                            <div class="fw-bold kpi-value" id="clean-income-val">Rp {{ sum_clean.income }}</div>
+                            <div class="kpi-label"><i class="bi bi-box-arrow-in-down-left me-2"></i> Pemasukan</div>
+                            <div class="kpi-value" id="clean-income-val">Rp {{ sum_clean.income }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card text-white bg-danger shadow-sm border-0 h-100">
+                <div class="col-md-4 col-sm-12">
+                    <div class="card card-soft-danger h-100">
                         <div class="card-body fixed-body kpi-text-card">
-                            <div class="text-uppercase fw-bold opacity-75 small kpi-label">Pengeluaran Bersih</div>
-                            <div class="fw-bold kpi-value" id="clean-expense-val">Rp {{ sum_clean.expense }}</div>
+                            <div class="kpi-label"><i class="bi bi-box-arrow-up-right me-2"></i> Pengeluaran</div>
+                            <div class="kpi-value" id="clean-expense-val">Rp {{ sum_clean.expense }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card text-white bg-primary shadow-sm border-0 opacity-75 h-100">
+                <div class="col-md-4 col-sm-12">
+                    <div class="card card-soft-primary h-100">
                         <div class="card-body fixed-body kpi-text-card">
-                            <div class="text-uppercase fw-bold opacity-75 small kpi-label">Sisa Saldo (Real)</div>
-                            <div class="fw-bold kpi-value" id="clean-balance-val">Rp {{ sum_clean.balance }}</div>
+                            <div class="kpi-label"><i class="bi bi-wallet2 me-2"></i> Sisa Saldo</div>
+                            <div class="kpi-value" id="clean-balance-val">Rp {{ sum_clean.balance }}</div>
                         </div>
                     </div>
                 </div>
@@ -65,10 +97,10 @@
         </div>
 
         <div class="col-xl-5 col-lg-5">
-            <div class="card shadow-sm border-0 w-100 h-100">
-                <div class="card-body fixed-body chart-card-mobile">
-                    <div class="text-uppercase fw-bold opacity-75 small mb-2 text-muted text-center w-100">Perbandingan (Bersih)</div>
-                    <div class="chart-container-fix">
+            <div class="card h-100">
+                <div class="card-body fixed-body d-flex flex-column justify-content-center">
+                    <div class="text-uppercase fw-bold text-muted small mb-1 text-center" style="font-size: 0.75rem; letter-spacing: 1px;">Rasio Pemasukan vs Pengeluaran</div>
+                    <div style="width: 100%; height: 100%; flex:1; position: relative;">
                         <canvas id="barCompareClean"></canvas>
                     </div>
                 </div>
@@ -76,62 +108,76 @@
         </div>
     </div>
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header fw-bold text-success">📈 Trend Dana Bersih</div>
-        <div class="card-body">
-            <div style="height: 350px; position: relative;">
-                <canvas id="chartTrendClean"></canvas>
-            </div>
+    <div class="card mb-4">
+        <div class="card-header border-0 pb-0 pt-4 px-4 bg-white d-flex align-items-center">
+            <i class="bi bi-activity me-2 fs-5 text-success"></i> 
+            <span class="text-success fw-bold">Trend Keuangan (Bersih)</span>
+        </div>
+        <div class="card-body px-4 pb-4">
+            <div style="height: 350px;"><canvas id="chartTrendClean"></canvas></div>
         </div>
     </div>
     
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="card h-100 border-success">
-                <div class="card-header bg-success text-white">Pie Pemasukan (Bersih)</div>
-                <div class="card-body">
-                    <div style="height: 300px; position: relative;"><canvas id="pieIncClean"></canvas></div>
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header border-0 bg-white pt-4 px-4">
+                    <span class="text-success fw-bold d-flex align-items-center">
+                        <i class="bi bi-pie-chart me-2"></i> Komposisi Pemasukan
+                    </span>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    <div style="height: 280px; width: 100%;"><canvas id="pieIncClean"></canvas></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-3">
-            <div class="card h-100 border-danger">
-                <div class="card-header bg-danger text-white">Pie Pengeluaran (Bersih)</div>
-                <div class="card-body">
-                    <div style="height: 300px; position: relative;"><canvas id="pieExpClean"></canvas></div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header border-0 bg-white pt-4 px-4">
+                    <span class="text-danger fw-bold d-flex align-items-center">
+                        <i class="bi bi-pie-chart-fill me-2"></i> Komposisi Pengeluaran
+                    </span>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    <div style="height: 280px; width: 100%;"><canvas id="pieExpClean"></canvas></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div id="section-dirty" class="mb-5">
-    <h4 class="mb-3 text-secondary"><i class="bi bi-wallet2"></i> Dashboard Dana Kotor (Semua)</h4>
+<div id="section-dirty" class="no-margin-bottom" style="margin-bottom: 0 !important; padding-bottom: 0 !important;">
+    <div class="d-flex align-items-center mb-4">
+        <span class="badge badge-dirty rounded-pill px-3 py-2 me-2">
+            <i class="bi bi-cash-stack me-1"></i> Mode Kotor
+        </span>
+        <small class="text-muted">Mencakup semua transaksi real termasuk hutang/pindahan</small>
+    </div>
 
-    <div class="row g-3 mb-4">
+    <div class="row g-4 mb-4">
         <div class="col-xl-7 col-lg-7">
             <div class="row g-3 h-100">
-                <div class="col-md-4">
-                    <div class="card bg-success shadow-sm border-0 h-100" style="--bs-bg-opacity: .8; color: white;">
+                <div class="col-md-4 col-sm-12">
+                    <div class="card card-soft-dark h-100">
                         <div class="card-body fixed-body kpi-text-card">
-                            <div class="text-uppercase fw-bold opacity-75 small kpi-label">Total Pemasukan</div>
-                            <div class="fw-bold kpi-value" id="dirty-income-val">Rp {{ sum_kotor.income }}</div>
+                            <div class="kpi-label"><i class="bi bi-box-arrow-in-down me-2"></i> Total Pemasukan</div>
+                            <div class="kpi-value" id="dirty-income-val">Rp {{ sum_kotor.income }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card bg-danger shadow-sm border-0 h-100" style="--bs-bg-opacity: .8; color: white;">
+                <div class="col-md-4 col-sm-12">
+                    <div class="card card-soft-secondary h-100">
                         <div class="card-body fixed-body kpi-text-card">
-                            <div class="text-uppercase fw-bold opacity-75 small kpi-label">Total Pengeluaran</div>
-                            <div class="fw-bold kpi-value" id="dirty-expense-val">Rp {{ sum_kotor.expense }}</div>
+                            <div class="kpi-label"><i class="bi bi-box-arrow-up me-2"></i> Total Pengeluaran</div>
+                            <div class="kpi-value" id="dirty-expense-val">Rp {{ sum_kotor.expense }}</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card bg-primary shadow-sm border-0 h-100" style="--bs-bg-opacity: .8; color: white;">
+                <div class="col-md-4 col-sm-12">
+                    <div class="card card-soft-primary h-100">
                         <div class="card-body fixed-body kpi-text-card">
-                            <div class="text-uppercase fw-bold opacity-75 small kpi-label">Sisa Saldo</div>
-                            <div class="fw-bold kpi-value" id="dirty-balance-val">Rp {{ sum_kotor.balance }}</div>
+                            <div class="kpi-label"><i class="bi bi-piggy-bank me-2"></i> Sisa Saldo</div>
+                            <div class="kpi-value" id="dirty-balance-val">Rp {{ sum_kotor.balance }}</div>
                         </div>
                     </div>
                 </div>
@@ -139,10 +185,10 @@
         </div>
 
         <div class="col-xl-5 col-lg-5">
-            <div class="card shadow-sm border-0 w-100 h-100">
-                <div class="card-body fixed-body chart-card-mobile">
-                    <div class="text-uppercase fw-bold opacity-75 small mb-2 text-muted text-center w-100">Perbandingan (Kotor)</div>
-                    <div class="chart-container-fix">
+            <div class="card h-100">
+                <div class="card-body fixed-body d-flex flex-column justify-content-center">
+                    <div class="text-uppercase fw-bold text-muted small mb-1 text-center" style="font-size: 0.75rem; letter-spacing: 1px;">Rasio Total</div>
+                    <div style="width: 100%; height: 100%; flex:1; position: relative;">
                         <canvas id="barCompareDirty"></canvas>
                     </div>
                 </div>
@@ -150,85 +196,83 @@
         </div>
     </div>
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header fw-bold text-secondary">📈 Trend Dana Kotor</div>
-        <div class="card-body">
-            <div style="height: 350px; position: relative;">
-                <canvas id="chartTrendDirty"></canvas>
-            </div>
+    <div class="card mb-4">
+        <div class="card-header border-0 pb-0 pt-4 px-4 bg-white d-flex align-items-center">
+            <i class="bi bi-graph-up-arrow me-2 fs-5 text-secondary"></i> 
+            <span class="text-secondary fw-bold">Trend Keuangan (Total)</span>
+        </div>
+        <div class="card-body px-4 pb-4">
+            <div style="height: 350px;"><canvas id="chartTrendDirty"></canvas></div>
         </div>
     </div>
     
-    <div class="row">
-        <div class="col-md-6 mb-3">
+    <div class="row g-4">
+        <div class="col-md-6">
             <div class="card h-100">
-                <div class="card-header bg-secondary text-white">Pie Pemasukan (Total)</div>
-                <div class="card-body">
-                    <div style="height: 300px; position: relative;"><canvas id="pieIncDirty"></canvas></div>
+                <div class="card-header border-0 bg-white pt-4 px-4">
+                    <span class="text-secondary fw-bold d-flex align-items-center">
+                        <i class="bi bi-pie-chart me-2"></i> Komposisi Pemasukan (Total)
+                    </span>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    <div style="height: 280px; width: 100%;"><canvas id="pieIncDirty"></canvas></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-3">
+        <div class="col-md-6">
             <div class="card h-100">
-                <div class="card-header bg-secondary text-white">Pie Pengeluaran (Total)</div>
-                <div class="card-body">
-                    <div style="height: 300px; position: relative;"><canvas id="pieExpDirty"></canvas></div>
+                <div class="card-header border-0 bg-white pt-4 px-4">
+                    <span class="text-secondary fw-bold d-flex align-items-center">
+                        <i class="bi bi-pie-chart-fill me-2"></i> Komposisi Pengeluaran (Total)
+                    </span>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    <div style="height: 280px; width: 100%;"><canvas id="pieExpDirty"></canvas></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div style="height: 100px;"></div>
+<div class="bottom-spacer-force"></div>
 
 <div class="glass-control-wrapper">
-    <div class="glass-capsule-container shadow-sm position-relative">
+    <div class="glass-capsule-container">
         <div id="slidePill" class="slide-pill"></div>
-
         <button class="glass-switch-btn" onclick="setMode('semua')" id="btnSemua">Semua</button>
-        <button class="glass-switch-btn" onclick="setMode('bersih')" id="btnBersih"><i class="bi bi-stars"></i> Bersih</button>
-        <button class="glass-switch-btn" onclick="setMode('kotor')" id="btnKotor"><i class="bi bi-wallet2"></i> Kotor</button>
+        <button class="glass-switch-btn" onclick="setMode('bersih')" id="btnBersih">Bersih</button>
+        <button class="glass-switch-btn" onclick="setMode('kotor')" id="btnKotor">Kotor</button>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=3"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=20"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        console.log("🚀 Dashboard Loaded - Animation Enabled");
+        console.log("🚀 Dashboard Final Compact");
+        
+        if (typeof setMode === "function") setMode('semua');
+        if (typeof initCountingAnimation === "function") initCountingAnimation();
 
-        // Jalankan Mode Awal
-        if (typeof setMode === "function") {
-            setMode('semua');
-        }
-
-        // Jalankan Animasi Angka (Pastikan dashboard.js sudah diupdate)
-        if (typeof initCountingAnimation === "function") {
-            initCountingAnimation();
-        }
-
-        // --- RENDER GRAFIK ---
         try {
-            console.log("📊 Starting chart rendering...");
-            
+            const cGreen = ['#a7f3d0', '#34d399', '#059669']; 
+            const cRed   = ['#fecaca', '#f87171', '#dc2626']; 
+            const barColorsClean = ['#06bd83', '#ff6d6d', '#588dff']; 
+            const barColorsDirty = ['#3e3e3e', '#535455', '#588dff'];
+
             renderLine('chartTrendClean', {{ chart_clean.labels|tojson }}, {{ chart_clean.income|tojson }}, {{ chart_clean.expense|tojson }});
+            renderPie('pieIncClean', {{ pie_data.clean_inc.labels|tojson }}, {{ pie_data.clean_inc.data|tojson }}, cGreen);
+            renderPie('pieExpClean', {{ pie_data.clean_exp.labels|tojson }}, {{ pie_data.clean_exp.data|tojson }}, cRed);
+            renderBarCompare('barCompareClean', '{{ sum_clean.income }}', '{{ sum_clean.expense }}', '{{ sum_clean.balance }}', barColorsClean);
+
             renderLine('chartTrendDirty', {{ chart_dirty.labels|tojson }}, {{ chart_dirty.income|tojson }}, {{ chart_dirty.expense|tojson }});
-            
-            renderPie('pieIncClean', {{ pie_data.clean_inc.labels|tojson }}, {{ pie_data.clean_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
-            renderPie('pieExpClean', {{ pie_data.clean_exp.labels|tojson }}, {{ pie_data.clean_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
-            renderPie('pieIncDirty', {{ pie_data.dirty_inc.labels|tojson }}, {{ pie_data.dirty_inc.data|tojson }}, ['#20c997','#198754','#0f5132']);
-            renderPie('pieExpDirty', {{ pie_data.dirty_exp.labels|tojson }}, {{ pie_data.dirty_exp.data|tojson }}, ['#dc3545','#fd7e14','#ffc107']);
-            
-            renderBarCompare('barCompareClean', '{{ sum_clean.income }}', '{{ sum_clean.expense }}', '{{ sum_clean.balance }}');
-            renderBarCompare('barCompareDirty', '{{ sum_kotor.income }}', '{{ sum_kotor.expense }}', '{{ sum_kotor.balance }}');
+            renderPie('pieIncDirty', {{ pie_data.dirty_inc.labels|tojson }}, {{ pie_data.dirty_inc.data|tojson }}, cGreen);
+            renderPie('pieExpDirty', {{ pie_data.dirty_exp.labels|tojson }}, {{ pie_data.dirty_exp.data|tojson }}, cRed);
+            renderBarCompare('barCompareDirty', '{{ sum_kotor.income }}', '{{ sum_kotor.expense }}', '{{ sum_kotor.balance }}', barColorsDirty);
 
-            console.log("✅ All charts rendered successfully");
-
-        } catch (error) {
-            console.error("❌ Gagal render grafik:", error);
-        }
+        } catch (error) { console.error("Error render chart:", error); }
     });
 </script>
 {% endblock %}

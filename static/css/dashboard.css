@@ -1,168 +1,234 @@
-/* --- STYLING KARTU KPI --- */
+/* static/css/dashboard.css */
+/* MODERN UI - BOLD GRADIENT EDITION (TIGHT LAYOUT) */
 
-/* 1. SETUP DEFAULT (TAMPILAN MOBILE) */
-.fixed-body {
-    /* Mobile: Tinggi otomatis menyesuaikan isi teks */
-    height: auto; 
-    min-height: 100px; /* Minimal agar tidak terlalu tipis */
+/* --- 1. VARIABLES & GLOBAL --- */
+:root {
+    --card-radius: 24px;       
+    --card-padding: 24px;      
+    --soft-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); 
+    --hover-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2); 
+    --bg-body: #f3f4f6; /* Abu-abu solid */
+}
+
+body {
+    background-color: var(--bg-body);
+    font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+    color: #111827; 
+}
+
+/* --- 2. CARD STYLES --- */
+.card {
+    border: none !important; 
+    border-radius: var(--card-radius) !important;
+    box-shadow: var(--soft-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: #ffffff;
+    overflow: hidden; 
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--hover-shadow);
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 2px solid rgba(0,0,0,0.06);
+    padding: 20px var(--card-padding);
+    font-weight: 800; 
+    font-size: 1rem;
+    color: #111827;
+}
+
+.card-body {
+    padding: var(--card-padding);
+    height: auto;
+}
+
+@media (min-width: 992px) {
+    .fixed-body {
+        height: 180px !important; 
+        min-height: 180px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+}
+
+/* --- KPI CARDS (BOLD GRADIENT) --- */
+.kpi-text-card {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 15px;
-    transition: all 0.3s ease;
-}
-
-/* Khusus Container Chart di Mobile: Harus punya tinggi tetap agar muncul */
-.chart-card-mobile {
-    height: 250px !important; /* Tinggi chart di HP */
-}
-
-.kpi-value {
-    font-size: 1.5rem; /* Ukuran font standar mobile */
-    line-height: 1.2;
-    font-weight: 700;
+    width: 100%;
 }
 
 .kpi-label {
-    font-size: 0.75rem;
-    margin-bottom: 0.25rem;
-    opacity: 0.9;
+    font-size: 0.85rem;
+    font-weight: 700; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    opacity: 0.95;
 }
 
-.chart-container-fix {
-    position: relative;
-    width: 100%;
-    height: 100%;
+.kpi-value {
+    font-size: 1.8rem;
+    font-weight: 900; 
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-/* 2. TAMPILAN DESKTOP (Layar Laptop/PC > 992px) */
-/* Di sini kita 'paksa' ukuran menjadi 180px agar sejajar */
-@media (min-width: 992px) {
+/* WARNA GRADASI KARTU */
+/* Mint */
+.card-soft-success {
+    background: linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%) !important;
+    color: #064e3b !important;      
+    border: 2px solid #34d399 !important; 
+}
+.card-soft-success .kpi-label, .card-soft-success .kpi-value { color: #064e3b !important; }
+
+/* Rose */
+.card-soft-danger {
+    background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%) !important;
+    color: #7f1d1d !important;      
+    border: 2px solid #f87171 !important; 
+}
+.card-soft-danger .kpi-label, .card-soft-danger .kpi-value { color: #7f1d1d !important; }
+
+/* Blue */
+.card-soft-primary {
+    background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%) !important;
+    color: #1e3a8a !important;      
+    border: 2px solid #60a5fa !important; 
+}
+.card-soft-primary .kpi-label, .card-soft-primary .kpi-value { color: #1e3a8a !important; }
+
+/* Gray */
+.card-soft-dark {
+    background: linear-gradient(135deg, #f3f4f6 0%, #d1d5db 100%) !important;
+    color: #000000 !important;      
+    border: 2px solid #9ca3af !important; 
+}
+.card-soft-dark .kpi-label, .card-soft-dark .kpi-value { color: #000000 !important; }
+
+/* Slate */
+.card-soft-secondary {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%) !important;
+    color: #0f172a !important;      
+    border: 2px solid #94a3b8 !important; 
+}
+.card-soft-secondary .kpi-label, .card-soft-secondary .kpi-value { color: #0f172a !important; }
+
+
+/* --- BADGES --- */
+.badge-clean {
+    background-color: #059669 !important; 
+    color: #ffffff !important;            
+    border: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    font-weight: 700;
+}
+.badge-dirty {
+    background-color: #475569 !important; 
+    color: #ffffff !important;            
+    border: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    font-weight: 700;
+}
+
+/* --- CONTROLS --- */
+.btn-white {
+    background: #fff;
+    border: 2px solid #d1d5db;
+    color: #374151;
+    border-radius: 50px; 
+    padding: 10px 28px;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+.btn-white:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #111827;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.dropdown-menu {
+    border-radius: 16px !important;
+    border: 2px solid #e5e7eb !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+    padding: 8px;
+}
+.dropdown-item {
+    font-weight: 600;
+    color: #374151;
+}
+.dropdown-item:hover {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border-radius: 8px;
+}
+
+/* --- GLASS SWITCH --- */
+.glass-control-wrapper {
+    position: fixed; bottom: 30px; left: 0; width: 100%;
+    display: flex; justify-content: center; z-index: 1000; pointer-events: none; 
+}
+
+.glass-capsule-container {
+    pointer-events: auto;
+    background: rgba(255, 255, 255, 0.65); 
+    padding: 5px;
+    border-radius: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.5); 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); 
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex; gap: 0; position: relative; max-width: 95%;
+}
+
+.glass-switch-btn {
+    background: transparent; border: none; padding: 10px 28px;
+    border-radius: 100px; font-weight: 700; color: #6b7280;
+    cursor: pointer; position: relative; z-index: 2; transition: color 0.3s ease;
+    font-size: 0.9rem;
+}
+.glass-switch-btn.active { color: #111827; }
+
+.slide-pill {
+    position: absolute; top: 5px; left: 5px;
+    height: calc(100% - 10px);
+    background: #ffffff; 
+    border-radius: 100px; z-index: 1;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* --- BOTTOM SPACER (KONTROL JARAK BAWAH) --- */
+.bottom-spacer {
+    /* Desktop: Sangat tipis (20px) agar rapi */
+    height: 20px; 
+}
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 768px) {
+    .glass-control-wrapper { bottom: 95px; }
+    .glass-capsule-container { width: auto; min-width: 280px; }
+    .glass-switch-btn { padding: 8px 16px; font-size: 0.75rem; flex: 1; }
     
-    /* Paksa tinggi kartu KPI dan Chart sama */
-    .fixed-body, 
-    .chart-card-mobile {
-        height: 180px !important; 
-        justify-content: center; 
-        padding: 15px 20px !important;
-    }
-    
-    .kpi-value {
-        font-size: 2.5rem; /* Angka lebih besar di desktop */
-    }
-    
-    .kpi-label {
-        font-size: 0.95rem;
-        margin-bottom: 1rem;
-    }
+    /* Mobile: Wajib 85px agar tidak ketutup Nav Bar HP */
+    .bottom-spacer { height: 85px; }
 }
 
-/* --- GLASS MORPHISM PANEL --- */
-.glass-panel {
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-    border-radius: 50px;
-}
-
-/* ==========================================
-   🔧 CHROME DESKTOP FIX - ANIMATION CANVAS
-   ========================================== */
-
-/**
- * Fix untuk masalah animasi pie chart yang tidak jalan di Chrome Desktop
- * (tapi jalan di Chrome Mobile dan saat Inspect Element dibuka)
- * 
- * Root cause: Hardware acceleration & compositor layer
- * Solution: Force GPU rendering dengan CSS transforms
- */
-
-/* Force hardware acceleration untuk semua canvas chart */
-canvas {
-    /* Trigger GPU compositing - INI YANG PALING PENTING */
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    
-    /* Backface visibility untuk force compositing layer */
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    
-    /* Perspective untuk 3D acceleration */
-    perspective: 1000px;
-    -webkit-perspective: 1000px;
-    
-    /* Will-change hint untuk browser optimizer */
-    will-change: transform, opacity;
-    
-    /* Anti-aliasing untuk render quality */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    
-    /* Pastikan canvas tidak di-compress oleh browser */
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-}
-
-/* Khusus untuk container chart (membantu isolasi layer) */
-.chart-container-fix,
-div[style*="position: relative"] {
-    /* Isolasi compositor layer */
-    isolation: isolate;
-    
-    /* Force compositing */
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-}
-
-/* State saat chart sedang animasi (optional, untuk debugging) */
-canvas.chart-animating {
-    will-change: transform, opacity;
-}
-
-/* Cleanup setelah animasi selesai */
-canvas.chart-rendered {
-    will-change: auto;
-}
-
-/* Fix untuk parent dengan overflow yang mungkin block animation */
-.card-body {
-    /* Jangan block rendering dengan overflow hidden saat ada canvas */
-    overflow: visible;
-}
-
-/* Khusus untuk chart di dalam card yang punya position relative */
-.card-body > div[style*="position: relative"] {
-    transform: translateZ(0);
-    isolation: isolate;
-}
-
-/* Performance optimization untuk multiple charts */
-@media (min-width: 992px) {
-    /* Di desktop, pastikan semua canvas dapat GPU acceleration */
-    canvas {
-        /* Slightly better performance hint */
-        transform: translate3d(0, 0, 0);
-    }
-}
-
-/* Fallback untuk browser yang tidak support will-change */
-@supports not (will-change: transform) {
-    canvas {
-        /* Gunakan translateZ sebagai fallback */
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
-    }
-}
-
-/* Fix untuk Safari jika ada masalah */
-@media not all and (min-resolution:.001dpcm) {
-    @supports (-webkit-appearance:none) {
-        canvas {
-            -webkit-transform: translate3d(0, 0, 0);
-            transform: translate3d(0, 0, 0);
-        }
-    }
-}
+.chart-container-fix { position: relative; width: 100%; height: 100%; transform: translateZ(0); }
+canvas { transform: translateZ(0); will-change: transform, opacity; }

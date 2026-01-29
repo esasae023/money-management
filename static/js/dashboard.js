@@ -1,12 +1,12 @@
 /**
  * static/js/dashboard.js
- * VERSI: V3 - ANIMASI COUNTING FIX
+ * VERSI: V15 - FINAL GRADIENT & GLASS
  */
 
-console.log("🚀 DASHBOARD JS V3 LOADED");
+console.log("🚀 DASHBOARD FINAL JS LOADED");
 
 // =========================================
-// 1. FUNGSI ANIMASI ANGKA (HITUNG MAJU)
+// 1. ANIMASI ANGKA (Count Up)
 // =========================================
 function animateCountUp(elementId, endValue, duration = 2000) {
     const obj = document.getElementById(elementId);
@@ -42,12 +42,9 @@ function initCountingAnimation() {
         const el = document.getElementById(id);
         if (el) {
             const rawText = el.innerText;
-            // Hapus semua karakter kecuali angka dan minus
-            // Ini lebih aman karena data Anda dari Python sudah bulat (.0f)
             let cleanStr = rawText.replace(/[^0-9-]/g, ''); 
-            
             const finalNumber = parseFloat(cleanStr) || 0;
-            el.innerHTML = "Rp 0"; // Reset ke 0
+            el.innerHTML = "Rp 0"; 
             
             setTimeout(() => {
                  animateCountUp(id, finalNumber);
@@ -57,7 +54,7 @@ function initCountingAnimation() {
 }
 
 // =========================================
-// 2. FUNGSI RENDER GRAFIK (HELPER)
+// 2. FUNGSI RENDER GRAFIK
 // =========================================
 function resetCanvas(elementId) {
     const canvas = document.getElementById(elementId);
@@ -67,7 +64,28 @@ function resetCanvas(elementId) {
     return newCanvas;
 }
 
-// Render Line
+// Helper: Membuat Gradient Vertical (Pudar ke Bawah)
+function createGradient(ctx, colorHex) {
+    // Estimasi tinggi chart max 300px
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300); 
+    
+    // Convert Hex to RGB untuk transparansi
+    let r = 0, g = 0, b = 0;
+    if (colorHex.length === 7) {
+        r = parseInt(colorHex.slice(1, 3), 16);
+        g = parseInt(colorHex.slice(3, 5), 16);
+        b = parseInt(colorHex.slice(5, 7), 16);
+    }
+
+    // Atas: Warna Asli (Solid 90%)
+    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
+    // Bawah: Warna Asli (Pudar 20%)
+    gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.2)`); 
+    
+    return gradient;
+}
+
+// Render Line (Trend)
 function renderLine(elementId, labels, dataIncome, dataExpense) {
     const canvas = resetCanvas(elementId);
     if (!canvas) return;
@@ -76,8 +94,8 @@ function renderLine(elementId, labels, dataIncome, dataExpense) {
         data: {
             labels: labels || [],
             datasets: [
-                { label: 'Pemasukan', data: dataIncome || [], borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.1)', tension: 0.3, fill: true },
-                { label: 'Pengeluaran', data: dataExpense || [], borderColor: '#dc3545', backgroundColor: 'rgba(220, 53, 69, 0.1)', tension: 0.3, fill: true }
+                { label: 'Pemasukan', data: dataIncome || [], borderColor: '#059669', backgroundColor: 'rgba(5, 150, 105, 0.1)', tension: 0.3, fill: true },
+                { label: 'Pengeluaran', data: dataExpense || [], borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.1)', tension: 0.3, fill: true }
             ]
         },
         options: {
@@ -89,7 +107,7 @@ function renderLine(elementId, labels, dataIncome, dataExpense) {
     });
 }
 
-// Render Pie (Dengan Tooltip Lengkap)
+// Render Pie
 function renderPie(elementId, labels, dataValues, colors) {
     const canvas = resetCanvas(elementId);
     if (!canvas) return;
@@ -99,7 +117,7 @@ function renderPie(elementId, labels, dataValues, colors) {
         type: 'doughnut',
         data: {
             labels: labels || [],
-            datasets: [{ data: dataValues || [], backgroundColor: colors || ['#ccc'], borderWidth: 1 }]
+            datasets: [{ data: dataValues || [], backgroundColor: colors || ['#ccc'], borderWidth: 2, borderColor: '#ffffff' }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
@@ -123,16 +141,21 @@ function renderPie(elementId, labels, dataValues, colors) {
     });
 }
 
-// Render Bar (Dengan Animasi Geser & Fix Mata Uang)
-function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
-    const canvas = resetCanvas(elementId);
+// Render Bar Comparison (DENGAN GRADASI)
+function renderBarCompare(elementId, strIncome, strExpense, strBalance, colors) {
+    const canvas = document.getElementById(elementId);
     if (!canvas) return;
+    
+    // Reset canvas untuk context baru
+    const newCanvas = resetCanvas(elementId); 
+    if (!newCanvas) return;
+    
+    const ctx = newCanvas.getContext('2d');
 
     const parseIdr = (input) => {
         if (typeof input === 'number') return input;
         if (!input) return 0;
         let str = input.toString().replace(/[^0-9,.-]/g, '');
-        // Logika Smart Parsing
         if (str.includes('.') && str.includes(',')) {
             if (str.lastIndexOf('.') > str.lastIndexOf(',')) str = str.replace(/,/g, ''); 
             else str = str.replace(/\./g, '').replace(',', '.');
@@ -152,21 +175,34 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
     const balVal = parseIdr(strBalance);
     const totalAll = Math.abs(incVal) + Math.abs(expVal) + Math.abs(balVal);
 
-    new Chart(canvas, {
+    // Siapkan Warna (Gradient)
+    const baseColors = colors || ['#059669', '#dc2626', '#2563eb'];
+    const gradientColors = baseColors.map(c => createGradient(ctx, c));
+
+    new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['Masuk', 'Keluar', 'Saldo'],
             datasets: [{
                 label: 'Nominal',
                 data: [incVal, expVal, balVal],
-                backgroundColor: ['#198754', '#dc3545', '#0d6efd'],
-                borderRadius: 5, maxBarThickness: 40, 
+                backgroundColor: gradientColors, // Pakai Gradasi
+                borderColor: baseColors,         // Border Solid
+                borderWidth: 1,
+                borderRadius: 8,
+                barPercentage: 0.6,
             }]
         },
         options: {
             indexAxis: 'y', responsive: true, maintainAspectRatio: false, 
             layout: { padding: { right: 50 } },
-            animation: { duration: 2000, easing: 'easeOutQuart', x: { from: 0 } },
+            animation: {
+                duration: 2000,
+                easing: 'easeOutQuart',
+                x: {
+                    from: 0
+                }
+            },
             plugins: {
                 legend: { display: false },
                 tooltip: { callbacks: { label: function(context) { return "Rp " + context.raw.toLocaleString('id-ID'); } } }
@@ -181,7 +217,7 @@ function renderBarCompare(elementId, strIncome, strExpense, strBalance) {
                     const value = data.datasets[0].data[index];
                     let percent = 0;
                     if (totalAll > 0) percent = (value / totalAll * 100).toFixed(1);
-                    ctx.font = 'bold 11px sans-serif'; ctx.fillStyle = '#555'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                    ctx.font = 'bold 11px sans-serif'; ctx.fillStyle = '#6b7280'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
                     let xPos = value >= 0 ? bar.x + 5 : bar.x - 40;
                     if (value < 0 && percent === "0.0") xPos = bar.x + 5;
                     ctx.fillText(percent + '%', xPos, bar.y);
