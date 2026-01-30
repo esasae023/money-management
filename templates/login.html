@@ -1,35 +1,49 @@
 {% extends "base.html" %}
 
+/* Inject class khusus untuk body agar di tengah */
+{% block body_class %}auth-body{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center align-items-center login-wrapper">
-    <div class="col-md-4">
-        <div class="card shadow-lg border-0">
-            <div class="card-header bg-dark text-white text-center py-3">
-                <h4 class="mb-0">💰 Money Manager</h4>
-            </div>
-            <div class="card-body p-4">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">USERNAME</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
-                            <input type="text" name="username" class="form-control" required placeholder="Masukan username">
+<div class="auth-main-wrapper">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                
+                <div class="card auth-card p-4">
+                    <div class="text-center mb-4 mt-3">
+                        <div class="bg-dark text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 60px; height: 60px;">
+                            <i class="bi bi-wallet2 fs-3"></i>
                         </div>
+                        <h4 class="fw-bold text-dark m-0">Selamat Datang</h4>
+                        <small class="text-muted">Kelola keuangan Anda dengan bijak</small>
                     </div>
-                    <div class="mb-4">
-                        <label class="form-label text-muted small fw-bold">PASSWORD</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
-                            <input type="password" name="password" class="form-control" required placeholder="Masukan password">
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary ps-2">USERNAME</label>
+                            <input type="text" name="username" class="form-control-auth" required placeholder="Ketik username Anda">
                         </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-secondary ps-2">PASSWORD</label>
+                            <input type="password" name="password" class="form-control-auth" required placeholder="••••••••">
+                        </div>
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn-auth btn-auth-login">MASUK SEKARANG</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center pt-2">
+                        <small class="text-muted">
+                            Belum punya akun? 
+                            <a href="{{ url_for('register') }}" class="fw-bold text-decoration-none text-dark">Daftar disini</a>
+                        </small>
                     </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary fw-bold">MASUK</button>
-                    </div>
-                </form>
-            </div>
-            <div class="card-footer text-center bg-white py-3">
-                <small class="text-muted">&copy; 2026 Personal Finance App</small>
+                </div>
+
+                <div class="text-center mt-4">
+                    <small class="text-muted opacity-50">&copy; 2026 Money Manager App</small>
+                </div>
+
             </div>
         </div>
     </div>

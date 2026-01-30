@@ -8,6 +8,7 @@ from gspread.utils import a1_to_rowcol
 from flask import Flask, render_template, request, redirect, url_for, flash, abort, session
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
+from sqlalchemy.exc import IntegrityError # Import untuk menangani error duplicate username
 from models import db, User, GlobalSettings, MonitorFolder, CategoryMap, crypto
 from dotenv import load_dotenv
 
@@ -180,6 +181,9 @@ def index(): return redirect(url_for('login')) if not current_user.is_authentica
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+        
     if request.method == 'POST':
         user = User.query.filter_by(username=request.form.get('username')).first()
         if user and bcrypt.check_password_hash(user.password, request.form.get('password')):
@@ -188,6 +192,42 @@ def login():
         # FLASH MESSAGE BAHASA INDONESIA
         flash('Login gagal. Periksa username atau password Anda.', 'danger')
     return render_template('login.html')
+
+# --- [BARU] ROUTE REGISTER ---
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+        
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validasi
+        if password != confirm_password:
+            flash('Password dan Konfirmasi Password tidak sama!', 'danger')
+            return redirect(url_for('register'))
+            
+        try:
+            # Hash password menggunakan Bcrypt (sama seperti di profile)
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+            
+            new_user = User(username=username, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            
+            flash('Akun berhasil dibuat! Silakan login.', 'success')
+            return redirect(url_for('login'))
+            
+        except IntegrityError:
+            db.session.rollback()
+            flash('Username sudah digunakan. Pilih username lain.', 'warning')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Terjadi kesalahan: {str(e)}', 'danger')
+            
+    return render_template('register.html')
 
 @app.route('/logout')
 @login_required

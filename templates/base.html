@@ -13,7 +13,7 @@
     {% block extra_css %}{% endblock %}
 </head>
 
-<body class="preload">
+<body class="preload {% block body_class %}{% endblock %}">
     
     <script>
         (function() {
@@ -46,23 +46,16 @@
 
     <nav class="mobile-bottom-nav">
         <a href="{{ url_for('home') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'home' else '' }}">
-            <i class="bi bi-house-door-fill"></i>
-            <span>Beranda</span>
+            <i class="bi bi-house-door-fill"></i><span>Beranda</span>
         </a>
-
         <a href="{{ url_for('settings_global') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'settings_global' else '' }}">
-            <i class="bi bi-key-fill"></i>
-            <span>API Key</span>
+            <i class="bi bi-key-fill"></i><span>API Key</span>
         </a>
-
         <a href="{{ url_for('profile') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'profile' else '' }}">
-            <i class="bi bi-person-circle"></i>
-            <span>Akun</span>
+            <i class="bi bi-person-circle"></i><span>Akun</span>
         </a>
-
         <a href="#" class="nav-item-mobile" data-bs-toggle="offcanvas" data-bs-target="#drawerLainnya">
-            <i class="bi bi-grid-fill"></i>
-            <span>Lainnya</span>
+            <i class="bi bi-grid-fill"></i><span>Lainnya</span>
         </a>
     </nav>
 
@@ -71,14 +64,11 @@
             <div class="drawer-handle"></div> </div>
         <div class="offcanvas-body small">
             <h5 class="offcanvas-title fw-bold mb-3 text-center" id="drawerLabel">Menu Lainnya</h5>
-            
             <div class="list-group list-group-flush">
                 <a href="{{ url_for('logout') }}" class="list-group-item list-group-item-action text-danger d-flex align-items-center py-3">
-                    <i class="bi bi-box-arrow-right fs-4 me-3"></i>
-                    <span class="fw-bold">Logout / Keluar Aplikasi</span>
+                    <i class="bi bi-box-arrow-right fs-4 me-3"></i><span class="fw-bold">Logout / Keluar Aplikasi</span>
                 </a>
             </div>
-            
             <button type="button" class="btn btn-light w-100 mt-4 rounded-pill" data-bs-dismiss="offcanvas">Tutup</button>
         </div>
     </div>
@@ -87,27 +77,26 @@
 
     <div class="main-content">
         
-        <div class="toast-container position-fixed top-0 end-0 mt-3">
+        <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 9999;">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        {% set bg_class = 'text-bg-success' if category == 'success' else 'text-bg-danger' if category == 'danger' else 'text-bg-primary' %}
-                        
-                        <div class="custom-toast align-items-center {{ bg_class }} p-2 rounded" role="alert">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div class="toast-body fw-bold text-white d-flex align-items-center px-2">
+                        <div class="toast align-items-center mb-2 toast-{{ category }}" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="d-flex">
+                                <div class="toast-body d-flex align-items-center py-3 px-4">
                                     {% if category == 'success' %}
-                                        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                                        <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
+                                    {% elif category == 'danger' %}
+                                        <i class="bi bi-x-circle-fill text-danger me-3 fs-5"></i>
+                                    {% elif category == 'warning' %}
+                                        <i class="bi bi-exclamation-triangle-fill text-warning me-3 fs-5"></i>
                                     {% else %}
-                                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                                        <i class="bi bi-info-circle-fill text-primary me-3 fs-5"></i>
                                     {% endif %}
-                                    {{ message }}
+                                    <span class="fw-bold text-dark ps-2">{{ message }}</span>
                                 </div>
-                                <button type="button" class="btn btn-link text-white text-decoration-none fs-4 p-0 me-2 close-toast-btn" aria-label="Tutup">
-                                    <i class="bi bi-x"></i>
-                                </button>
+                                <button type="button" class="btn-close me-3 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                             </div>
-                            <div class="toast-timer"></div>
                         </div>
                     {% endfor %}
                 {% endif %}
@@ -118,7 +107,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>

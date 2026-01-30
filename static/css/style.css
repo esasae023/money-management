@@ -4,11 +4,18 @@
 body {
     background-color: #f8f9fa;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: hidden; /* Mencegah scroll horizontal pada body */
+    margin: 0;
 }
 
-body.preload * {
-    transition: none !important;
+body.preload * { transition: none !important; }
+
+/* Khusus Halaman Auth */
+body.auth-body {
+    background-color: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* =========================================
@@ -81,90 +88,119 @@ body.sb-expanded .sidebar { width: 250px; }
 body.sb-expanded .sidebar-text { opacity: 1; pointer-events: auto; transition-delay: 0.1s; }
 
 /* =========================================
-   3. MAIN CONTENT AREA
+   3. MAIN CONTENT AREA (PERBAIKAN DISINI)
    ========================================= */
 .main-content {
     padding: 20px;
     margin-bottom: 70px;
-    margin-left: 70px;
+    
+    /* Default collapsed margin */
+    margin-left: 70px; 
     transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    /* [FIX] Jangan gunakan width: 100%, gunakan auto agar sisa ruang dihitung otomatis */
+    width: auto; 
+    max-width: 100%;
+    
+    /* [FIX] Mencegah komponen anak (seperti chart) memaksa lebar berlebih */
+    overflow-x: hidden; 
 }
 
+/* Saat Sidebar Expanded, dorong konten lebih jauh */
 body.sb-expanded .main-content { margin-left: 250px; }
 
+/* Reset margin untuk halaman Auth agar di tengah */
+body.auth-body .main-content {
+    margin-left: 0 !important;
+    padding: 0;
+    width: 100%;
+}
+
 /* =========================================
-   4. COMPONENTS (TOAST & GLASS SWITCH)
+   4. AUTH PAGES (LOGIN/REGISTER DESIGN)
+   ========================================= */
+.auth-main-wrapper {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+.auth-card {
+    border: none;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.form-control-auth {
+    border-radius: 12px;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    background-color: #f9fafb;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.form-control-auth:focus {
+    background-color: #fff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+.btn-auth {
+    width: 100%;
+    border-radius: 50px;
+    padding: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border: none;
+    color: white;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.btn-auth-login { background: #111827; }
+.btn-auth-login:hover { transform: translateY(-2px); background: #1f2937; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+.btn-auth-register { background: #059669; }
+.btn-auth-register:hover { transform: translateY(-2px); background: #047857; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
+
+/* =========================================
+   5. COMPONENTS (NEW TOAST & GLASS SWITCH)
    ========================================= */
 
-/* --- Toast Notification (FIXED) --- */
-.toast-container {
-    z-index: 99999;
-    display: flex; 
-    flex-direction: column; 
-    gap: 10px; 
-    padding-right: 20px;
-    
-    /* [PENTING] Agar area kosong container tidak menghalangi klik ke elemen di bawahnya */
-    pointer-events: none; 
+/* --- Toast Notification (NEW DESIGN) --- */
+.toast {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.15);
+    overflow: hidden;
+    min-width: 320px;
+    border: none;
 }
 
-.custom-toast {
-    border: none; 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    overflow: hidden; 
-    position: relative; 
-    min-width: 300px;
-    opacity: 0; 
-    transform: translateX(120%);
-    transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    
-    /* [PENTING] Aktifkan pointer event hanya pada kotak notifikasi */
-    pointer-events: auto; 
+.toast-body {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
 }
 
-.custom-toast.active-toast { 
-    opacity: 1 !important; 
-    transform: translate(0, 0) !important; 
-}
+.toast-success { border-left: 6px solid #10b981; }
+.toast-danger  { border-left: 6px solid #ef4444; }
+.toast-warning { border-left: 6px solid #f59e0b; }
+.toast-info    { border-left: 6px solid #3b82f6; }
 
-/* Tombol Close */
-.close-toast-btn {
-    position: relative;
-    z-index: 20; /* Pastikan di atas timer dan text */
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-    border: none; /* Reset border */
-    background: transparent; /* Reset background */
-}
-.close-toast-btn:hover {
-    opacity: 1;
-    transform: scale(1.1);
-}
-
-/* Timer Bar */
-.toast-timer {
-    position: absolute; 
-    bottom: 0; 
-    left: 0; 
-    height: 4px;
-    background-color: rgba(255, 255, 255, 0.6);
-    width: 100%; 
-    animation: shrink 5s linear forwards; 
-    z-index: 5; 
-}
-@keyframes shrink { from { width: 100%; } to { width: 0%; } }
-
-/* --- GLASS CAPSULE SWITCH --- */
+/* --- GLASS CAPSULE SWITCH (DASHBOARD) --- */
 .glass-control-wrapper {
-    position: fixed;
-    left: 0;
-    width: 100%;
-    z-index: 1040;
-    pointer-events: none; 
-    display: flex;
-    justify-content: center;
-    bottom: 30px; 
+    position: fixed; left: 0; width: 100%; z-index: 1040;
+    pointer-events: none; display: flex; justify-content: center; bottom: 30px; 
 }
 
 .glass-capsule-container {
@@ -172,74 +208,42 @@ body.sb-expanded .main-content { margin-left: 250px; }
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.5); 
-    border-radius: 100px;
-    padding: 5px; 
-    display: inline-flex;
-    position: relative; 
+    border-radius: 100px; padding: 5px; 
+    display: inline-flex; position: relative; 
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
     pointer-events: auto; 
 }
 
 .slide-pill {
-    position: absolute;
-    top: 5px;  
-    left: 5px; 
-    height: calc(100% - 10px); 
-    background: #ffffff;
-    border-radius: 100px;
-    z-index: 0; 
+    position: absolute; top: 5px; left: 5px; height: calc(100% - 10px); 
+    background: #ffffff; border-radius: 100px; z-index: 0; 
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    width: 0; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 0; 
 }
 
 .glass-switch-btn {
-    position: relative;
-    z-index: 1; 
-    border: none;
-    background: transparent !important; 
-    color: #495057;
-    padding: 10px 20px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: color 0.3s;
-    white-space: nowrap;
+    position: relative; z-index: 1; border: none; background: transparent !important; 
+    color: #495057; padding: 10px 20px; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: color 0.3s; white-space: nowrap;
 }
-
 .glass-switch-btn:hover { color: #000; }
 .glass-switch-btn.active { color: #0d6efd; }
-
-@media (max-width: 576px) {
-    .glass-switch-btn { padding: 8px 15px; font-size: 0.8rem; }
-}
-
-/* =========================================
-   5. PAGE SPECIFIC STYLES
-   ========================================= */
-.login-wrapper { min-height: 80vh; }
-.hover-effect { transition: transform 0.2s ease-in-out, box-shadow 0.2s; }
-.hover-effect:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
-.profile-container { max-width: 600px; }
-.profile-avatar { width: 80px; height: 80px; font-size: 2rem; }
-.truncate-200 { max-width: 200px; }
 
 /* =========================================
    6. RESPONSIVE / MOBILE VIEW
    ========================================= */
 @media (max-width: 767.98px) {
+    /* Sembunyikan Sidebar Desktop */
     .sidebar, .toggle-btn, #sidebar { display: none !important; width: 0 !important; }
-    .main-content { margin-left: 0 !important; padding-bottom: 90px; }
+    
+    /* Reset margin content di mobile */
+    .main-content { margin-left: 0 !important; padding-bottom: 90px; width: 100%; }
     body.sb-expanded .main-content { margin-left: 0 !important; }
     
-    .toast-container {
-        padding-right: 0; top: 0; left: 0; right: 0; width: 100%;
-        align-items: center; padding-top: 10px;
-    }
-    .custom-toast { width: 90%; max-width: 400px; transform: translateY(-150%); }
-
+    .auth-main-wrapper { padding: 10px; }
     .glass-control-wrapper { bottom: 90px; }
 
+    /* Navbar Bawah Mobile */
     .mobile-bottom-nav {
         position: fixed; bottom: 0; left: 0; width: 100%;
         background-color: #ffffff; border-top: 1px solid #dee2e6;
@@ -256,7 +260,7 @@ body.sb-expanded .main-content { margin-left: 250px; }
     .nav-item-mobile span { font-size: 0.7rem; font-weight: 500; }
     .nav-item-mobile.active { color: #0d6efd; }
     .nav-item-mobile.active i { transform: translateY(-2px); }
-
+    
     .offcanvas-bottom { height: auto !important; max-height: 80vh; border-top-left-radius: 20px; border-top-right-radius: 20px; }
     .drawer-handle { width: 40px; height: 5px; background: #dee2e6; border-radius: 5px; margin: 10px auto; }
 }

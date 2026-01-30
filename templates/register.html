@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block body_class %}auth-body{% endblock %}
+
+{% block content %}
+<div class="auth-main-wrapper">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                
+                <div class="card auth-card p-4">
+                    <div class="text-center mb-4 mt-3">
+                        <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 60px; height: 60px;">
+                            <i class="bi bi-person-plus-fill fs-3"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark m-0">Buat Akun Baru</h4>
+                        <small class="text-muted">Mulai perjalanan finansial Anda</small>
+                    </div>
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary ps-2">USERNAME BARU</label>
+                            <input type="text" name="username" class="form-control-auth" required placeholder="Pilih username unik">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary ps-2">PASSWORD</label>
+                            <input type="password" name="password" class="form-control-auth" required placeholder="Minimal 6 karakter">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-secondary ps-2">KONFIRMASI PASSWORD</label>
+                            <input type="password" name="confirm_password" class="form-control-auth" required placeholder="Ulangi password">
+                        </div>
+                        <div class="d-grid gap-2 mb-3">
+                            <button type="submit" class="btn-auth btn-auth-register">DAFTAR SEKARANG</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center pt-2">
+                        <small class="text-muted">
+                            Sudah punya akun? 
+                            <a href="{{ url_for('login') }}" class="fw-bold text-decoration-none text-success">Login disini</a>
+                        </small>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <small class="text-muted opacity-50">&copy; 2026 Money Manager App</small>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
