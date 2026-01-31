@@ -15,15 +15,7 @@
 
 <body class="preload {% block body_class %}{% endblock %}">
     
-    <script>
-        (function() {
-            const state = sessionStorage.getItem('sidebarState');
-            if (state === 'expanded') { document.body.classList.add('sb-expanded'); }
-        })();
-    </script>
-
     {% if current_user.is_authenticated %}
-    
     <div id="sidebar" class="sidebar">
         <button class="toggle-btn" onclick="toggleSidebar()">
             <i class="bi bi-list"></i><span class="sidebar-text fw-bold">Money Mgr</span>
@@ -37,46 +29,14 @@
         <a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">
             <i class="bi bi-person-circle"></i><span class="sidebar-text">Profil</span>
         </a>
-        
         <div class="flex-grow-1"></div>
         <a href="{{ url_for('logout') }}" class="border-top border-secondary text-danger">
             <i class="bi bi-box-arrow-left"></i><span class="sidebar-text">Keluar</span>
         </a>
     </div>
-
-    <nav class="mobile-bottom-nav">
-        <a href="{{ url_for('home') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'home' else '' }}">
-            <i class="bi bi-house-door-fill"></i><span>Beranda</span>
-        </a>
-        <a href="{{ url_for('settings_global') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'settings_global' else '' }}">
-            <i class="bi bi-key-fill"></i><span>API Key</span>
-        </a>
-        <a href="{{ url_for('profile') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'profile' else '' }}">
-            <i class="bi bi-person-circle"></i><span>Akun</span>
-        </a>
-        <a href="#" class="nav-item-mobile" data-bs-toggle="offcanvas" data-bs-target="#drawerLainnya">
-            <i class="bi bi-grid-fill"></i><span>Lainnya</span>
-        </a>
-    </nav>
-
-    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="drawerLainnya" aria-labelledby="drawerLabel">
-        <div class="offcanvas-header pb-0 justify-content-center">
-            <div class="drawer-handle"></div> </div>
-        <div class="offcanvas-body small">
-            <h5 class="offcanvas-title fw-bold mb-3 text-center" id="drawerLabel">Menu Lainnya</h5>
-            <div class="list-group list-group-flush">
-                <a href="{{ url_for('logout') }}" class="list-group-item list-group-item-action text-danger d-flex align-items-center py-3">
-                    <i class="bi bi-box-arrow-right fs-4 me-3"></i><span class="fw-bold">Logout / Keluar Aplikasi</span>
-                </a>
-            </div>
-            <button type="button" class="btn btn-light w-100 mt-4 rounded-pill" data-bs-dismiss="offcanvas">Tutup</button>
-        </div>
-    </div>
-
     {% endif %}
 
     <div class="main-content">
-        
         <div class="toast-container position-fixed top-0 end-0 mt-3" style="z-index: 9999;">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -90,18 +50,10 @@
                                  style="display:none;"></div>
                         
                         {% else %}
-                            {% set bg_class = 'text-bg-success' if category == 'success' else 
-                                              'text-bg-danger' if category == 'danger' else 
-                                              'text-bg-warning text-dark' if category == 'warning' else 
-                                              'text-bg-primary' %}
-                            
+                            {% set bg_class = 'text-bg-success' if category == 'success' else 'text-bg-danger' if category == 'danger' else 'text-bg-primary' %}
                             <div class="toast align-items-center mb-2 {{ bg_class }} p-2 rounded" role="alert" aria-live="assertive" aria-atomic="true">
                                 <div class="d-flex">
                                     <div class="toast-body fw-bold d-flex align-items-center px-2">
-                                        {% if category == 'success' %} <i class="bi bi-check-circle-fill me-2 fs-5"></i>
-                                        {% elif category == 'danger' %} <i class="bi bi-x-circle-fill me-2 fs-5"></i>
-                                        {% else %} <i class="bi bi-info-circle-fill me-2 fs-5"></i>
-                                        {% endif %}
                                         <span class="text-white">{{ message }}</span>
                                     </div>
                                     <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
@@ -117,28 +69,26 @@
         {% block content %}{% endblock %}
     </div>
 
-    <div class="modal fade" id="recoveryModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+    <div class="modal fade" id="recoveryModal" data-bs-backdrop="static" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header bg-warning border-0 justify-content-center py-3">
-                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-shield-lock-fill me-2"></i>PENTING: KODE PEMULIHAN</h5>
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-shield-lock-fill me-2"></i>KODE PEMULIHAN</h5>
                 </div>
                 <div class="modal-body p-4 text-center">
-                    <p class="text-muted mb-2" id="recovery-message-text">Simpan kode ini. Digunakan jika Anda lupa password.</p>
-                    
+                    <p class="text-muted mb-2" id="recovery-message-text">...</p>
                     <div class="recovery-code-box">
-                        <span class="recovery-code-text" id="display-recovery-code">LOADING...</span>
-                        <small class="text-danger fw-bold"><i class="bi bi-exclamation-circle"></i> Jangan berikan ke orang lain!</small>
+                        <span class="recovery-code-text" id="display-recovery-code">...</span>
+                        <small class="text-danger fw-bold">Jangan bagikan ke orang lain!</small>
                     </div>
-
                     <div class="d-grid gap-2">
-                        <button class="btn btn-dark rounded-pill py-2" onclick="copyRecoveryCode()">
+                        <button class="btn btn-dark rounded-pill py-2" onclick="copyToClipboard('display-recovery-code')">
                             <i class="bi bi-clipboard me-2"></i> Salin Kode
                         </button>
                     </div>
                 </div>
                 <div class="modal-footer border-0 justify-content-center pb-4">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Saya Sudah Menyimpannya</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>

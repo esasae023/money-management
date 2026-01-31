@@ -7,23 +7,7 @@
         <a href="{{ url_for('home') }}" class="btn btn-outline-secondary btn-sm">← Kembali ke Home</a>
     </div>
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body text-center">
-            <div class="mb-3">
-                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto profile-avatar">
-                    {{ current_user.username[0] | upper }}
-                </div>
-            </div>
-            <h4>{{ current_user.username }}</h4>
-            <p class="text-muted">User ID: {{ current_user.id }}</p>
-            
-            <a href="{{ url_for('logout') }}" class="btn btn-danger w-100 mt-2">
-                <i class="bi bi-box-arrow-right"></i> Logout / Keluar
-            </a>
-        </div>
-    </div>
-
-    <div class="card shadow-sm border-0 rounded-4 mb-4 profile-code-card">
+    <div class="card shadow-sm border-0 rounded-4 mb-4 profile-code-card mt-4">
         <div class="card-body p-4">
             <div class="d-flex align-items-center mb-3">
                 <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
@@ -31,54 +15,24 @@
                 </div>
                 <div>
                     <h5 class="fw-bold mb-0 text-dark">Kode Pemulihan Anda</h5>
-                    <small class="text-muted">Gunakan kode ini untuk reset password jika lupa.</small>
+                    <small class="text-muted">Klik kode untuk melihat. Gunakan untuk reset password.</small>
                 </div>
             </div>
 
             <div class="bg-white p-3 rounded-3 border d-flex justify-content-between align-items-center">
-                <span id="profile-rec-code" class="fw-bold fs-5 text-dark" style="filter: blur(5px); cursor: pointer; letter-spacing: 2px;" onclick="this.style.filter='none'" title="Klik untuk melihat">
+                <span id="profile-rec-code" 
+                      class="fw-bold fs-5 text-dark blur-code" 
+                      data-value="{{ current_user.recovery_code }}"
+                      onclick="toggleBlur('profile-rec-code')" 
+                      title="Klik untuk melihat">
                     {{ current_user.recovery_code }}
                 </span>
                 
-                <button class="btn btn-sm btn-outline-dark" onclick="copyProfileCode()">
+                <button class="btn btn-sm btn-outline-dark" onclick="copyToClipboard('profile-rec-code')">
                     <i class="bi bi-files"></i> Copy
                 </button>
             </div>
         </div>
     </div>
-
-    <div class="card shadow-sm border-warning">
-        <div class="card-header bg-warning text-dark fw-bold">
-            🔒 Ganti Password
-        </div>
-        <div class="card-body">
-            <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label">Password Lama</label>
-                    <input type="password" name="old_password" class="form-control" required placeholder="Masukkan password saat ini">
-                </div>
-                <hr>
-                <div class="mb-3">
-                    <label class="form-label">Password Baru</label>
-                    <input type="password" name="new_password" class="form-control" required placeholder="Minimal 6 karakter">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Ulangi Password Baru</label>
-                    <input type="password" name="confirm_password" class="form-control" required placeholder="Ketik ulang password baru">
-                </div>
-                
-                <button type="submit" class="btn btn-dark w-100">Simpan Password Baru</button>
-            </form>
-        </div>
-    </div>
 </div>
-
-<script>
-    function copyProfileCode() {
-        const code = "{{ current_user.recovery_code }}";
-        navigator.clipboard.writeText(code).then(() => {
-            alert("Kode berhasil disalin!");
-        });
-    }
-</script>
 {% endblock %}
