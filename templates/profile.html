@@ -23,6 +23,30 @@
         </div>
     </div>
 
+    <div class="card shadow-sm border-0 rounded-4 mb-4 profile-code-card">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-3">
+                <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                    <i class="bi bi-key-fill fs-4"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Kode Pemulihan Anda</h5>
+                    <small class="text-muted">Gunakan kode ini untuk reset password jika lupa.</small>
+                </div>
+            </div>
+
+            <div class="bg-white p-3 rounded-3 border d-flex justify-content-between align-items-center">
+                <span id="profile-rec-code" class="fw-bold fs-5 text-dark" style="filter: blur(5px); cursor: pointer; letter-spacing: 2px;" onclick="this.style.filter='none'" title="Klik untuk melihat">
+                    {{ current_user.recovery_code }}
+                </span>
+                
+                <button class="btn btn-sm btn-outline-dark" onclick="copyProfileCode()">
+                    <i class="bi bi-files"></i> Copy
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow-sm border-warning">
         <div class="card-header bg-warning text-dark fw-bold">
             🔒 Ganti Password
@@ -48,4 +72,13 @@
         </div>
     </div>
 </div>
+
+<script>
+    function copyProfileCode() {
+        const code = "{{ current_user.recovery_code }}";
+        navigator.clipboard.writeText(code).then(() => {
+            alert("Kode berhasil disalin!");
+        });
+    }
+</script>
 {% endblock %}

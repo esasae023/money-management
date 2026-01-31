@@ -19,6 +19,10 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    
+    # [BARU] Kolom untuk menyimpan kode pemulihan
+    recovery_code = db.Column(db.String(20), nullable=True)
+    
     folders = db.relationship('MonitorFolder', backref='owner', lazy=True)
 
 class GlobalSettings(db.Model):
@@ -42,11 +46,8 @@ class MonitorFolder(db.Model):
     col_expense = db.Column(db.String(50), default="Nominal Pengeluaran")
     
     # --- LOGIC FILTERING (BARU) ---
-    # Header Kolom Kategori/Sumber (misal: "Sumber Pemasukan", "Keperluan")
     col_source_income = db.Column(db.String(50), default="Sumber Pemasukan")
     col_source_expense = db.Column(db.String(50), default="Sumber Pengeluaran")
-    
-    # Kata Kunci untuk DIABAIKAN di Dana Bersih (misal: "Hutang,Piutang")
     debt_keywords = db.Column(db.String(200), default="Hutang,Piutang,Sahur hutang")
 
     # --- MAPPING KPI (TOTAL) ---
@@ -67,7 +68,5 @@ class CategoryMap(db.Model):
     folder_id = db.Column(db.Integer, db.ForeignKey('monitor_folder.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     cell_addr = db.Column(db.String(10), nullable=False)
-    type = db.Column(db.String(20), default='expense') # 'income' or 'expense'
-    
-    # Penanda apakah kategori ini masuk Dana Bersih?
+    type = db.Column(db.String(20), default='expense') 
     is_clean = db.Column(db.Boolean, default=False)

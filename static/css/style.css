@@ -4,7 +4,7 @@
 body {
     background-color: #f8f9fa;
     min-height: 100vh;
-    overflow-x: hidden; /* Mencegah scroll horizontal pada body */
+    overflow-x: hidden;
     margin: 0;
 }
 
@@ -88,21 +88,15 @@ body.sb-expanded .sidebar { width: 250px; }
 body.sb-expanded .sidebar-text { opacity: 1; pointer-events: auto; transition-delay: 0.1s; }
 
 /* =========================================
-   3. MAIN CONTENT AREA (PERBAIKAN DISINI)
+   3. MAIN CONTENT AREA
    ========================================= */
 .main-content {
     padding: 20px;
     margin-bottom: 70px;
-    
-    /* Default collapsed margin */
     margin-left: 70px; 
     transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    
-    /* [FIX] Jangan gunakan width: 100%, gunakan auto agar sisa ruang dihitung otomatis */
     width: auto; 
     max-width: 100%;
-    
-    /* [FIX] Mencegah komponen anak (seperti chart) memaksa lebar berlebih */
     overflow-x: hidden; 
 }
 
@@ -173,11 +167,33 @@ body.auth-body .main-content {
 .btn-auth-register { background: #059669; }
 .btn-auth-register:hover { transform: translateY(-2px); background: #047857; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
 
+/* Tombol Reset (Kuning) - Forgot Password */
+.btn-auth-warning {
+    background: #f59e0b;    
+}
+.btn-auth-warning:hover {
+    transform: translateY(-2px);
+    background: #d97706;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Link Hover Effect */
+.hover-primary:hover {
+    color: #0d6efd !important;
+    text-decoration: underline !important;
+}
+
 /* =========================================
-   5. COMPONENTS (NEW TOAST & GLASS SWITCH)
+   5. COMPONENTS (TOAST & GLASS SWITCH)
    ========================================= */
 
-/* --- Toast Notification (NEW DESIGN) --- */
+/* --- TOAST NOTIFICATION --- */
+/* [BARU] Override posisi container agar tidak nempel kanan */
+.toast-container {
+    right: 20px !important; 
+    top: 20px !important;
+}
+
 .toast {
     background: #ffffff;
     border-radius: 16px;
@@ -192,10 +208,20 @@ body.auth-body .main-content {
     font-size: 0.95rem;
 }
 
+/* Garis Indikator Warna */
 .toast-success { border-left: 6px solid #10b981; }
 .toast-danger  { border-left: 6px solid #ef4444; }
 .toast-warning { border-left: 6px solid #f59e0b; }
 .toast-info    { border-left: 6px solid #3b82f6; }
+
+/* [BARU] Toast Khusus Recovery Code (Warna Hijau Muda) */
+.toast-success_recovery {
+    border-left: 6px solid #10b981;
+    background-color: #ecfdf5; 
+}
+.toast-success_recovery .toast-body {
+    font-size: 1rem; 
+}
 
 /* --- GLASS CAPSULE SWITCH (DASHBOARD) --- */
 .glass-control-wrapper {
@@ -230,7 +256,37 @@ body.auth-body .main-content {
 .glass-switch-btn.active { color: #0d6efd; }
 
 /* =========================================
-   6. RESPONSIVE / MOBILE VIEW
+   6. RECOVERY & PROFILE STYLES (NEW)
+   ========================================= */
+
+/* [BARU] Styling Modal Recovery Code (Pop-up) */
+.recovery-code-box {
+    background: #f3f4f6;
+    border: 2px dashed #9ca3af;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.recovery-code-text {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #111827;
+    letter-spacing: 4px;
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* [BARU] Styling Kartu Kode di Halaman Profile */
+.profile-code-card {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border: 1px solid #fcd34d;
+}
+
+/* =========================================
+   7. RESPONSIVE / MOBILE VIEW
    ========================================= */
 @media (max-width: 767.98px) {
     /* Sembunyikan Sidebar Desktop */
@@ -264,4 +320,5 @@ body.auth-body .main-content {
     .offcanvas-bottom { height: auto !important; max-height: 80vh; border-top-left-radius: 20px; border-top-right-radius: 20px; }
     .drawer-handle { width: 40px; height: 5px; background: #dee2e6; border-radius: 5px; margin: 10px auto; }
 }
+
 @media (min-width: 768px) { .mobile-bottom-nav { display: none !important; } }

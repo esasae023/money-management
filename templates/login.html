@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-/* Inject class khusus untuk body agar di tengah */
 {% block body_class %}auth-body{% endblock %}
 
 {% block content %}
@@ -23,10 +22,18 @@
                             <label class="form-label small fw-bold text-secondary ps-2">USERNAME</label>
                             <input type="text" name="username" class="form-control-auth" required placeholder="Ketik username Anda">
                         </div>
+                        
                         <div class="mb-4">
                             <label class="form-label small fw-bold text-secondary ps-2">PASSWORD</label>
                             <input type="password" name="password" class="form-control-auth" required placeholder="••••••••">
+                            
+                            <div class="text-end mt-2">
+                                <a href="{{ url_for('forgot_password') }}" class="small text-decoration-none text-muted hover-primary" style="font-size: 0.85rem;">
+                                    Lupa Password?
+                                </a>
+                            </div>
                         </div>
+
                         <div class="d-grid mb-3">
                             <button type="submit" class="btn-auth btn-auth-login">MASUK SEKARANG</button>
                         </div>

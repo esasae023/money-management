@@ -77,33 +77,71 @@
 
     <div class="main-content">
         
-        <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 9999;">
+        <div class="toast-container position-fixed top-0 end-0 mt-3" style="z-index: 9999;">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        <div class="toast align-items-center mb-2 toast-{{ category }}" role="alert" aria-live="assertive" aria-atomic="true">
-                            <div class="d-flex">
-                                <div class="toast-body d-flex align-items-center py-3 px-4">
-                                    {% if category == 'success' %}
-                                        <i class="bi bi-check-circle-fill text-success me-3 fs-5"></i>
-                                    {% elif category == 'danger' %}
-                                        <i class="bi bi-x-circle-fill text-danger me-3 fs-5"></i>
-                                    {% elif category == 'warning' %}
-                                        <i class="bi bi-exclamation-triangle-fill text-warning me-3 fs-5"></i>
-                                    {% else %}
-                                        <i class="bi bi-info-circle-fill text-primary me-3 fs-5"></i>
-                                    {% endif %}
-                                    <span class="fw-bold text-dark ps-2">{{ message }}</span>
+                        
+                        {% if category == 'show_modal' %}
+                            {% set parts = message.split('|') %}
+                            <div id="recovery-data-trigger" 
+                                 data-message="{{ parts[0] }}" 
+                                 data-code="{{ parts[1] }}"
+                                 style="display:none;"></div>
+                        
+                        {% else %}
+                            {% set bg_class = 'text-bg-success' if category == 'success' else 
+                                              'text-bg-danger' if category == 'danger' else 
+                                              'text-bg-warning text-dark' if category == 'warning' else 
+                                              'text-bg-primary' %}
+                            
+                            <div class="toast align-items-center mb-2 {{ bg_class }} p-2 rounded" role="alert" aria-live="assertive" aria-atomic="true">
+                                <div class="d-flex">
+                                    <div class="toast-body fw-bold d-flex align-items-center px-2">
+                                        {% if category == 'success' %} <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                                        {% elif category == 'danger' %} <i class="bi bi-x-circle-fill me-2 fs-5"></i>
+                                        {% else %} <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                                        {% endif %}
+                                        <span class="text-white">{{ message }}</span>
+                                    </div>
+                                    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                                 </div>
-                                <button type="button" class="btn-close me-3 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                             </div>
-                        </div>
+                        {% endif %}
+
                     {% endfor %}
                 {% endif %}
             {% endwith %}
         </div>
 
         {% block content %}{% endblock %}
+    </div>
+
+    <div class="modal fade" id="recoveryModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-warning border-0 justify-content-center py-3">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-shield-lock-fill me-2"></i>PENTING: KODE PEMULIHAN</h5>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="text-muted mb-2" id="recovery-message-text">Simpan kode ini. Digunakan jika Anda lupa password.</p>
+                    
+                    <div class="recovery-code-box">
+                        <span class="recovery-code-text" id="display-recovery-code">LOADING...</span>
+                        <small class="text-danger fw-bold"><i class="bi bi-exclamation-circle"></i> Jangan berikan ke orang lain!</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-dark rounded-pill py-2" onclick="copyRecoveryCode()">
+                            <i class="bi bi-clipboard me-2"></i> Salin Kode
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Saya Sudah Menyimpannya</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
