@@ -283,14 +283,20 @@ def profile():
 @app.route('/home')
 @login_required
 def home():
-    # Menampilkan Folder sebagai 'Tahun'
-    folders = MonitorFolder.query.filter_by(user_id=current_user.id).all()
-    # Cek apakah Global Settings sudah ada isinya
+    # Halaman ini sekarang adalah HUB UTAMA (Pilih Tipe Dashboard)
+    # Kita hanya perlu cek apakah API Key ada untuk mengaktifkan tombol
     global_set = GlobalSettings.query.filter_by(user_id=current_user.id).first()
     has_creds = False
     if global_set and global_set.google_creds_encrypted:
         has_creds = True
-    return render_template('home.html', folders=folders, has_global=has_creds)
+    return render_template('home.html', has_global=has_creds)
+
+@app.route('/dashboard/select-year')
+@login_required
+def select_year():
+    # Ini adalah logika Home yang LAMA (Menampilkan daftar Tahun)
+    folders = MonitorFolder.query.filter_by(user_id=current_user.id).all()
+    return render_template('select_year.html', folders=folders)
 
 @app.route('/settings/global', methods=['GET', 'POST'])
 @login_required
@@ -355,11 +361,11 @@ def settings_global():
 @app.route('/folder/create', methods=['POST'])
 @login_required
 def create_folder():
-    # Folder disini kita anggap sebagai 'Tahun' secara terminologi UI
     new_folder = MonitorFolder(name=request.form['name'], spreadsheet_url=request.form['url'], user_id=current_user.id)
     db.session.add(new_folder)
     db.session.commit()
-    return redirect(url_for('home'))
+    # Redirect kembali ke halaman pilih tahun, bukan home utama
+    return redirect(url_for('select_year'))
 
 @app.route('/folder/<int:folder_id>/settings', methods=['GET', 'POST'])
 @login_required

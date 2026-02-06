@@ -2,92 +2,95 @@
 
 {% block content %}
 <div class="container pb-5">
-    <div class="d-flex justify-content-between align-items-center mb-5 mt-2">
-        <div>
-            <h4 class="fw-bold text-dark m-0">
-                <i class="bi bi-calendar-range me-2 text-primary"></i>Monitoring Tahunan
-            </h4>
-            <small class="text-muted">Kelola spreadsheet keuangan Anda berdasarkan tahun.</small>
-        </div>
-        <div>
-            {% if not has_global %}
-            <a href="{{ url_for('settings_global') }}" class="btn btn-warning rounded-pill shadow-sm fw-bold px-4">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i> Setup API Dulu!
+    
+    <div class="text-center mb-5 mt-4">
+        <h2 class="fw-bold text-dark">Selamat Datang, {{ current_user.username }}!</h2>
+        <p class="text-muted">Pilih dashboard yang ingin Anda kelola hari ini.</p>
+        
+        {% if not has_global %}
+        <div class="d-inline-block mt-2">
+            <a href="{{ url_for('settings_global') }}" class="btn btn-warning rounded-pill shadow-sm fw-bold px-4 py-2 hover-scale">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> Setup Google API Key Dulu!
             </a>
-            {% else %}
-            <button class="btn btn-primary rounded-pill shadow-sm fw-bold px-4" data-bs-toggle="modal" data-bs-target="#newFolderModal">
-                <i class="bi bi-plus-lg me-2"></i> Tambah Tahun
-            </button>
-            {% endif %}
         </div>
+        {% endif %}
     </div>
 
-    <div class="row g-4">
-        {% for folder in folders %}
+    <div class="row g-4 justify-content-center">
+        
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm hover-scale border-0">
-                <div class="card-body p-4 d-flex flex-column text-center">
-                    
-                    <div class="mb-3">
-                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                            <i class="bi bi-journal-bookmark-fill fs-3"></i>
-                        </div>
+            <div class="card h-100 border-0 shadow-sm hover-scale card-dashboard-menu">
+                <div class="card-body p-4 text-center d-flex flex-column align-items-center">
+                    <div class="icon-wrapper bg-primary bg-opacity-10 text-primary mb-3">
+                        <i class="bi bi-wallet2 fs-1"></i>
                     </div>
-                    
-                    <h5 class="card-title fw-bold text-dark mb-1">{{ folder.name }}</h5>
-                    <p class="text-muted small text-truncate mb-4 px-2">
-                        <i class="bi bi-link-45deg me-1"></i> {{ folder.spreadsheet_url }}
+                    <h4 class="fw-bold text-dark">Budget Monitor</h4>
+                    <p class="text-muted small mb-4">
+                        Dashboard utama untuk memonitor pemasukan, pengeluaran, dan sisa saldo tahunan Anda.
                     </p>
                     
-                    <div class="mt-auto d-grid gap-2">
-                        <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-primary rounded-pill fw-bold">
-                            Buka Dashboard
-                        </a>
-                        <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-light text-secondary rounded-pill fw-bold border">
-                            <i class="bi bi-gear-fill me-1"></i> Konfigurasi
-                        </a>
-                    </div>
+                    {% if has_global %}
+                    <a href="{{ url_for('select_year') }}" class="btn btn-primary rounded-pill fw-bold w-100 mt-auto py-2 shadow-sm">
+                        Buka Dashboard <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary rounded-pill fw-bold w-100 mt-auto py-2" disabled>
+                        Butuh API Key
+                    </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
-        {% else %}
-        <div class="col-12">
-            <div class="card border-0 shadow-sm text-center py-5">
-                <div class="card-body">
-                    <div class="text-muted mb-3 opacity-25">
-                        <i class="bi bi-calendar-x fs-1" style="font-size: 4rem;"></i>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm opacity-75" style="background: #f8f9fa;">
+                <div class="card-body p-4 text-center d-flex flex-column align-items-center">
+                    <div class="icon-wrapper bg-success bg-opacity-10 text-success mb-3 grayscale-icon">
+                        <i class="bi bi-graph-up-arrow fs-1"></i>
                     </div>
-                    <h5 class="fw-bold text-secondary">Belum ada data tahunan</h5>
-                    <p class="text-muted">Silakan buat konfigurasi tahun baru untuk memulai.</p>
+                    <h4 class="fw-bold text-muted">Investasi</h4>
+                    <p class="text-muted small mb-4">
+                        Pantau portofolio saham, reksadana, dan aset lainnya (Segera Hadir).
+                    </p>
+                    <button class="btn btn-light border rounded-pill fw-bold w-100 mt-auto py-2 text-muted" disabled>
+                        Coming Soon
+                    </button>
                 </div>
             </div>
         </div>
-        {% endfor %}
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm opacity-75" style="background: #f8f9fa;">
+                <div class="card-body p-4 text-center d-flex flex-column align-items-center">
+                    <div class="icon-wrapper bg-danger bg-opacity-10 text-danger mb-3 grayscale-icon">
+                        <i class="bi bi-credit-card fs-1"></i>
+                    </div>
+                    <h4 class="fw-bold text-muted">Hutang Piutang</h4>
+                    <p class="text-muted small mb-4">
+                        Kelola catatan pinjaman dan tagihan secara terpisah (Segera Hadir).
+                    </p>
+                    <button class="btn btn-light border rounded-pill fw-bold w-100 mt-auto py-2 text-muted" disabled>
+                        Coming Soon
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
-<div class="modal fade" id="newFolderModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <form method="POST" action="{{ url_for('create_folder') }}" class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus me-2 text-success"></i>Tambah Tahun Baru</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted">NAMA TAHUN / LABEL</label>
-                    <input type="text" name="name" class="form-control form-control-auth" placeholder="Contoh: Keuangan 2026" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted">LINK SPREADSHEET</label>
-                    <input type="url" name="url" class="form-control form-control-auth" placeholder="https://docs.google.com/..." required>
-                </div>
-            </div>
-            <div class="modal-footer border-0 px-4 pb-4 pt-0">
-                <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Simpan</button>
-            </div>
-        </form>
-    </div>
-</div>
+<style>
+    .icon-wrapper {
+        width: 80px; height: 80px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        transition: transform 0.3s;
+    }
+    .card-dashboard-menu:hover .icon-wrapper {
+        transform: scale(1.1);
+    }
+    .grayscale-icon {
+        filter: grayscale(100%);
+    }
+</style>
 {% endblock %}
