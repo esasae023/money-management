@@ -29,7 +29,7 @@
             <i class="bi bi-list"></i><span class="sidebar-text fw-bold">Money Mgr</span>
         </button>
         <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint == 'home' else '' }}">
-            <i class="bi bi-house-door"></i><span class="sidebar-text">Dashboard</span>
+            <i class="bi bi-house-door"></i><span class="sidebar-text">Beranda</span>
         </a>
         <a href="{{ url_for('settings_global') }}" class="{{ 'active' if request.endpoint == 'settings_global' else '' }}">
             <i class="bi bi-key"></i><span class="sidebar-text">API Key</span>
