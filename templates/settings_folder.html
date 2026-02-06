@@ -2,143 +2,228 @@
 
 {% block content %}
 <div class="container pb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4>⚙️ Konfigurasi: {{ folder.name }}</h4>
-        <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-outline-secondary btn-sm">← Kembali</a>
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div>
+            <h4 class="fw-bold text-dark m-0">Konfigurasi Tahun</h4>
+            <span class="badge bg-light text-secondary border rounded-pill mt-1 px-3">{{ folder.name }}</span>
+        </div>
+        <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-white bg-white shadow-sm border rounded-pill px-3 fw-bold small">
+            <i class="bi bi-arrow-left me-1"></i> Kembali ke Dashboard
+        </a>
     </div>
 
     <form method="POST" class="mb-5">
-        <div class="card mb-4 shadow-sm">
-            <div class="card-header fw-bold">1. General & Mapping KPI (Kartu Atas)</div>
-            <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-6 mb-3">
-                        <label>Nama Folder</label>
-                        <input type="text" name="name" class="form-control" value="{{ folder.name }}" required>
+        
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold text-primary mb-0"><i class="bi bi-gear-fill me-2"></i>Informasi Umum</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">NAMA TAHUN / LABEL</label>
+                        <input type="text" name="name" class="form-control form-control-auth" value="{{ folder.name }}" required>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label>URL Spreadsheet</label>
-                        <input type="url" name="url" class="form-control" value="{{ folder.spreadsheet_url }}" required>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">URL SPREADSHEET</label>
+                        <input type="url" name="url" class="form-control form-control-auth" value="{{ folder.spreadsheet_url }}" required>
                     </div>
                     <div class="col-12">
-                        <label>Sheet Bulanan (dipisah koma)</label>
-                        <input type="text" name="sheet_list" class="form-control" value="{{ folder.sheet_list_str }}">
+                        <label class="form-label small fw-bold text-muted">SHEET BULANAN (PISAH DENGAN KOMA)</label>
+                        <input type="text" name="sheet_list" class="form-control form-control-auth" value="{{ folder.sheet_list_str }}" placeholder="Januari, Februari, Maret">
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <hr>
-
-                <div class="alert alert-primary py-2 small">
-                    <i class="bi bi-wallet2"></i> <b>Dana Kotor (Cell Total)</b><br>
-                    Alamat Cell Excel totalan rumus (Contoh: K1).
-                </div>
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <label class="small fw-bold text-success">Total Pemasukan (Kotor)</label>
-                        <input type="text" name="cell_addr_income" class="form-control" value="{{ folder.cell_addr_income }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="small fw-bold text-danger">Total Pengeluaran (Kotor)</label>
-                        <input type="text" name="cell_addr_expense" class="form-control" value="{{ folder.cell_addr_expense }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="small fw-bold text-primary">Sisa Saldo (Real)</label>
-                        <input type="text" name="cell_addr_balance" class="form-control" value="{{ folder.cell_addr_balance }}">
-                    </div>
-                </div>
-
-                <div class="alert alert-warning py-2 small">
-                    <i class="bi bi-stars"></i> <b>Dana Bersih (Cell Total)</b><br>
-                    Daftar cell operasional murni. Pisahkan koma (Z1, Z3).
-                </div>
-                <div class="row border p-2 rounded bg-light mx-1 mb-4">
-                    <div class="col-md-6 mb-2">
-                        <label class="small fw-bold">Cell Pemasukan (Bersih)</label>
-                        <input type="text" name="clean_income_cells" class="form-control form-control-sm" value="{{ folder.clean_income_cells }}">
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <label class="small fw-bold">Cell Pengeluaran (Bersih)</label>
-                        <input type="text" name="clean_expense_cells" class="form-control form-control-sm" value="{{ folder.clean_expense_cells }}">
-                    </div>
-                </div>
-
-                <hr>
-
-                <h6 class="fw-bold">2. Konfigurasi Grafik & Filter Hutang</h6>
-                <div class="row mb-2">
-                    <div class="col-12 mb-2"><label class="small">Header Kolom Tanggal</label><input type="text" name="col_date" class="form-control form-control-sm" value="{{ folder.col_date }}"></div>
-                </div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold text-warning mb-0"><i class="bi bi-wallet2 me-2"></i>Mapping Cell Total (KPI)</h6>
+            </div>
+            <div class="card-body p-4">
                 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="small fw-bold">Header Nominal Pemasukan</label>
-                        <input type="text" name="col_income" class="form-control form-control-sm" value="{{ folder.col_income }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="small fw-bold">Header Nominal Pengeluaran</label>
-                        <input type="text" name="col_expense" class="form-control form-control-sm" value="{{ folder.col_expense }}">
+                <div class="bg-light p-3 rounded-4 mb-4 border">
+                    <h6 class="small fw-bold text-dark mb-3"><i class="bi bi-cash-stack me-1"></i> DANA KOTOR (Dari Rumus Excel)</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Cell Pemasukan</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-success bg-opacity-10 text-success border-0"><i class="bi bi-arrow-down-left"></i></span>
+                                <input type="text" name="cell_addr_income" class="form-control form-control-auth" value="{{ folder.cell_addr_income }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Cell Pengeluaran</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-danger bg-opacity-10 text-danger border-0"><i class="bi bi-arrow-up-right"></i></span>
+                                <input type="text" name="cell_addr_expense" class="form-control form-control-auth" value="{{ folder.cell_addr_expense }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted">Cell Sisa Saldo</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-primary bg-opacity-10 text-primary border-0"><i class="bi bi-wallet"></i></span>
+                                <input type="text" name="cell_addr_balance" class="form-control form-control-auth" value="{{ folder.cell_addr_balance }}">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="alert alert-info py-2 small">
-                    <i class="bi bi-funnel"></i> <b>Filter Hutang untuk Grafik Trend Bersih</b><br>
-                    Grafik bersih akan mengabaikan baris jika Header Kategori mengandung kata kunci hutang.
-                </div>
-                <div class="row border p-2 rounded bg-light mx-1">
-                    <div class="col-md-4">
-                        <label class="small fw-bold">Header Kategori Pemasukan</label>
-                        <input type="text" name="col_source_income" class="form-control form-control-sm" value="{{ folder.col_source_income }}" placeholder="Misal: Sumber Pemasukan">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="small fw-bold">Header Kategori Pengeluaran</label>
-                        <input type="text" name="col_source_expense" class="form-control form-control-sm" value="{{ folder.col_source_expense }}" placeholder="Misal: Sumber Pengeluaran">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="small fw-bold">Kata Kunci Hutang (Pisah Koma)</label>
-                        <input type="text" name="debt_keywords" class="form-control form-control-sm" value="{{ folder.debt_keywords }}" placeholder="Hutang,Piutang,Sahur hutang">
+                <div class="bg-light p-3 rounded-4 border">
+                    <h6 class="small fw-bold text-dark mb-3"><i class="bi bi-stars me-1"></i> DANA BERSIH (Operasional Murni)</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">List Cell Pemasukan (Pisah Koma)</label>
+                            <input type="text" name="clean_income_cells" class="form-control form-control-auth" value="{{ folder.clean_income_cells }}" placeholder="Contoh: Z1, Z5">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted">List Cell Pengeluaran (Pisah Koma)</label>
+                            <input type="text" name="clean_expense_cells" class="form-control form-control-auth" value="{{ folder.clean_expense_cells }}" placeholder="Contoh: Z2, Z6">
+                        </div>
                     </div>
                 </div>
 
             </div>
-            <div class="card-footer">
-                <button type="submit" class="btn btn-primary w-100">Simpan Config Utama</button>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold text-info mb-0"><i class="bi bi-graph-up me-2"></i>Konfigurasi Grafik Trend</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-muted">HEADER KOLOM TANGGAL</label>
+                        <input type="text" name="col_date" class="form-control form-control-auth" value="{{ folder.col_date }}">
+                    </div>
+                </div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">HEADER NOMINAL PEMASUKAN</label>
+                        <input type="text" name="col_income" class="form-control form-control-auth" value="{{ folder.col_income }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">HEADER NOMINAL PENGELUARAN</label>
+                        <input type="text" name="col_expense" class="form-control form-control-auth" value="{{ folder.col_expense }}">
+                    </div>
+                </div>
+
+                <div class="alert alert-light border rounded-3 p-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-funnel-fill text-secondary me-2"></i>
+                        <span class="fw-bold text-dark small">Filter Hutang (Grafik Bersih)</span>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        Grafik akan mengabaikan transaksi jika kategori mengandung kata kunci di bawah ini.
+                    </p>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <input type="text" name="col_source_income" class="form-control form-control-auth form-control-sm" value="{{ folder.col_source_income }}" placeholder="Header Kategori Masuk">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="col_source_expense" class="form-control form-control-auth form-control-sm" value="{{ folder.col_source_expense }}" placeholder="Header Kategori Keluar">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" name="debt_keywords" class="form-control form-control-auth form-control-sm" value="{{ folder.debt_keywords }}" placeholder="Keyword: Hutang, Pindahan">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0 px-4 pb-4 pt-0">
+                <button type="submit" class="btn btn-dark w-100 rounded-pill fw-bold py-2 shadow-sm">
+                    <i class="bi bi-check-lg me-2"></i> Simpan Semua Konfigurasi
+                </button>
             </div>
         </div>
     </form>
 
-    <div class="row">
+    <h5 class="fw-bold text-dark mb-3 px-1">Mapping Kategori (Pie Chart)</h5>
+    <div class="row g-4">
         <div class="col-md-6">
-            <div class="card border-success h-100">
-                <div class="card-header bg-success text-white fw-bold">Kategori Pemasukan</div>
-                <div class="card-body">
-                    <table class="table table-sm table-striped">
-                        <tr><th>Nama</th><th>Cell</th><th>Bersih?</th><th>Aksi</th></tr>
-                        {% for cat in cats_income %}
-                        <tr><td>{{ cat.name }}</td><td>{{ cat.cell_addr }}</td><td>{% if cat.is_clean %}✅{% else %}-{% endif %}</td><td><a href="{{ url_for('delete_category', cat_id=cat.id) }}" class="text-danger">Hapus</a></td></tr>
-                        {% endfor %}
-                    </table>
-                    <form action="{{ url_for('add_category', folder_id=folder.id) }}" method="POST" class="mt-2 border-top pt-2">
+            <div class="card h-100 border-0 shadow-sm card-soft-success">
+                <div class="card-header border-0 bg-transparent fw-bold text-success pt-4 px-4">
+                    <i class="bi bi-arrow-down-circle-fill me-2"></i> Kategori Pemasukan
+                </div>
+                <div class="card-body px-4">
+                    <div class="table-responsive bg-white rounded-4 p-2 shadow-sm mb-3">
+                        <table class="table table-borderless table-sm align-middle mb-0">
+                            <thead class="text-muted small border-bottom">
+                                <tr><th class="ps-3">Nama</th><th>Cell</th><th>Bersih?</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                                {% for cat in cats_income %}
+                                <tr>
+                                    <td class="ps-3 fw-bold">{{ cat.name }}</td>
+                                    <td class="font-monospace small">{{ cat.cell_addr }}</td>
+                                    <td>{% if cat.is_clean %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+                                    <td class="text-end pe-3"><a href="{{ url_for('delete_category', cat_id=cat.id) }}" class="text-danger"><i class="bi bi-trash"></i></a></td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" class="text-center text-muted small py-3">Belum ada kategori</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <form action="{{ url_for('add_category', folder_id=folder.id) }}" method="POST" class="bg-white p-3 rounded-4 shadow-sm">
                         <input type="hidden" name="cat_type" value="income">
-                        <div class="row g-1"><div class="col-5"><input type="text" name="cat_name" class="form-control form-control-sm" placeholder="Nama" required></div><div class="col-4"><input type="text" name="cat_addr" class="form-control form-control-sm" placeholder="Cell" required></div><div class="col-3"><button class="btn btn-sm btn-success w-100">Add</button></div></div>
-                        <div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="is_clean" id="chkInc"><label class="form-check-label small" for="chkInc">Masuk Dana Bersih?</label></div>
+                        <h6 class="small fw-bold text-muted mb-2">TAMBAH BARU</h6>
+                        <div class="row g-2 mb-2">
+                            <div class="col-7"><input type="text" name="cat_name" class="form-control form-control-sm bg-light border-0" placeholder="Nama Kategori" required></div>
+                            <div class="col-5"><input type="text" name="cat_addr" class="form-control form-control-sm bg-light border-0" placeholder="Cell (A1)" required></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_clean" id="chkInc">
+                                <label class="form-check-label small text-muted" for="chkInc">Dana Bersih?</label>
+                            </div>
+                            <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold">Add</button>
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
+
         <div class="col-md-6">
-            <div class="card border-danger h-100">
-                <div class="card-header bg-danger text-white fw-bold">Kategori Pengeluaran</div>
-                <div class="card-body">
-                    <table class="table table-sm table-striped">
-                        <tr><th>Nama</th><th>Cell</th><th>Bersih?</th><th>Aksi</th></tr>
-                        {% for cat in cats_expense %}
-                        <tr><td>{{ cat.name }}</td><td>{{ cat.cell_addr }}</td><td>{% if cat.is_clean %}✅{% else %}-{% endif %}</td><td><a href="{{ url_for('delete_category', cat_id=cat.id) }}" class="text-danger">Hapus</a></td></tr>
-                        {% endfor %}
-                    </table>
-                    <form action="{{ url_for('add_category', folder_id=folder.id) }}" method="POST" class="mt-2 border-top pt-2">
+            <div class="card h-100 border-0 shadow-sm card-soft-danger">
+                <div class="card-header border-0 bg-transparent fw-bold text-danger pt-4 px-4">
+                    <i class="bi bi-arrow-up-circle-fill me-2"></i> Kategori Pengeluaran
+                </div>
+                <div class="card-body px-4">
+                    <div class="table-responsive bg-white rounded-4 p-2 shadow-sm mb-3">
+                        <table class="table table-borderless table-sm align-middle mb-0">
+                            <thead class="text-muted small border-bottom">
+                                <tr><th class="ps-3">Nama</th><th>Cell</th><th>Bersih?</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                                {% for cat in cats_expense %}
+                                <tr>
+                                    <td class="ps-3 fw-bold">{{ cat.name }}</td>
+                                    <td class="font-monospace small">{{ cat.cell_addr }}</td>
+                                    <td>{% if cat.is_clean %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+                                    <td class="text-end pe-3"><a href="{{ url_for('delete_category', cat_id=cat.id) }}" class="text-danger"><i class="bi bi-trash"></i></a></td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" class="text-center text-muted small py-3">Belum ada kategori</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <form action="{{ url_for('add_category', folder_id=folder.id) }}" method="POST" class="bg-white p-3 rounded-4 shadow-sm">
                         <input type="hidden" name="cat_type" value="expense">
-                        <div class="row g-1"><div class="col-5"><input type="text" name="cat_name" class="form-control form-control-sm" placeholder="Nama" required></div><div class="col-4"><input type="text" name="cat_addr" class="form-control form-control-sm" placeholder="Cell" required></div><div class="col-3"><button class="btn btn-sm btn-danger w-100">Add</button></div></div>
-                        <div class="form-check mt-1"><input class="form-check-input" type="checkbox" name="is_clean" id="chkExp"><label class="form-check-label small" for="chkExp">Masuk Dana Bersih?</label></div>
+                        <h6 class="small fw-bold text-muted mb-2">TAMBAH BARU</h6>
+                        <div class="row g-2 mb-2">
+                            <div class="col-7"><input type="text" name="cat_name" class="form-control form-control-sm bg-light border-0" placeholder="Nama Kategori" required></div>
+                            <div class="col-5"><input type="text" name="cat_addr" class="form-control form-control-sm bg-light border-0" placeholder="Cell (A1)" required></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_clean" id="chkExp">
+                                <label class="form-check-label small text-muted" for="chkExp">Dana Bersih?</label>
+                            </div>
+                            <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold">Add</button>
+                        </div>
                     </form>
                 </div>
             </div>

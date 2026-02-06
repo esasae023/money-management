@@ -41,9 +41,8 @@ def load_user(user_id):
 def make_session_permanent():
     session.permanent = True
 
-# --- [BARU] HELPER: GENERATE RECOVERY CODE ---
+# --- [HELPER] GENERATE RECOVERY CODE ---
 def generate_recovery_code(length=8):
-    """Generate kode unik: A7X9-B2M1"""
     chars = string.ascii_uppercase + string.digits
     part1 = ''.join(random.choices(chars, k=length//2))
     part2 = ''.join(random.choices(chars, k=length//2))
@@ -53,7 +52,7 @@ def generate_recovery_code(length=8):
 def get_google_client():
     if not current_user.is_authenticated: return None
     settings = GlobalSettings.query.filter_by(user_id=current_user.id).first()
-    if not settings: return None
+    if not settings or not settings.google_creds_encrypted: return None
     try:
         creds_json = crypto.decrypt(settings.google_creds_encrypted)
         creds_dict = json.loads(creds_json)
@@ -203,7 +202,6 @@ def login():
         flash('Login gagal. Periksa username atau password Anda.', 'danger')
     return render_template('login.html')
 
-# --- [UPDATE] REGISTER DENGAN RECOVERY CODE ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -220,35 +218,23 @@ def register():
             
         try:
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-            
-            # 1. Generate Kode
             rec_code = generate_recovery_code()
-            
-            # 2. Simpan ke DB
             new_user = User(username=username, password=hashed_password, recovery_code=rec_code)
             db.session.add(new_user)
             db.session.commit()
-            
-            # 3. Flash dengan kategori 'show_modal'
-            # Format pesan: "Pesan Text|KODE"
             flash(f'Akun berhasil dibuat! Simpan KODE PEMULIHAN ini baik-baik.|{rec_code}', 'show_modal')
             return redirect(url_for('login'))
-            
         except IntegrityError:
             db.session.rollback()
-            flash('Username sudah digunakan. Pilih username lain.', 'warning')
+            flash('Username sudah digunakan.', 'warning')
         except Exception as e:
             db.session.rollback()
             flash(f'Terjadi kesalahan: {str(e)}', 'danger')
-            
     return render_template('register.html')
 
-# --- [BARU] FORGOT PASSWORD ROUTE ---
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
-    if current_user.is_authenticated:
-        return redirect(url_for('home'))
-
+    if current_user.is_authenticated: return redirect(url_for('home'))
     if request.method == 'POST':
         username = request.form.get('username')
         rec_code = request.form.get('recovery_code')
@@ -256,31 +242,22 @@ def forgot_password():
         confirm_pass = request.form.get('confirm_password')
 
         user = User.query.filter_by(username=username).first()
-        
         if not user:
             flash('Username tidak ditemukan.', 'danger')
             return redirect(url_for('forgot_password'))
-            
-        # Cek Kode Recovery (Case Insensitive jika mau, tapi di sini exact match)
         if user.recovery_code != rec_code:
             flash('Kode Pemulihan salah!', 'danger')
             return redirect(url_for('forgot_password'))
-
         if new_pass != confirm_pass:
             flash('Password baru tidak sama.', 'warning')
             return redirect(url_for('forgot_password'))
 
-        # Reset Password
         user.password = bcrypt.generate_password_hash(new_pass).decode('utf-8')
-        
-        # Generate kode baru agar kode lama hangus
         new_rec_code = generate_recovery_code()
         user.recovery_code = new_rec_code
         db.session.commit()
-        
         flash(f'Password berhasil direset! Ini Kode Pemulihan BARU Anda.|{new_rec_code}', 'show_modal')
         return redirect(url_for('login'))
-
     return render_template('forgot_password.html')
 
 @app.route('/logout')
@@ -301,34 +278,84 @@ def profile():
         return redirect(url_for('profile'))
     return render_template('profile.html')
 
-# --- ROUTES FITUR LAIN (TETAP SAMA) ---
+# --- ROUTES FITUR UTAMA (UPDATED) ---
 
 @app.route('/home')
 @login_required
 def home():
+    # Menampilkan Folder sebagai 'Tahun'
     folders = MonitorFolder.query.filter_by(user_id=current_user.id).all()
+    # Cek apakah Global Settings sudah ada isinya
     global_set = GlobalSettings.query.filter_by(user_id=current_user.id).first()
-    return render_template('home.html', folders=folders, has_global=bool(global_set))
+    has_creds = False
+    if global_set and global_set.google_creds_encrypted:
+        has_creds = True
+    return render_template('home.html', folders=folders, has_global=has_creds)
 
 @app.route('/settings/global', methods=['GET', 'POST'])
 @login_required
 def settings_global():
-    if request.method == 'POST':
-        creds = request.form['google_creds']
-        enc = crypto.encrypt(creds)
-        sett = GlobalSettings.query.filter_by(user_id=current_user.id).first()
-        if not sett:
-            sett = GlobalSettings(user_id=current_user.id, google_creds_encrypted=enc)
-            db.session.add(sett)
-        else:
-            sett.google_creds_encrypted = enc
-        db.session.commit()
-        return redirect(url_for('home'))
-    return render_template('settings_global.html')
+    sett = GlobalSettings.query.filter_by(user_id=current_user.id).first()
+    
+    # -- 1. LOGIC HAPUS CREDENTIAL --
+    if request.method == 'POST' and request.form.get('action') == 'delete':
+        if sett:
+            sett.google_creds_encrypted = None
+            db.session.commit()
+            flash('Service Account berhasil dihapus.', 'warning')
+        return redirect(url_for('settings_global'))
+
+    # -- 2. LOGIC SIMPAN CREDENTIAL --
+    if request.method == 'POST' and request.form.get('action') == 'save':
+        try:
+            name_sa = request.form['service_name']
+            creds_str = request.form['google_creds']
+            
+            # Validasi JSON
+            creds_json = json.loads(creds_str)
+            
+            # [TRIK] Sisipkan Nama Identitas ke dalam JSON sebelum dienkripsi
+            # Agar tidak perlu ubah struktur tabel database
+            creds_json['_custom_name'] = name_sa 
+            
+            final_json_str = json.dumps(creds_json)
+            enc = crypto.encrypt(final_json_str)
+            
+            if not sett:
+                sett = GlobalSettings(user_id=current_user.id, google_creds_encrypted=enc)
+                db.session.add(sett)
+            else:
+                sett.google_creds_encrypted = enc
+            
+            db.session.commit()
+            flash('Service Account berhasil ditambahkan!', 'success')
+            return redirect(url_for('settings_global'))
+            
+        except json.JSONDecodeError:
+            flash('Format JSON tidak valid. Pastikan copy semua isi file.', 'danger')
+        except Exception as e:
+            flash(f'Gagal menyimpan: {str(e)}', 'danger')
+
+    # -- 3. LOGIC TAMPILKAN DATA SAAT INI --
+    existing_data = None
+    if sett and sett.google_creds_encrypted:
+        try:
+            decrypted = crypto.decrypt(sett.google_creds_encrypted)
+            data = json.loads(decrypted)
+            existing_data = {
+                'name': data.get('_custom_name', 'My Service Account'),
+                'email': data.get('client_email', 'Unknown Email'),
+                'project_id': data.get('project_id', 'Unknown Project')
+            }
+        except:
+            pass
+
+    return render_template('settings_global.html', current_sa=existing_data)
 
 @app.route('/folder/create', methods=['POST'])
 @login_required
 def create_folder():
+    # Folder disini kita anggap sebagai 'Tahun' secara terminologi UI
     new_folder = MonitorFolder(name=request.form['name'], spreadsheet_url=request.form['url'], user_id=current_user.id)
     db.session.add(new_folder)
     db.session.commit()
@@ -341,6 +368,7 @@ def folder_settings(folder_id):
     if folder.user_id != current_user.id: return redirect(url_for('home'))
     
     if request.method == 'POST':
+        # Simpan Config
         folder.name = request.form['name']
         folder.spreadsheet_url = request.form['url']
         folder.sheet_list_str = request.form['sheet_list']
@@ -361,7 +389,7 @@ def folder_settings(folder_id):
         folder.clean_expense_cells = request.form['clean_expense_cells']
         
         db.session.commit()
-        flash('Pengaturan berhasil disimpan.', 'success')
+        flash('Konfigurasi Tahun berhasil disimpan.', 'success')
         return redirect(url_for('folder_settings', folder_id=folder.id))
     
     cats_income = [c for c in folder.categories if c.type == 'income']
@@ -404,6 +432,7 @@ def dashboard(folder_id):
     sheet_list = folder.get_sheet_list()
     selected_month = request.args.get('month', sheet_list[0] if sheet_list else 'Sheet1')
     
+    # ... logic dashboard sama ...
     sum_kotor = {'income': 0, 'expense': 0, 'balance': 0}
     sum_clean = {'income': 0, 'expense': 0, 'balance': 0}
     chart_clean = {'labels': [], 'income': [], 'expense': []}
