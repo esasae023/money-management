@@ -5,47 +5,53 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
 <style>
-    /* 1. Aturan Margin Section Terakhir */
-    .no-margin-bottom {
-        margin-bottom: 0 !important;
-        padding-bottom: 0 !important;
-    }
-
-    /* 2. Pengatur Jarak Bawah (Spacer) */
-    .bottom-spacer-force {
-        /* Desktop: Tipis (20px) */
-        height: 20px !important; 
-        display: block; 
-    }
-    
-    /* Mobile: Dikecilkan drastis dari 85px menjadi 30px */
-    @media (max-width: 768px) {
-        .bottom-spacer-force {
-            height: 30px !important; /* UPDATE: Lebih Rapat */
-        }
-    }
+    .no-margin-bottom { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    .bottom-spacer-force { height: 20px !important; display: block; }
+    @media (max-width: 768px) { .bottom-spacer-force { height: 30px !important; } }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-5 mt-3">
-    <div>
-        <h6 class="text-uppercase text-muted mb-1 small fw-bold" style="letter-spacing: 1px;">Dashboard Keuangan</h6>
-        <h2 class="fw-bold text-dark m-0">{{ folder.name }}</h2>
+
+<div class="dashboard-header-wrapper">
+    
+    <div class="header-left">
+        <a href="{{ url_for('select_year') }}" 
+           class="btn btn-white bg-white shadow-sm border btn-circle-fix hover-scale" 
+           title="Kembali ke Pilih Tahun">
+            <i class="bi bi-arrow-left text-dark fs-5"></i>
+        </a>
+
+        <div>
+            <h6 class="text-uppercase text-muted mb-1 small fw-bold" style="letter-spacing: 1px;">
+                Dashboard Keuangan
+            </h6>
+            <h2 class="fw-bold text-dark m-0 text-truncate">
+                {{ folder.name }}
+            </h2>
+        </div>
     </div>
     
-    <div class="d-flex align-items-center gap-2">
+    <div class="header-right">
         <div class="dropdown">
-            <button class="btn btn-white bg-white shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                <i class="bi bi-calendar4-week me-2 text-primary"></i> {{ selected_month }}
+            <button class="btn btn-white bg-white shadow-sm dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                <span><i class="bi bi-calendar4-week me-2 text-primary"></i> {{ selected_month }}</span>
             </button>
-            <ul class="dropdown-menu shadow border-0 rounded-4 mt-2">
+            <ul class="dropdown-menu shadow border-0 rounded-4 mt-2 w-100">
                 {% for sheet in sheet_list %}
-                <li><a class="dropdown-item py-2 px-3" href="{{ url_for('dashboard', folder_id=folder.id, month=sheet) }}">{{ sheet }}</a></li>
+                <li>
+                    <a class="dropdown-item py-2 px-3 {% if sheet == selected_month %}fw-bold active{% endif %}" 
+                       href="{{ url_for('dashboard', folder_id=folder.id, month=sheet) }}">
+                       {{ sheet }}
+                    </a>
+                </li>
                 {% endfor %}
             </ul>
         </div>
-        <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-white bg-white shadow-sm border rounded-circle p-2" style="width: 40px; height: 40px; display:flex; align-items:center; justify-content:center;" title="Konfigurasi">
+        
+        <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" 
+           class="btn btn-white bg-white shadow-sm border btn-circle-fix" 
+           title="Konfigurasi">
             <i class="bi bi-sliders text-secondary"></i>
         </a>
     </div>

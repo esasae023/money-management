@@ -252,3 +252,80 @@ body {
 
 .chart-container-fix { position: relative; width: 100%; height: 100%; transform: translateZ(0); }
 canvas { transform: translateZ(0); will-change: transform, opacity; }
+
+/* =========================================
+   [NEW] HEADER LAYOUT FIXES
+   ========================================= */
+
+/* 1. Container Header Utama */
+.dashboard-header-wrapper {
+    display: flex;
+    justify-content: space-between; /* Jarak maksimal kiri-kanan */
+    align-items: center;
+    width: 100%; /* Wajib full width agar tidak mengumpul ke kiri */
+    margin-bottom: 2rem;
+    margin-top: 1rem;
+    gap: 1rem; /* Jarak antar elemen jika layar sempit */
+}
+
+/* 2. Bagian Kiri (Tombol Back + Judul) */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem; /* Jarak antara tombol back dan teks judul */
+    flex: 1; /* Mengambil ruang sisa agar judul tidak terpotong */
+}
+
+/* 3. Bagian Kanan (Dropdown + Config) */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* 4. FIX TOMBOL KEMBALI (Supaya Bulat Sempurna, Tidak Oval) */
+.btn-circle-fix {
+    width: 45px !important;
+    height: 45px !important;
+    min-width: 45px !important; /* Mencegah penyusutan */
+    min-height: 45px !important;
+    
+    padding: 0 !important; /* Hilangkan padding teks */
+    border-radius: 50% !important;
+    
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* KUNCI: Jangan biarkan flexbox menekan tombol ini */
+}
+
+/* --- MOBILE RESPONSIVE TWEAKS --- */
+@media (max-width: 768px) {
+    /* Di HP, header jadi atas-bawah */
+    .dashboard-header-wrapper {
+        flex-direction: column;
+        align-items: flex-start; /* Rata kiri */
+        gap: 1.5rem;
+    }
+
+    /* Judul di HP bisa memanjang penuh */
+    .header-left {
+        width: 100%;
+    }
+
+    /* Kontrol Kanan di HP jadi Full Width agar rapi */
+    .header-right {
+        width: 100%;
+        justify-content: space-between; /* Dropdown di kiri, Config di kanan */
+    }
+
+    /* Tombol dropdown di HP jadi full width mengisi ruang */
+    .header-right .dropdown {
+        flex-grow: 1;
+    }
+    .header-right .dropdown button {
+        width: 100%;
+        justify-content: space-between; /* Teks kiri, panah kanan */
+        display: flex;
+    }
+}
