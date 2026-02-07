@@ -372,6 +372,8 @@ def create_folder():
 def folder_settings(folder_id):
     folder = MonitorFolder.query.get_or_404(folder_id)
     if folder.user_id != current_user.id: return redirect(url_for('home'))
+
+    origin = request.args.get('origin', 'dash')
     
     if request.method == 'POST':
         # Simpan Config
@@ -396,7 +398,7 @@ def folder_settings(folder_id):
         
         db.session.commit()
         flash('Konfigurasi Tahun berhasil disimpan.', 'success')
-        return redirect(url_for('folder_settings', folder_id=folder.id))
+        return redirect(url_for('folder_settings', folder_id=folder.id, origin=origin))
     
     cats_income = [c for c in folder.categories if c.type == 'income']
     cats_expense = [c for c in folder.categories if c.type == 'expense']

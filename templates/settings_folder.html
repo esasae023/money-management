@@ -2,16 +2,37 @@
 
 {% block content %}
 <div class="container pb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
-        <div>
-            <h4 class="fw-bold text-dark m-0">Konfigurasi Tahun</h4>
-            <span class="badge bg-light text-secondary border rounded-pill mt-1 px-3">{{ folder.name }}</span>
+    
+    <div class="row align-items-center mb-4 mt-2">
+        
+        <div class="col overflow-hidden">
+            <h4 class="fw-bold text-dark m-0 text-truncate">Konfigurasi Tahun</h4>
+            <span class="badge bg-light text-secondary border rounded-pill mt-1 px-3 text-truncate d-inline-block" style="max-width: 100%;">
+                {{ folder.name }}
+            </span>
         </div>
-        <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-white bg-white shadow-sm border rounded-pill px-3 fw-bold small">
-            <i class="bi bi-arrow-left me-1"></i> Kembali ke Dashboard
-        </a>
-    </div>
 
+        <div class="col-auto">
+            <div style="width: 45px; height: 45px; flex: 0 0 45px;">
+                {% if request.args.get('origin') == 'list' %}
+                    <a href="{{ url_for('select_year') }}" 
+                       class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
+                       style="width: 100%; height: 100%;" 
+                       title="Kembali ke Daftar Tahun">
+                        <i class="bi bi-arrow-left text-dark fs-5"></i>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('dashboard', folder_id=folder.id) }}" 
+                       class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
+                       style="width: 100%; height: 100%;" 
+                       title="Kembali ke Dashboard">
+                        <i class="bi bi-arrow-left text-dark fs-5"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
     <form method="POST" class="mb-5">
         
         <div class="card border-0 shadow-sm mb-4">

@@ -42,7 +42,7 @@
                         <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-primary rounded-pill fw-bold">
                             Buka Dashboard
                         </a>
-                        <a href="{{ url_for('folder_settings', folder_id=folder.id) }}" class="btn btn-light text-secondary rounded-pill fw-bold border">
+                        <a href="{{ url_for('folder_settings', folder_id=folder.id, origin='list') }}" class="btn btn-light text-secondary rounded-pill fw-bold border">
                             <i class="bi bi-gear-fill me-1"></i> Konfigurasi
                         </a>
                     </div>
