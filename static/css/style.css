@@ -431,23 +431,32 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
 }
 
 /* =========================================
-   GLOBAL BUTTON CLICK EFFECT (SUBTLE)
-   Berlaku untuk semua tombol di seluruh website
+   GLOBAL ELEGANT TOUCH FEEDBACK
+   Berlaku untuk semua tombol: Login, Home, Dashboard, Config, dll.
    ========================================= */
 
-/* Reset Highlight bawaan HP (kotak biru saat tap) */
-button, a, .btn, .card, .dropdown-toggle {
+/* 1. Reset Highlight Biru di HP (Wajib) */
+button, a, .btn, .card, .dropdown-toggle, .btn-circle-fix {
     -webkit-tap-highlight-color: transparent !important;
     outline: none !important;
 }
 
-/* Efek Tekan Halus (Hanya mengecil 4%) */
+/* 2. Efek Tekan Halus (Premium Feel) */
+/* Selector diperlengkap agar tombol bulan & config kena semua */
 button:active, 
 .btn:active, 
-a.btn:active, 
-.dropdown-toggle:active,
-.btn-white:active,
+.btn-white:active, 
+.btn-primary:active,
+.btn-light:active,
+.btn-dark:active,
+.dropdown-toggle:active, 
 .btn-circle-fix:active {
-    transform: scale(0.96) !important; /* Ubah ke 0.96 agar tidak berlebihan */
-    transition: transform 0.1s ease-out; /* Animasi sedikit lebih santai */
+    /* Hanya mengecil 2% (sangat halus) */
+    transform: scale(0.98) !important; 
+    
+    /* Animasi cepat tapi smooth */
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important; 
+    
+    /* Opsional: Sedikit redup saat ditekan agar makin realistis */
+    filter: brightness(0.95); 
 }
