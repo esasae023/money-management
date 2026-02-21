@@ -24,17 +24,66 @@
 
     {% if current_user.is_authenticated %}
     
+    {% set nav_origin = 'home' %}
+    {% set nav_fid = none %}
+
+    {# 1. Ambil Jejak dari URL #}
+    {% set url_origin = request.args.get('origin') %}
+    {% set url_fid = request.args.get('folder_id') %}
+
+    {# 2. Deteksi Halaman Aktif #}
+
+    {# KASUS A: Dashboard Utama #}
+    {% if request.endpoint == 'dashboard' %}
+        {% set nav_origin = 'dash' %}
+        {% set nav_fid = request.view_args.get('folder_id') %}
+    
+    {# KASUS B: Settings Folder (PISAHKAN DARI DASHBOARD) #}
+    {% elif request.endpoint == 'folder_settings' %}
+        {# Kirim identitas 'folder_settings' agar halaman Profile tau dia dari sini #}
+        {% set nav_origin = 'folder_settings' %}
+        {% set nav_fid = request.view_args.get('folder_id') %}
+    
+    {# KASUS C: Daftar Tahun #}
+    {% elif request.endpoint == 'select_year' %}
+        {% set nav_origin = 'list' %}
+        {% set nav_fid = none %}
+
+    {# KASUS D: Halaman Global (Profile / API Key) #}
+    {% else %}
+        
+        {# Prioritas 1: Jika url_origin valid (folder_settings/dash/list), PERTAHANKAN! #}
+        {% if url_origin in ['folder_settings', 'dash', 'list'] %}
+            {% set nav_origin = url_origin %}
+            {% set nav_fid = url_fid %}
+        
+        {# Prioritas 2: Navigasi Antar Halaman Global #}
+        {% else %}
+            {% if request.endpoint == 'profile' %}
+                {% set nav_origin = 'profile' %}
+            {% elif request.endpoint == 'settings_global' %}
+                {% set nav_origin = 'settings_global' %}
+            {% else %}
+                {% set nav_origin = 'home' %}
+            {% endif %}
+        {% endif %}
+
+    {% endif %}
+    
     <div id="sidebar" class="sidebar">
         <button class="toggle-btn" onclick="toggleSidebar()">
             <i class="bi bi-list"></i><span class="sidebar-text fw-bold">Money Mgr</span>
         </button>
+        
         <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint == 'home' else '' }}">
             <i class="bi bi-house-door"></i><span class="sidebar-text">Beranda</span>
         </a>
-        <a href="{{ url_for('settings_global') }}" class="{{ 'active' if request.endpoint == 'settings_global' else '' }}">
+        
+        <a href="{{ url_for('settings_global', origin=nav_origin, folder_id=nav_fid) }}" class="{{ 'active' if request.endpoint == 'settings_global' else '' }}">
             <i class="bi bi-key"></i><span class="sidebar-text">API Key</span>
         </a>
-        <a href="{{ url_for('profile') }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">
+        
+        <a href="{{ url_for('profile', origin=nav_origin, folder_id=nav_fid) }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">
             <i class="bi bi-person-circle"></i><span class="sidebar-text">Profil</span>
         </a>
         
@@ -48,12 +97,15 @@
         <a href="{{ url_for('home') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'home' else '' }}">
             <i class="bi bi-house-door-fill"></i><span>Beranda</span>
         </a>
-        <a href="{{ url_for('settings_global') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'settings_global' else '' }}">
+        
+        <a href="{{ url_for('settings_global', origin=nav_origin, folder_id=nav_fid) }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'settings_global' else '' }}">
             <i class="bi bi-key-fill"></i><span>API Key</span>
         </a>
-        <a href="{{ url_for('profile') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'profile' else '' }}">
+        
+        <a href="{{ url_for('profile', origin=nav_origin, folder_id=nav_fid) }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'profile' else '' }}">
             <i class="bi bi-person-circle"></i><span>Akun</span>
         </a>
+        
         <a href="#" class="nav-item-mobile" data-bs-toggle="offcanvas" data-bs-target="#drawerLainnya">
             <i class="bi bi-grid-fill"></i><span>Lainnya</span>
         </a>
@@ -73,7 +125,7 @@
             <button type="button" class="btn btn-light w-100 mt-4 rounded-pill" data-bs-dismiss="offcanvas">Tutup</button>
         </div>
     </div>
-
+    
     {% endif %}
 
     <div class="main-content">

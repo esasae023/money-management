@@ -267,17 +267,22 @@ def logout(): logout_user(); return redirect(url_for('login'))
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
+
+    # Tangkap state navigasi
+    origin = request.args.get('origin', 'home')
+    folder_id = request.args.get('folder_id')
+
     if request.method == 'POST':
         new_password = request.form.get('new_password')
         if len(new_password) < 6:
             flash('Gagal: Password minimal 6 karakter.', 'danger')
-            return redirect(url_for('profile'))
+            return redirect(url_for('profile', origin=origin, folder_id=folder_id))
         current_user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
         db.session.commit()
         flash('Berhasil: Password Anda telah diubah!', 'success')
-        return redirect(url_for('profile'))
-    return render_template('profile.html')
-
+        return redirect(url_for('profile', origin=origin, folder_id=folder_id))
+    return render_template('profile.html', origin=origin, folder_id=folder_id)
+    
 # --- ROUTES FITUR UTAMA (UPDATED) ---
 
 @app.route('/home')
@@ -302,14 +307,18 @@ def select_year():
 @login_required
 def settings_global():
     sett = GlobalSettings.query.filter_by(user_id=current_user.id).first()
-    
+
+    # Tangkap state navigasi
+    origin = request.args.get('origin', 'home')
+    folder_id = request.args.get('folder_id')
+
     # -- 1. LOGIC HAPUS CREDENTIAL --
     if request.method == 'POST' and request.form.get('action') == 'delete':
         if sett:
             sett.google_creds_encrypted = None
             db.session.commit()
             flash('Service Account berhasil dihapus.', 'warning')
-        return redirect(url_for('settings_global'))
+        return redirect(url_for('settings_global', origin=origin, folder_id=folder_id))
 
     # -- 2. LOGIC SIMPAN CREDENTIAL --
     if request.method == 'POST' and request.form.get('action') == 'save':
@@ -335,10 +344,10 @@ def settings_global():
             
             db.session.commit()
             flash('Service Account berhasil ditambahkan!', 'success')
-            return redirect(url_for('settings_global'))
+            return redirect(url_for('settings_global', origin=origin, folder_id=folder_id))
             
         except json.JSONDecodeError:
-            flash('Format JSON tidak valid. Pastikan copy semua isi file.', 'danger')
+            flash('Format JSON tidak valid.', 'danger')
         except Exception as e:
             flash(f'Gagal menyimpan: {str(e)}', 'danger')
 
@@ -356,7 +365,7 @@ def settings_global():
         except:
             pass
 
-    return render_template('settings_global.html', current_sa=existing_data)
+    return render_template('settings_global.html', current_sa=existing_data, origin=origin, folder_id=folder_id)
 
 @app.route('/folder/create', methods=['POST'])
 @login_required
