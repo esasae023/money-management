@@ -3,52 +3,59 @@
 {% block content %}
 <div class="container pb-5">
     
-    <div class="d-flex justify-content-between align-items-center mb-4 mt-2 gap-3">
-        <h4 class="fw-bold text-dark m-0">
-            <i class="bi bi-person-badge me-2 text-primary"></i>Profil Pengguna
-        </h4>
+    <div class="row align-items-center mb-4 mt-2">
         
-        <div class="flex-shrink-0">
-            {% if origin == 'dash' and folder_id %}
-                <a href="{{ url_for('dashboard', folder_id=folder_id) }}"
-                   class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale" 
-                   style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;" 
-                   title="Kembali ke Dashboard">
-                    <i class="bi bi-arrow-left text-dark fs-5"></i>
-                </a>
-            
-            {% elif origin == 'folder_settings' and folder_id %}
-                <a href="{{ url_for('folder_settings', folder_id=folder_id, origin='dash') }}" 
-                   class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale" 
-                   style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;" 
-                   title="Kembali ke Config">
-                    <i class="bi bi-arrow-left text-dark fs-5"></i>
-                </a>
-            
-            {% elif origin == 'list' %}
-                <a href="{{ url_for('select_year') }}"
-                   class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale" 
-                   style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;" 
-                   title="Kembali ke Daftar">
-                    <i class="bi bi-arrow-left text-dark fs-5"></i>
-                </a>
-            
-            {% elif origin == 'settings_global' %}
-                <a href="{{ url_for('settings_global') }}" 
-                   class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale" 
-                   style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;" 
-                   title="Kembali ke API Key">
-                    <i class="bi bi-arrow-left text-dark fs-5"></i>
-                </a>
+        <div class="col overflow-hidden">
+            <h4 class="fw-bold text-dark m-0 text-truncate">
+                <i class="bi bi-person-badge me-2 text-primary"></i>Profil Pengguna
+            </h4>
+        </div>
+        
+        <div class="col-auto">
+            <div style="width: 45px; height: 45px; flex: 0 0 45px;">
+                
+                {% if origin == 'dash' and folder_id %}
+                    <a href="{{ url_for('dashboard', folder_id=folder_id) }}" 
+                       class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
+                       style="width: 100%; height: 100%;" 
+                       title="Kembali ke Dashboard">
+                        <i class="bi bi-arrow-left text-dark fs-5"></i>
+                    </a>
+                
+                {% elif origin == 'folder_settings' and folder_id %}
+                    <a href="{{ url_for('folder_settings', folder_id=folder_id, origin='dash') }}" 
+                       class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
+                       style="width: 100%; height: 100%;" 
+                       title="Kembali ke Config">
+                        <i class="bi bi-arrow-left text-dark fs-5"></i>
+                    </a>
+                
+                {% elif origin == 'list' %}
+                    <a href="{{ url_for('select_year') }}" 
+                       class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
+                       style="width: 100%; height: 100%;" 
+                       title="Kembali ke Daftar">
+                        <i class="bi bi-arrow-left text-dark fs-5"></i>
+                    </a>
+                
+                {% elif origin == 'settings_global' %}
+                    <a href="{{ url_for('settings_global', origin='profile', folder_id=folder_id) }}" 
+                       class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
+                       style="width: 100%; height: 100%;" 
+                       title="Kembali ke API Key">
+                        <i class="bi bi-arrow-left text-dark fs-5"></i>
+                    </a>
 
-            {% else %}
-                <a href="{{ url_for('home') }}"
-                   class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale" 
-                   style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;" 
-                   title="Kembali ke Home">
-                    <i class="bi bi-arrow-left text-dark fs-5"></i>
-                </a>
-            {% endif %}
+                {% else %}
+                    <a href="{{ url_for('home') }}" 
+                       class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
+                       style="width: 100%; height: 100%;" 
+                       title="Kembali ke Home">
+                        <i class="bi bi-arrow-left text-dark fs-5"></i>
+                    </a>
+                {% endif %}
+                
+            </div>
         </div>
     </div>
 
