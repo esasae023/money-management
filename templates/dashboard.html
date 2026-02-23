@@ -262,6 +262,76 @@
         if (typeof setMode === "function") setMode('semua');
         if (typeof initCountingAnimation === "function") initCountingAnimation();
 
+        // 1. FUNGSI UNTUK MENGGANTI WARNA CHART
+        function applyChartTheme() {
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            
+            // A. Ubah Pengaturan Dasar 
+            Chart.defaults.color = isDark ? '#9ca3af' : '#6c757d'; 
+            Chart.defaults.borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            
+            // B. Paksa ubah chart yang ada di dalam memori
+            for (let id in Chart.instances) {
+                let chart = Chart.instances[id];
+                
+                // Paksa update warna teks dan jaring latar (grid)
+                if (chart.options) {
+                    chart.options.color = isDark ? '#9ca3af' : '#6c757d';
+                    if (chart.options.scales) {
+                        for (let axis in chart.options.scales) {
+                            if (chart.options.scales[axis].grid) {
+                                chart.options.scales[axis].grid.color = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                            }
+                        }
+                    }
+                }
+                
+                // --- Ubah warna OUTLINE & ISI pada PIE CHART ---
+                if (chart.canvas.id.includes('pie') && chart.data.datasets[0]) {
+                    // 1. Outline membaur dengan warna card
+                    chart.data.datasets[0].borderColor = isDark ? '#181a1d' : '#ffffff';
+                    
+                    // 2. Warna isi Pie Chart dibuat lebih menyala (Neon/Vibrant) di Mode Gelap
+                    if (chart.canvas.id.includes('Inc')) { // Kategori Pemasukan (Hijau)
+                        chart.data.datasets[0].backgroundColor = isDark 
+                            ? ['#34d399', '#10b981', '#059669', '#047857', '#064e3b'] // Hijau Neon/Terang
+                            : ['#a7f3d0', '#34d399', '#059669', '#10b981', '#047857']; // Hijau Pastel (Terang)
+                    } 
+                    else if (chart.canvas.id.includes('Exp')) { // Kategori Pengeluaran (Merah)
+                        chart.data.datasets[0].backgroundColor = isDark 
+                            ? ['#f87171', '#ef4444', '#dc2626', '#b91c1c', '#7f1d1d'] // Merah Cerah/Tegas
+                            : ['#fecaca', '#f87171', '#dc2626', '#ef4444', '#b91c1c']; // Merah Pastel (Terang)
+                    }
+                }
+
+                // Ubah warna spesifik di dalam grafik Bar (Rasio)
+                if (chart.canvas.id === 'barCompareClean' && chart.data.datasets[0]) {
+                    chart.data.datasets[0].backgroundColor = isDark ? ['#10b981', '#ef4444', '#3b82f6'] : ['#06bd83', '#ff6d6d', '#588dff'];
+                }
+                if (chart.canvas.id === 'barCompareDirty' && chart.data.datasets[0]) {
+                    chart.data.datasets[0].backgroundColor = isDark ? ['#9ca3af', '#6b7280', '#3b82f6'] : ['#3e3e3e', '#535455', '#588dff'];
+                }
+                
+                // Ubah warna spesifik di dalam grafik Garis (Trend)
+                if (chart.canvas.id === 'chartTrendClean' || chart.canvas.id === 'chartTrendDirty') {
+                    if (chart.data.datasets[0]) { // Garis Pemasukan
+                        chart.data.datasets[0].borderColor = isDark ? '#10b981' : '#06bd83'; 
+                        chart.data.datasets[0].backgroundColor = isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(6, 189, 131, 0.1)';
+                    }
+                    if (chart.data.datasets[1]) { // Garis Pengeluaran
+                        chart.data.datasets[1].borderColor = isDark ? '#ef4444' : '#ff6d6d';
+                        chart.data.datasets[1].backgroundColor = isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255, 109, 109, 0.1)';
+                    }
+                }
+                
+                chart.update(); // Minta Chart.js melukis ulang
+            }
+        }
+
+        // 2. JALANKAN SEBELUM GAMBAR
+        applyChartTheme();
+
+        // 3. GAMBAR GRAFIKNYA
         try {
             const cGreen = ['#a7f3d0', '#34d399', '#059669']; 
             const cRed   = ['#fecaca', '#f87171', '#dc2626']; 
@@ -278,7 +348,15 @@
             renderPie('pieExpDirty', {{ pie_data.dirty_exp.labels|tojson }}, {{ pie_data.dirty_exp.data|tojson }}, cRed);
             renderBarCompare('barCompareDirty', '{{ sum_kotor.income }}', '{{ sum_kotor.expense }}', '{{ sum_kotor.balance }}', barColorsDirty);
 
-        } catch (error) { console.error("Error render chart:", error); }
+        } catch (error) { 
+            console.error("Error render chart:", error); 
+        }
+
+        // 4. JALANKAN SETELAH GAMBAR
+        applyChartTheme();
+
+        // 5. LISTENER TOMBOL TOGGLE 
+        window.addEventListener('themeChanged', applyChartTheme);
     });
 </script>
 {% endblock %}

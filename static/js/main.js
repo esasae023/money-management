@@ -67,3 +67,57 @@ function toggleBlur(elementId) {
     const el = document.getElementById(elementId);
     if (el) el.classList.toggle('revealed');
 }
+
+/* =========================================
+   THEME MANAGER (LIGHT / DARK MODE)
+   ========================================= */
+function toggleTheme(e) {
+    if (e) e.preventDefault();
+    
+    const htmlEl = document.documentElement;
+    const currentTheme = htmlEl.getAttribute('data-bs-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    // Nyalakan efek transisi sesaat sebelum tema diubah
+    document.body.classList.add('theme-in-transition');
+
+    // Set tema dan simpan di LocalStorage
+    htmlEl.setAttribute('data-bs-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    updateThemeUI(newTheme);
+    
+    // Trigger event untuk memberitahu Chart.js jika ada grafik yang perlu digambar ulang
+    window.dispatchEvent(new Event('themeChanged'));
+
+    // Matikan efek transisi setelah 400 milidetik (sesuai durasi CSS)
+    setTimeout(() => {
+        document.body.classList.remove('theme-in-transition');
+    }, 400);
+}
+
+function updateThemeUI(theme) {
+    const isDark = theme === 'dark';
+    
+    // Update ikon dan teks di Desktop
+    document.querySelectorAll('.theme-icon-desktop').forEach(icon => {
+        icon.className = isDark ? 'theme-icon-desktop bi bi-sun' : 'theme-icon-desktop bi bi-moon';
+    });
+    document.querySelectorAll('.theme-text-desktop').forEach(text => {
+        text.innerText = isDark ? 'Mode Terang' : 'Mode Gelap';
+    });
+
+    // Update ikon dan teks di Mobile Drawer
+    document.querySelectorAll('.theme-icon-mobile').forEach(icon => {
+        icon.className = isDark ? 'theme-icon-mobile bi bi-sun fs-4 me-3' : 'theme-icon-mobile bi bi-moon fs-4 me-3';
+    });
+    document.querySelectorAll('.theme-text-mobile').forEach(text => {
+        text.innerText = isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap';
+    });
+}
+
+// Sinkronisasi tombol saat halaman pertama kali dimuat
+document.addEventListener("DOMContentLoaded", () => {
+    const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+    updateThemeUI(currentTheme);
+});

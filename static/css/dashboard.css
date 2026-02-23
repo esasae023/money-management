@@ -329,3 +329,42 @@ canvas { transform: translateZ(0); will-change: transform, opacity; }
         display: flex;
     }
 }
+
+/* =========================================
+   DARK MODE DASHBOARD OVERRIDES
+   ========================================= */
+/* Dropdown Menu */
+[data-bs-theme="dark"] .dropdown-menu { background-color: #2b2f32 !important; border-color: #444 !important; }
+[data-bs-theme="dark"] .dropdown-item { color: #e0e0e0; }
+[data-bs-theme="dark"] .dropdown-item:hover { background-color: #3a3f44; color: #fff; }
+
+/* Penyesuaian Gradien Kartu KPI ke Skema Gelap (OLED Friendly) */
+[data-bs-theme="dark"] .card-soft-success { 
+    background: linear-gradient(135deg, #064e3b 0%, #047857 100%) !important; 
+    border-color: #059669 !important; 
+}
+[data-bs-theme="dark"] .card-soft-success .kpi-label, [data-bs-theme="dark"] .card-soft-success .kpi-value { color: #d1fae5 !important; }
+
+[data-bs-theme="dark"] .card-soft-danger { 
+    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%) !important; 
+    border-color: #dc2626 !important; 
+}
+[data-bs-theme="dark"] .card-soft-danger .kpi-label, [data-bs-theme="dark"] .card-soft-danger .kpi-value { color: #fee2e2 !important; }
+
+[data-bs-theme="dark"] .card-soft-primary { 
+    background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%) !important; 
+    border-color: #2563eb !important; 
+}
+[data-bs-theme="dark"] .card-soft-primary .kpi-label, [data-bs-theme="dark"] .card-soft-primary .kpi-value { color: #dbeafe !important; }
+
+[data-bs-theme="dark"] .card-soft-dark { 
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important; 
+    border-color: #4b5563 !important; 
+}
+[data-bs-theme="dark"] .card-soft-dark .kpi-label, [data-bs-theme="dark"] .card-soft-dark .kpi-value { color: #f3f4f6 !important; }
+
+[data-bs-theme="dark"] .card-soft-secondary { 
+    background: linear-gradient(135deg, #334155 0%, #475569 100%) !important; 
+    border-color: #64748b !important; 
+}
+[data-bs-theme="dark"] .card-soft-secondary .kpi-label, [data-bs-theme="dark"] .card-soft-secondary .kpi-value { color: #f1f5f9 !important; }

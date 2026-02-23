@@ -11,6 +11,11 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
+
+    <script>
+        const storedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-bs-theme', storedTheme);
+    </script>
 </head>
 
 <body class="preload {% block body_class %}{% endblock %}">
@@ -82,6 +87,10 @@
         <a href="{{ url_for('settings_global', origin=nav_origin, folder_id=nav_fid) }}" class="{{ 'active' if request.endpoint == 'settings_global' else '' }}">
             <i class="bi bi-key"></i><span class="sidebar-text">API Key</span>
         </a>
+
+        <a href="#" onclick="toggleTheme(event)" class="text-warning">
+            <i class="theme-icon-desktop bi bi-moon"></i><span class="sidebar-text theme-text-desktop">Mode Gelap</span>
+        </a>
         
         <a href="{{ url_for('profile', origin=nav_origin, folder_id=nav_fid) }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">
             <i class="bi bi-person-circle"></i><span class="sidebar-text">Profil</span>
@@ -118,6 +127,11 @@
         <div class="offcanvas-body small">
             <h5 class="offcanvas-title fw-bold mb-3 text-center" id="drawerLabel">Menu Lainnya</h5>
             <div class="list-group list-group-flush">
+
+                <a href="#" onclick="toggleTheme(event)" class="list-group-item list-group-item-action d-flex align-items-center py-3 text-warning">
+                    <i class="theme-icon-mobile bi bi-moon fs-4 me-3"></i><span class="fw-bold theme-text-mobile">Beralih ke Mode Gelap</span>
+                </a>
+
                 <a href="{{ url_for('logout') }}" class="list-group-item list-group-item-action text-danger d-flex align-items-center py-3">
                     <i class="bi bi-box-arrow-right fs-4 me-3"></i><span class="fw-bold">Logout / Keluar Aplikasi</span>
                 </a>

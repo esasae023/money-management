@@ -86,6 +86,14 @@ body.auth-body {
     justify-content: center;
 }
 
+.sidebar a[onclick*="toggleTheme"] { 
+    color: #ccc !important; 
+}
+
+.sidebar a[onclick*="toggleTheme"]:hover {
+    color: #fff !important; 
+}
+
 /* State Expanded */
 body.sb-expanded .sidebar { width: 250px; }
 body.sb-expanded .sidebar-text { opacity: 1; pointer-events: auto; transition-delay: 0.1s; }
@@ -373,6 +381,7 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
         box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
     }
     .drawer-handle { width: 50px; height: 6px; background: #e9ecef; border-radius: 10px; margin: 12px auto; }
+    .offcanvas-body a[onclick*="toggleTheme"] { color: #212529 !important; }
 
     /* 5. Toast Center Mobile */
     .toast-container {
@@ -459,4 +468,114 @@ button:active,
     
     /* Opsional: Sedikit redup saat ditekan agar makin realistis */
     filter: brightness(0.95); 
+}
+
+/* =========================================
+   8. DARK MODE OVERRIDES (GLOBAL) - HIGH CONTRAST
+   ========================================= */
+/* 1. Body dibuat sangat gelap agar Card lebih menonjol */
+[data-bs-theme="dark"] body { background-color: #090a0b !important; }
+[data-bs-theme="dark"] body.auth-body { background-color: #0d0f11 !important; }
+
+/* 2. Kartu (Card) diberi warna lebih terang + BORDER tegas */
+[data-bs-theme="dark"] .card, [data-bs-theme="dark"] .auth-card { 
+    background-color: #181a1d !important; 
+    border: 1px solid #2e343b !important; /* KUNCI KONTRAS: Garis tepi pemisah */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.8) !important; 
+}
+[data-bs-theme="dark"] .card-header, [data-bs-theme="dark"] .card-footer { border-color: #2e343b !important; }
+[data-bs-theme="dark"] .card-profile-hero {
+    background: linear-gradient(to right, #181a1d, #141619) !important;
+}
+[data-bs-theme="dark"] .card-profile-hero::before {
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(24, 26, 29, 0) 70%) !important;
+}
+
+/* 3. Utilitas Warna Bootstrap */
+[data-bs-theme="dark"] .bg-white { background-color: #181a1d !important; }
+[data-bs-theme="dark"] .text-dark { color: #f8f9fa !important; }
+[data-bs-theme="dark"] .bg-light { background-color: #22262a !important; }
+[data-bs-theme="dark"] .text-muted { color: #9ca3af !important; }
+
+/* 4. Sidebar & Navigasi */
+[data-bs-theme="dark"] .sidebar {
+    background-color: #181a1d !important;
+    border-right: 1px solid #2e343b !important;
+}
+[data-bs-theme="dark"] .mobile-bottom-nav { background-color: #121416 !important; border-top-color: #1f2328; }
+[data-bs-theme="dark"] .offcanvas { background-color: #181a1d !important; border-top: 1px solid #2e343b !important; }
+[data-bs-theme="dark"] .offcanvas-body a[onclick*="toggleTheme"] { color: #e0e0e0 !important; }
+[data-bs-theme="dark"] .drawer-handle { background: #444c56; }
+[data-bs-theme="dark"] .list-group-item { background-color: transparent; color: #e0e0e0; border-color: #2e343b; }
+[data-bs-theme="dark"] .list-group-item:hover { background-color: #22262a; }
+
+/* 5. Input Fields */
+[data-bs-theme="dark"] .form-control-auth, [data-bs-theme="dark"] .input-group-text { 
+    background-color: #0d0f11; border-color: #444c56; color: #fff; 
+}
+[data-bs-theme="dark"] .form-control-auth:focus { background-color: #000; border-color: #0d6efd; box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.25); }
+
+/* 6. Tombol Kustom Override */
+[data-bs-theme="dark"] .btn-white, [data-bs-theme="dark"] .btn-light { 
+    background-color: #22262a; border-color: #444c56; color: #e0e0e0; 
+}
+[data-bs-theme="dark"] .btn-white:hover { background-color: #2d3339; color: #fff; border-color: #5c6670; }
+[data-bs-theme="dark"] .btn-auth-login {
+    background-color: #0d6efd !important;
+    color: #ffffff !important;
+}
+[data-bs-theme="dark"] .btn-auth-login:hover {
+    background-color: #0b5ed7 !important;
+}
+html[data-bs-theme="dark"] body .btn.btn-warning,
+html[data-bs-theme="dark"] body .btn.btn-warning.text-dark,
+html[data-bs-theme="dark"] body .btn.btn-warning i {
+    color: #000000 !important;
+}
+[data-bs-theme="dark"] .sidebar a[onclick*="toggleTheme"] { color: #e0e0e0 !important; }
+[data-bs-theme="dark"] .sidebar a[onclick*="toggleTheme"]:hover { color: #fff !important; }
+
+/* 7. Komponen Khusus (Recovery Code, Glassmorphism, Toast, Icon) */
+[data-bs-theme="dark"] .recovery-code-box { background: #0d0f11; border-color: #444c56; }
+[data-bs-theme="dark"] .card-soft-warning { background: linear-gradient(135deg, #381501 0%, #592403 100%) !important; border: 1px solid #78350f !important; }
+[data-bs-theme="dark"] .card-soft-warning .text-dark { color: #fde68a !important; }
+
+[data-bs-theme="dark"] .glass-capsule-container { background: rgba(24, 26, 29, 0.85); border-color: rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9); }
+[data-bs-theme="dark"] .slide-pill { background: #444c56; }
+[data-bs-theme="dark"] .glass-switch-btn { color: #9ca3af; }
+[data-bs-theme="dark"] .glass-switch-btn.active { color: #fff; }
+
+[data-bs-theme="dark"] .toast { background: rgba(24, 26, 29, 0.95); border: 1px solid #444c56; }
+[data-bs-theme="dark"] .toast-message { color: #e0e0e0; }
+[data-bs-theme="dark"] .modal-content { background-color: #181a1d; border: 1px solid #444c56 !important; }
+[data-bs-theme="dark"] .auth-card .bg-dark.text-white {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    color: #0d6efd !important;
+}
+
+/* =========================================
+   MENCEGAH LAYOUT SHIFT (KEDIPAN POSISI)
+   ========================================= */
+
+[data-bs-theme="light"] .card, 
+[data-bs-theme="light"] .auth-card, 
+[data-bs-theme="light"] .card-profile-hero {
+    border: 1px solid transparent !important;
+}
+[data-bs-theme="dark"] .profile-avatar-circle {
+    border-color: #22262a !important; 
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5) !important; 
+}
+
+/* =========================================
+   EFEK FADE TRANSISI TEMA (SMOOTH SWITCH)
+   ========================================= */
+/* Class ini hanya akan aktif sesaat ketika tombol tema diklik */
+.theme-in-transition,
+.theme-in-transition * {
+    transition: background-color 0.4s ease, 
+                background 0.4s ease, 
+                border-color 0.4s ease, 
+                color 0.4s ease, 
+                box-shadow 0.4s ease !important;
 }
