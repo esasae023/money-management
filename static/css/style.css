@@ -579,3 +579,43 @@ html[data-bs-theme="dark"] body .btn.btn-warning i {
                 color 0.4s ease, 
                 box-shadow 0.4s ease !important;
 }
+
+/* =========================================
+   PERBAIKAN: MENCEGAH SUDUT KARTU BOCOR 
+   (CORNER LEAKING / BLEEDING)
+   ========================================= */
+.card, 
+.auth-card, 
+.card-profile-hero {
+    overflow: hidden !important;
+}
+
+/* Memastikan garis border mengikuti kelengkungan dengan sempurna */
+[data-bs-theme="dark"] .card, 
+[data-bs-theme="dark"] .auth-card, 
+[data-bs-theme="dark"] .card-profile-hero {
+    background-clip: border-box !important;
+}
+
+/* =========================================
+   FIX CORNER LEAKING (KPI CARD)
+   Trik Inset Shadow (Garis Tepi Anti-Bocor)
+   ========================================= */
+
+/* Mengincar semua card yang memiliki class 'card-soft-' di KPI Anda */
+.card[class*="card-soft-"] {
+    /* Matikan border standar dari Bootstrap yang sering bocor */
+    border: none !important; 
+    
+    /* Kombinasikan dua bayangan:
+       1. inset (bayangan dalam) sebagai pengganti garis border (1px)
+       2. bayangan luar standar untuk mempertahankan class 'shadow-sm'
+    */
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1), 
+                0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+/* Penyesuaian warna garis untuk Mode Gelap */
+[data-bs-theme="dark"] .card[class*="card-soft-"] {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+}
