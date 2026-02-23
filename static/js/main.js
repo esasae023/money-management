@@ -1,23 +1,25 @@
+// =========================================
+// 1. EVENT LISTENER UTAMA (Dijalankan saat halaman dimuat)
+// =========================================
 document.addEventListener("DOMContentLoaded", () => {
     
-    // 1. Sidebar Logic (Dari kode lama)
+    // --- A. Sidebar Logic (Dari kode lama) ---
     document.body.classList.remove('preload');
     if (window.location.pathname.includes('/login') || window.location.pathname.includes('/register')) {
         sessionStorage.removeItem('sidebarState');
         document.body.classList.remove('sb-expanded');
     }
 
-    // 2. Toast Notification Logic
+    // --- B. Toast Notification Logic ---
     var toastElList = [].slice.call(document.querySelectorAll('.toast'));
     var toastList = toastElList.map(function(toastEl) {
         return new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
     });
     toastList.forEach(toast => toast.show());
 
-    // 3. [BARU] Logic Modal Recovery Code
+    // --- C. Logic Modal Recovery Code ---
     // Mencari elemen trigger tersembunyi yang dikirim dari server
     const trigger = document.getElementById('recovery-data-trigger');
-    
     if (trigger) {
         // Ambil data dari atribut HTML (Best Practice)
         const msg = trigger.dataset.message;
@@ -37,7 +39,29 @@ document.addEventListener("DOMContentLoaded", () => {
             myModal.show();
         }
     }
+
+    // --- D. Sinkronisasi Tema Saat Pertama Kali Dimuat ---
+    const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+    updateThemeUI(currentTheme);
+
+    // --- E. Efek Aktif Tombol "Lainnya" di Mobile Navbar ---
+    const drawerMenu = document.getElementById('drawerLainnya');
+    const btnLainnya = document.querySelector('[data-bs-target="#drawerLainnya"]');
+
+    if (drawerMenu && btnLainnya) {
+        drawerMenu.addEventListener('show.bs.offcanvas', function () {
+            btnLainnya.classList.add('active');
+        });
+        drawerMenu.addEventListener('hidden.bs.offcanvas', function () {
+            btnLainnya.classList.remove('active');
+        });
+    }
 });
+
+
+// =========================================
+// 2. FUNGSI GLOBAL & UTILITIES
+// =========================================
 
 // Fungsi Toggle Sidebar
 function toggleSidebar() {
@@ -46,7 +70,7 @@ function toggleSidebar() {
     sessionStorage.setItem('sidebarState', isExpanded ? 'expanded' : 'collapsed');
 }
 
-// [BARU] Fungsi Copy to Clipboard (Global)
+// Fungsi Copy to Clipboard (Global)
 // Menerima ID elemen target sebagai parameter
 function copyToClipboard(elementId) {
     const el = document.getElementById(elementId);
@@ -62,15 +86,17 @@ function copyToClipboard(elementId) {
     });
 }
 
-// [BARU] Toggle Blur Effect
+// Toggle Blur Effect
 function toggleBlur(elementId) {
     const el = document.getElementById(elementId);
     if (el) el.classList.toggle('revealed');
 }
 
-/* =========================================
-   THEME MANAGER (LIGHT / DARK MODE)
-   ========================================= */
+
+// =========================================
+// 3. THEME MANAGER (LIGHT / DARK MODE)
+// =========================================
+
 function toggleTheme(e) {
     if (e) e.preventDefault();
     
@@ -115,9 +141,3 @@ function updateThemeUI(theme) {
         text.innerText = isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap';
     });
 }
-
-// Sinkronisasi tombol saat halaman pertama kali dimuat
-document.addEventListener("DOMContentLoaded", () => {
-    const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
-    updateThemeUI(currentTheme);
-});
