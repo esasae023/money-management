@@ -619,3 +619,113 @@ html[data-bs-theme="dark"] body .btn.btn-warning i {
 [data-bs-theme="dark"] .card[class*="card-soft-"] {
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
 }
+
+/* =========================================
+   MODERN MESH GRADIENT BACKGROUND
+   (Efek pendaran cahaya elegan di latar)
+   ========================================= */
+.bg-glow-accent {
+    position: relative;
+    /* Mencegah layar bisa digeser ke samping karena bola cahaya */
+    overflow-x: hidden !important; 
+}
+
+.bg-glow-accent::before,
+.bg-glow-accent::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px); /* Kunci utamanya: Blur yang sangat ekstrem */
+    z-index: -1; /* Memastikan pendaran berada di belakang semua card */
+    pointer-events: none; /* Agar tidak menghalangi klik tombol */
+}
+
+/* 1. Bola Cahaya Kiri Atas (Biru Primary) */
+.bg-glow-accent::before {
+    width: 600px;
+    height: 600px;
+    background: rgba(59, 130, 246, 0.25); 
+    top: -150px;
+    left: -150px;
+    animation: orbPulse 8s ease-in-out infinite;
+}
+
+/* 2. Bola Cahaya Kanan Bawah (Hijau Success) */
+.bg-glow-accent::after {
+    width: 500px;
+    height: 500px;
+    background: rgba(16, 185, 129, 0.20); 
+    bottom: -100px;
+    right: -100px;
+    animation: orbPulse 10s ease-in-out infinite;
+    animation-delay: 2s;
+}
+
+@keyframes orbPulse {
+    0% {
+        transform: scale(1); /* Ukuran asli */
+        opacity: 0.8;        /* Sedikit transparan */
+    }
+    50% {
+        transform: scale(1.15); /* Membesar 15% di pertengahan waktu */
+        opacity: 1;          /* Menjadi warna solid/terang maksimal */
+    }
+    100% {
+        transform: scale(1); /* Mengecil kembali ke ukuran asli di akhir waktu */
+        opacity: 0.8;        /* Kembali sedikit transparan */
+    }
+}
+
+/* --- Penyesuaian Otomatis Untuk Mode Gelap --- */
+/* Di mode gelap, warnanya dibuat lebih redup agar tidak menyilaukan */
+[data-bs-theme="dark"] .bg-glow-accent::before {
+    background: rgba(59, 130, 246, 0.12);
+}
+[data-bs-theme="dark"] .bg-glow-accent::after {
+    background: rgba(16, 185, 129, 0.10);
+}
+
+/* =========================================
+   GLASSMORPHISM CARDS (EFEK KACA BURAM)
+   Agar background gradasi terlihat tembus pandang
+   ========================================= */
+
+/* 1. Definisi Gaya Kaca Dasar (Untuk Mode Terang) */
+.auth-card,
+.card-dashboard-menu,
+.glass-card-inactive { /* Class tambahan untuk kartu 'Coming Soon' */
+    /* Background putih transparan */
+    background: rgba(255, 255, 255, 0.35) !important; 
+    
+    /* KUNCI UTAMA: Efek blur pada background di belakangnya */
+    backdrop-filter: blur(15px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(15px) saturate(120%) !important; /* Dukungan Safari */
+    
+    /* Garis tepi putih tipis transparan agar terlihat seperti potongan kaca */
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    
+    /* Bayangan lembut untuk memberi kesan melayang */
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1) !important;
+}
+
+/* 2. Penyesuaian untuk Mode Gelap */
+[data-bs-theme="dark"] .auth-card,
+[data-bs-theme="dark"] .card-dashboard-menu,
+[data-bs-theme="dark"] .glass-card-inactive {
+    /* Background hitam/gelap transparan */
+    background: rgba(24, 26, 29, 0.5) !important;
+    
+    /* Garis tepi di mode gelap lebih tipis dan halus */
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    
+    /* Bayangan di mode gelap lebih pekat */
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* --- BONUS: Membuat lingkaran ikon di Login juga jadi kaca --- */
+.auth-card .bg-dark.rounded-circle {
+    background: rgba(33, 37, 41, 0.7) !important; /* Hitam transparan */
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: unset !important; /* Hilangkan shadow bawaan shadow-sm */
+}

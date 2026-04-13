@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block body_class %}bg-glow-accent{% endblock %}
+
 {% block content %}
 <div class="container pb-5">
     
@@ -43,7 +45,7 @@
         </div>
 
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm opacity-75 rounded-4" style="background: #f8f9fa;">
+            <div class="card h-100 border-0 shadow-sm rounded-4 glass-card-inactive">
                 <div class="card-body p-4 text-center d-flex flex-column align-items-center">
                     <div class="icon-wrapper bg-success bg-opacity-10 text-success mb-3 grayscale-icon">
                         <i class="bi bi-graph-up-arrow fs-1"></i>
@@ -60,7 +62,7 @@
         </div>
 
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm opacity-75 rounded-4" style="background: #f8f9fa;">
+            <div class="card h-100 border-0 shadow-sm rounded-4 glass-card-inactive">
                 <div class="card-body p-4 text-center d-flex flex-column align-items-center">
                     <div class="icon-wrapper bg-danger bg-opacity-10 text-danger mb-3 grayscale-icon">
                         <i class="bi bi-credit-card fs-1"></i>
