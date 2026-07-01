@@ -729,3 +729,24 @@ html[data-bs-theme="dark"] body .btn.btn-warning i {
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: unset !important; /* Hilangkan shadow bawaan shadow-sm */
 }
+
+/* =========================================
+   PENYESUAIAN MESH GRADIENT UNTUK MOBILE
+   ========================================= */
+@media (max-width: 768px) {
+    .bg-glow-accent::before {
+        width: 250px;         /* Diperkecil drastis dari 600px */
+        height: 250px;
+        top: -80px;           /* Posisinya digeser agar tidak terlalu ke tengah */
+        left: -80px;
+        filter: blur(70px);   /* Radius blur dikurangi agar tidak bocor ke mana-mana */
+    }
+
+    .bg-glow-accent::after {
+        width: 200px;         /* Diperkecil drastis dari 500px */
+        height: 200px;
+        bottom: -50px;
+        right: -50px;
+        filter: blur(60px);
+    }
+}
