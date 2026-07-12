@@ -1,23 +1,25 @@
+// =========================================
+// 1. EVENT LISTENER UTAMA (Dijalankan saat halaman dimuat)
+// =========================================
 document.addEventListener("DOMContentLoaded", () => {
     
-    // 1. Sidebar Logic (Dari kode lama)
+    // --- A. Sidebar Logic (Dari kode lama) ---
     document.body.classList.remove('preload');
     if (window.location.pathname.includes('/login') || window.location.pathname.includes('/register')) {
         sessionStorage.removeItem('sidebarState');
         document.body.classList.remove('sb-expanded');
     }
 
-    // 2. Toast Notification Logic
+    // --- B. Toast Notification Logic ---
     var toastElList = [].slice.call(document.querySelectorAll('.toast'));
     var toastList = toastElList.map(function(toastEl) {
         return new bootstrap.Toast(toastEl, { autohide: true, delay: 4000 });
     });
     toastList.forEach(toast => toast.show());
 
-    // 3. [BARU] Logic Modal Recovery Code
+    // --- C. Logic Modal Recovery Code ---
     // Mencari elemen trigger tersembunyi yang dikirim dari server
     const trigger = document.getElementById('recovery-data-trigger');
-    
     if (trigger) {
         // Ambil data dari atribut HTML (Best Practice)
         const msg = trigger.dataset.message;
@@ -37,7 +39,29 @@ document.addEventListener("DOMContentLoaded", () => {
             myModal.show();
         }
     }
+
+    // --- D. Sinkronisasi Tema Saat Pertama Kali Dimuat ---
+    const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+    updateThemeUI(currentTheme);
+
+    // --- E. Efek Aktif Tombol "Lainnya" di Mobile Navbar ---
+    const drawerMenu = document.getElementById('drawerLainnya');
+    const btnLainnya = document.querySelector('[data-bs-target="#drawerLainnya"]');
+
+    if (drawerMenu && btnLainnya) {
+        drawerMenu.addEventListener('show.bs.offcanvas', function () {
+            btnLainnya.classList.add('active');
+        });
+        drawerMenu.addEventListener('hidden.bs.offcanvas', function () {
+            btnLainnya.classList.remove('active');
+        });
+    }
 });
+
+
+// =========================================
+// 2. FUNGSI GLOBAL & UTILITIES
+// =========================================
 
 // Fungsi Toggle Sidebar
 function toggleSidebar() {
@@ -46,7 +70,7 @@ function toggleSidebar() {
     sessionStorage.setItem('sidebarState', isExpanded ? 'expanded' : 'collapsed');
 }
 
-// [BARU] Fungsi Copy to Clipboard (Global)
+// Fungsi Copy to Clipboard (Global)
 // Menerima ID elemen target sebagai parameter
 function copyToClipboard(elementId) {
     const el = document.getElementById(elementId);
@@ -62,8 +86,58 @@ function copyToClipboard(elementId) {
     });
 }
 
-// [BARU] Toggle Blur Effect
+// Toggle Blur Effect
 function toggleBlur(elementId) {
     const el = document.getElementById(elementId);
     if (el) el.classList.toggle('revealed');
+}
+
+
+// =========================================
+// 3. THEME MANAGER (LIGHT / DARK MODE)
+// =========================================
+
+function toggleTheme(e) {
+    if (e) e.preventDefault();
+    
+    const htmlEl = document.documentElement;
+    const currentTheme = htmlEl.getAttribute('data-bs-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    // Nyalakan efek transisi sesaat sebelum tema diubah
+    document.body.classList.add('theme-in-transition');
+
+    // Set tema dan simpan di LocalStorage
+    htmlEl.setAttribute('data-bs-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    updateThemeUI(newTheme);
+    
+    // Trigger event untuk memberitahu Chart.js jika ada grafik yang perlu digambar ulang
+    window.dispatchEvent(new Event('themeChanged'));
+
+    // Matikan efek transisi setelah 400 milidetik (sesuai durasi CSS)
+    setTimeout(() => {
+        document.body.classList.remove('theme-in-transition');
+    }, 400);
+}
+
+function updateThemeUI(theme) {
+    const isDark = theme === 'dark';
+    
+    // Update ikon dan teks di Desktop
+    document.querySelectorAll('.theme-icon-desktop').forEach(icon => {
+        icon.className = isDark ? 'theme-icon-desktop bi bi-sun' : 'theme-icon-desktop bi bi-moon';
+    });
+    document.querySelectorAll('.theme-text-desktop').forEach(text => {
+        text.innerText = isDark ? 'Mode Terang' : 'Mode Gelap';
+    });
+
+    // Update ikon dan teks di Mobile Drawer
+    document.querySelectorAll('.theme-icon-mobile').forEach(icon => {
+        icon.className = isDark ? 'theme-icon-mobile bi bi-sun fs-4 me-3' : 'theme-icon-mobile bi bi-moon fs-4 me-3';
+    });
+    document.querySelectorAll('.theme-text-mobile').forEach(text => {
+        text.innerText = isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap';
+    });
 }
