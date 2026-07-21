@@ -11,7 +11,10 @@
                 <h4 class="fw-bold text-dark m-0">
                     Pilih Periode Tahun
                 </h4>
-                <small class="text-muted">Budget Monitor Dashboard</small>
+
+                <small class="text-muted">
+                    {{ 'Hutang Piutang Dashboard' if request.args.get('tipe') == 'hutang' else 'Budget Monitor Dashboard' }}
+                </small>
             </div>
         </div>
         <div>
@@ -39,7 +42,7 @@
                     </p>
                     
                     <div class="mt-auto d-grid gap-2">
-                        <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-primary rounded-pill fw-bold">
+                        <a href="{{ url_for('dashboard_hutang', folder_id=folder.id) if request.args.get('tipe') == 'hutang' else url_for('dashboard', folder_id=folder.id) }}" class="btn btn-primary rounded-pill fw-bold">
                             Buka Dashboard
                         </a>
                         <a href="{{ url_for('folder_settings', folder_id=folder.id, origin='list') }}" class="btn btn-light text-secondary rounded-pill fw-bold border">

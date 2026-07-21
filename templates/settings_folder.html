@@ -53,6 +53,15 @@
                         <label class="form-label small fw-bold text-muted">SHEET BULANAN (PISAH DENGAN KOMA)</label>
                         <input type="text" name="sheet_list" class="form-control form-control-auth" value="{{ folder.sheet_list_str }}" placeholder="Januari, Februari, Maret">
                     </div>
+                    <!-- Input Huruf Kolom Keterangan Pemasukan & Pengeluaran -->
+                    <div class="col-md-6 mt-3">
+                        <label class="form-label small fw-bold text-muted">HURUF KOLOM DESKRIPSI PEMASUKAN</label>
+                        <input type="text" name="col_desc_inc" class="form-control form-control-auth" value="{{ folder.col_desc_inc }}" placeholder="Contoh: E">
+                    </div>
+                    <div class="col-md-6 mt-3">
+                        <label class="form-label small fw-bold text-muted">HURUF KOLOM DESKRIPSI PENGELUARAN</label>
+                        <input type="text" name="col_desc_exp" class="form-control form-control-auth" value="{{ folder.col_desc_exp }}" placeholder="Contoh: J">
+                    </div>
                 </div>
             </div>
         </div>
@@ -150,6 +159,36 @@
                     </div>
                 </div>
             </div>
+
+        <div class="card border-0 shadow-sm mb-4 rounded-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold text-danger mb-0"><i class="bi bi-arrow-left-right me-2"></i>Konfigurasi Hutang & Piutang</h6>
+            </div>
+            <div class="card-body p-4">
+                
+                <div class="bg-light p-3 rounded-4 mb-4 border">
+                    <h6 class="small fw-bold text-dark mb-3">MAPPING CELL KPI</h6>
+                    <div class="row g-3">
+                        <div class="col-md-3"><label class="form-label small text-muted">Cell Total Hutang</label><input type="text" name="cell_hutang_kotor" class="form-control form-control-auth form-control-sm" value="{{ folder.cell_hutang_kotor }}"></div>
+                        <div class="col-md-3"><label class="form-label small text-muted">Cell Hutang Dibayar</label><input type="text" name="cell_hutang_dibayar" class="form-control form-control-auth form-control-sm" value="{{ folder.cell_hutang_dibayar }}"></div>
+                        <div class="col-md-3"><label class="form-label small text-muted">Cell Total Piutang</label><input type="text" name="cell_piutang_kotor" class="form-control form-control-auth form-control-sm" value="{{ folder.cell_piutang_kotor }}"></div>
+                        <div class="col-md-3"><label class="form-label small text-muted">Cell Piutang Dibayar</label><input type="text" name="cell_piutang_dibayar" class="form-control form-control-auth form-control-sm" value="{{ folder.cell_piutang_dibayar }}"></div>
+                    </div>
+                </div>
+
+                <div class="bg-light p-3 rounded-4 border">
+                    <h6 class="small fw-bold text-dark mb-3">FILTER KEYWORD TABEL</h6>
+                    <div class="row g-3">
+                        <div class="col-md-3"><label class="form-label small text-muted">Terima Hutang (Masuk)</label><input type="text" name="kw_hutang_masuk" class="form-control form-control-auth form-control-sm" value="{{ folder.kw_hutang_masuk }}"></div>
+                        <div class="col-md-3"><label class="form-label small text-muted">Sahur Hutang (Keluar)</label><input type="text" name="kw_hutang_keluar" class="form-control form-control-auth form-control-sm" value="{{ folder.kw_hutang_keluar }}"></div>
+                        <div class="col-md-3"><label class="form-label small text-muted">Beri Piutang (Keluar)</label><input type="text" name="kw_piutang_keluar" class="form-control form-control-auth form-control-sm" value="{{ folder.kw_piutang_keluar }}"></div>
+                        <div class="col-md-3"><label class="form-label small text-muted">Sahur Piutang (Masuk)</label><input type="text" name="kw_piutang_masuk" class="form-control form-control-auth form-control-sm" value="{{ folder.kw_piutang_masuk }}"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
             <div class="card-footer bg-white border-0 px-4 pb-4 pt-0">
                 <button type="submit" class="btn btn-dark w-100 rounded-pill fw-bold py-2 shadow-sm">
                     <i class="bi bi-check-lg me-2"></i> Simpan Semua Konfigurasi

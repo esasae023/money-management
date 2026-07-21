@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+    .no-margin-bottom { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+    .bottom-spacer-force { height: 20px !important; display: block; }
+    .table-hp th { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; }
+    .table-hp td { vertical-align: middle; font-size: 0.95rem; }
+    @media (max-width: 768px) { .bottom-spacer-force { height: 30px !important; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header-wrapper">
+    <div class="header-left">
+        <a href="{{ url_for('select_year', tipe='hutang') }}" class="btn btn-white bg-white shadow-sm border btn-circle-fix hover-scale"><i class="bi bi-arrow-left text-dark fs-5"></i></a>
+        <div>
+            <h6 class="text-uppercase text-muted mb-1 small fw-bold" style="letter-spacing: 1px;">Dashboard Hutang Piutang</h6>
+            <h2 class="fw-bold text-dark m-0 text-truncate">{{ folder.name }}</h2>
+        </div>
+    </div>
+    <div class="header-right">
+        <div class="dropdown">
+            <button class="btn btn-white bg-white shadow-sm dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown">
+                <span><i class="bi bi-calendar4-week me-2 text-danger"></i> {{ selected_month }}</span>
+            </button>
+            <ul class="dropdown-menu shadow border-0 rounded-4 mt-2 w-100">
+                {% for sheet in sheet_list %}
+                <li><a class="dropdown-item py-2 px-3 {% if sheet == selected_month %}fw-bold active{% endif %}" href="{{ url_for('dashboard_hutang', folder_id=folder.id, month=sheet) }}">{{ sheet }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <a href="{{ url_for('folder_settings', folder_id=folder.id, origin='dash') }}" class="btn btn-white bg-white shadow-sm border btn-circle-fix"><i class="bi bi-sliders text-secondary"></i></a>
+    </div>
+</div>
+
+{% if error_msg %}
+<div class="alert alert-danger border-0 shadow-sm rounded-4 d-flex align-items-center mb-4">
+    <i class="bi bi-exclamation-circle-fill me-3 fs-4"></i><div><strong>Gagal mengambil data</strong><br><small>{{ error_msg }}</small></div>
+</div>
+{% endif %}
+
+<!-- SECTION HUTANG -->
+<div id="section-hutang" class="mb-5 pb-4">
+    <div class="d-flex align-items-center mb-4">
+        <span class="badge bg-danger rounded-pill px-3 py-2 me-2"><i class="bi bi-arrow-down-left-square me-1"></i> Hutang Saya</span>
+        <small class="text-muted">Kewajiban Anda kepada pihak lain</small>
+    </div>
+    
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="card card-soft-danger h-100 rounded-4"><div class="card-body kpi-text-card"><div class="kpi-label">Total Hutang</div><div class="kpi-value" id="hk-val">Rp {{ kpi.hk }}</div></div></div></div>
+        <div class="col-md-4"><div class="card card-soft-success h-100 rounded-4"><div class="card-body kpi-text-card"><div class="kpi-label">Dibayar</div><div class="kpi-value" id="hd-val">Rp {{ kpi.hd }}</div></div></div></div>
+        <div class="col-md-4"><div class="card card-soft-secondary h-100 rounded-4"><div class="card-body kpi-text-card"><div class="kpi-label">Sisa Hutang</div><div class="kpi-value" id="hs-val">Rp {{ kpi.hs }}</div></div></div></div>
+    </div>
+
+    <div class="card mb-4 rounded-4 shadow-sm border-0">
+        <div class="card-header bg-white border-0 pt-4 px-4 fw-bold text-danger"><i class="bi bi-list-ul me-2"></i> Riwayat Hutang Saya</div>
+        <div class="card-body px-4 pb-4">
+            <div class="table-responsive">
+                <table class="table table-hover table-hp mb-0">
+                    <thead class="border-bottom"><tr><th>Tanggal</th><th>Keterangan</th><th>Jenis</th><th class="text-end">Nominal</th></tr></thead>
+                    <tbody>
+                        {% for item in list_hutang %}
+                        <tr>
+                            <td class="text-muted">{{ item.tanggal }}</td>
+                            <td class="fw-bold text-dark">{{ item.desc }}</td>
+                            <td><span class="badge bg-{{ item.tipe }} bg-opacity-10 text-{{ item.tipe }} border border-{{ item.tipe }} px-2 py-1 rounded-pill">{{ item.jenis }}</span></td>
+                            <td class="text-end font-monospace">Rp {{ "{:,.0f}".format(item.nominal) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-4">Belum ada riwayat hutang pada bulan ini.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION PIUTANG -->
+<div id="section-piutang" class="no-margin-bottom">
+    <div class="d-flex align-items-center mb-4">
+        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 me-2"><i class="bi bi-arrow-up-right-square me-1"></i> Piutang (Orang Lain)</span>
+        <small class="text-muted">Uang Anda yang dipinjam pihak lain</small>
+    </div>
+    
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><div class="card card-soft-warning h-100 rounded-4"><div class="card-body kpi-text-card"><div class="kpi-label text-dark">Total Piutang</div><div class="kpi-value text-dark" id="pk-val">Rp {{ kpi.pk }}</div></div></div></div>
+        <div class="col-md-4"><div class="card card-soft-primary h-100 rounded-4"><div class="card-body kpi-text-card"><div class="kpi-label">Dibayar</div><div class="kpi-value" id="pd-val">Rp {{ kpi.pd }}</div></div></div></div>
+        <div class="col-md-4"><div class="card card-soft-secondary h-100 rounded-4"><div class="card-body kpi-text-card"><div class="kpi-label">Sisa Piutang</div><div class="kpi-value" id="ps-val">Rp {{ kpi.ps }}</div></div></div></div>
+    </div>
+
+    <div class="card mb-4 rounded-4 shadow-sm border-0">
+        <div class="card-header bg-white border-0 pt-4 px-4 fw-bold text-warning"><i class="bi bi-list-ul me-2"></i> Riwayat Piutang</div>
+        <div class="card-body px-4 pb-4">
+            <div class="table-responsive">
+                <table class="table table-hover table-hp mb-0">
+                    <thead class="border-bottom"><tr><th>Tanggal</th><th>Keterangan</th><th>Jenis</th><th class="text-end">Nominal</th></tr></thead>
+                    <tbody>
+                        {% for item in list_piutang %}
+                        <tr>
+                            <td class="text-muted">{{ item.tanggal }}</td>
+                            <td class="fw-bold text-dark">{{ item.desc }}</td>
+                            <td><span class="badge bg-{{ item.tipe }} bg-opacity-10 text-{{ item.tipe }} border border-{{ item.tipe }} px-2 py-1 rounded-pill">{{ item.jenis }}</span></td>
+                            <td class="text-end font-monospace">Rp {{ "{:,.0f}".format(item.nominal) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-4">Belum ada riwayat piutang pada bulan ini.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-spacer-force"></div>
+
+<div class="glass-control-wrapper">
+    <div class="glass-capsule-container">
+        <div id="slidePill" class="slide-pill"></div>
+        <button class="glass-switch-btn" onclick="setModeHP('semua')" id="btnSemua">Semua</button>
+        <button class="glass-switch-btn" onclick="setModeHP('hutang')" id="btnHutang">Hutang</button>
+        <button class="glass-switch-btn" onclick="setModeHP('piutang')" id="btnPiutang">Piutang</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=21"></script>
+<script>
+    function setModeHP(mode) {
+        const secHutang = document.getElementById('section-hutang');
+        const secPiutang = document.getElementById('section-piutang');
+        document.querySelectorAll('.glass-switch-btn').forEach(b => b.classList.remove('active'));
+        
+        let activeBtnId = '';
+        if (mode === 'semua') {
+            if(secHutang) secHutang.style.display = 'block'; 
+            if(secPiutang) secPiutang.style.display = 'block';
+            activeBtnId = 'btnSemua';
+        } else if (mode === 'hutang') {
+            if(secHutang) secHutang.style.display = 'block'; 
+            if(secPiutang) secPiutang.style.display = 'none';
+            activeBtnId = 'btnHutang';
+        } else if (mode === 'piutang') {
+            if(secHutang) secHutang.style.display = 'none'; 
+            if(secPiutang) secPiutang.style.display = 'block';
+            activeBtnId = 'btnPiutang';
+        }
+        const btn = document.getElementById(activeBtnId);
+        if(btn) { btn.classList.add('active'); if(typeof movePill === 'function') movePill(btn); }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        setModeHP('semua');
+        
+        // CountUp Animasi Spesifik Hutang Piutang
+        const targetIds = ['hk-val', 'hd-val', 'hs-val', 'pk-val', 'pd-val', 'ps-val'];
+        targetIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && typeof animateCountUp === 'function') {
+                const rawText = el.innerText;
+                const finalNumber = parseFloat(rawText.replace(/[^0-9-]/g, '')) || 0;
+                el.innerHTML = "Rp 0"; 
+                setTimeout(() => animateCountUp(id, finalNumber), Math.random() * 300);
+            }
+        });
+    });
+</script>
+{% endblock %}

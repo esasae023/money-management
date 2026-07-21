@@ -47,7 +47,20 @@ class MonitorFolder(db.Model):
     cell_addr_expense = db.Column(db.String(10), default="K2")
     cell_addr_balance = db.Column(db.String(10), default="K3")
     clean_income_cells = db.Column(db.Text, default="") 
-    clean_expense_cells = db.Column(db.Text, default="") 
+    clean_expense_cells = db.Column(db.Text, default="")
+    # Konfigurasi Hutang Piutang
+    col_desc_inc = db.Column(db.String(50), default="E")
+    col_desc_exp = db.Column(db.String(50), default="J")
+    
+    cell_hutang_kotor = db.Column(db.String(10), default="")
+    cell_hutang_dibayar = db.Column(db.String(10), default="")
+    cell_piutang_kotor = db.Column(db.String(10), default="")
+    cell_piutang_dibayar = db.Column(db.String(10), default="")
+    
+    kw_hutang_masuk = db.Column(db.String(100), default="Hutang")
+    kw_hutang_keluar = db.Column(db.String(100), default="Sahur Hutang")
+    kw_piutang_keluar = db.Column(db.String(100), default="Hutang")
+    kw_piutang_masuk = db.Column(db.String(100), default="Sahur Hutang")
     categories = db.relationship('CategoryMap', backref='folder', lazy=True, cascade="all, delete-orphan")
     def get_sheet_list(self): return [x.strip() for x in self.sheet_list_str.split(',') if x.strip()]
 

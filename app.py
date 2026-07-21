@@ -404,6 +404,19 @@ def folder_settings(folder_id):
         
         folder.clean_income_cells = request.form['clean_income_cells']
         folder.clean_expense_cells = request.form['clean_expense_cells']
+
+        # Simpan Konfigurasi Hutang Piutang
+        folder.col_desc_inc = request.form.get('col_desc_inc', folder.col_desc_inc)
+        folder.col_desc_exp = request.form.get('col_desc_exp', folder.col_desc_exp)
+        folder.cell_hutang_kotor = request.form.get('cell_hutang_kotor', folder.cell_hutang_kotor)
+        folder.cell_hutang_dibayar = request.form.get('cell_hutang_dibayar', folder.cell_hutang_dibayar)
+        folder.cell_piutang_kotor = request.form.get('cell_piutang_kotor', folder.cell_piutang_kotor)
+        folder.cell_piutang_dibayar = request.form.get('cell_piutang_dibayar', folder.cell_piutang_dibayar)
+        
+        folder.kw_hutang_masuk = request.form.get('kw_hutang_masuk', folder.kw_hutang_masuk)
+        folder.kw_hutang_keluar = request.form.get('kw_hutang_keluar', folder.kw_hutang_keluar)
+        folder.kw_piutang_keluar = request.form.get('kw_piutang_keluar', folder.kw_piutang_keluar)
+        folder.kw_piutang_masuk = request.form.get('kw_piutang_masuk', folder.kw_piutang_masuk)
         
         db.session.commit()
         flash('Konfigurasi Tahun berhasil disimpan.', 'success')
@@ -494,6 +507,102 @@ def dashboard(folder_id):
                            sum_kotor=sum_kotor, sum_clean=sum_clean,
                            chart_dirty=chart_dirty, chart_clean=chart_clean,
                            pie_data=pie_data, error_msg=error_msg)
+
+@app.route('/folder/<int:folder_id>/hutang-piutang')
+@login_required
+def dashboard_hutang(folder_id):
+    folder = MonitorFolder.query.get_or_404(folder_id)
+    if folder.user_id != current_user.id: return redirect(url_for('home'))
+    
+    sheet_list = folder.get_sheet_list()
+    selected_month = request.args.get('month', sheet_list[0] if sheet_list else 'Sheet1')
+    
+    # Ambil data kotor saja dari helper lama
+    df_dirty, _, _, _, _, err = fetch_sheet_data(folder, selected_month)
+    error_msg = err
+
+    # Variabel penampung
+    hutang_kotor = 0; hutang_dibayar = 0; hutang_sisa = 0
+    piutang_kotor = 0; piutang_dibayar = 0; piutang_sisa = 0
+    list_hutang = []; list_piutang = []
+
+    try:
+        # 1. Ambil nilai KPI langsung dari Spreadsheet
+        client = get_google_client()
+        if client:
+            sheet = client.open_by_url(folder.spreadsheet_url)
+            worksheet = sheet.worksheet(selected_month)
+            raw = worksheet.get_all_values()
+            
+            def get_val(addr):
+                if not addr: return 0
+                try:
+                    row, col = a1_to_rowcol(addr.strip())
+                    v = raw[row-1][col-1]
+                    s = str(v).replace('Rp', '').strip().replace('.', '').replace(',', '.')
+                    return float(s) if s else 0
+                except: return 0
+
+            hutang_kotor = get_val(folder.cell_hutang_kotor)
+            hutang_dibayar = get_val(folder.cell_hutang_dibayar)
+            hutang_sisa = hutang_kotor - hutang_dibayar
+
+            piutang_kotor = get_val(folder.cell_piutang_kotor)
+            piutang_dibayar = get_val(folder.cell_piutang_dibayar)
+            piutang_sisa = piutang_kotor - piutang_dibayar
+            
+        # 2. Proses Tabel Data List dari df_dirty
+        if df_dirty is not None and not df_dirty.empty:
+            def check_kw(val, kw):
+                return str(kw).lower().strip() in str(val).lower() if kw else False
+                
+            # Fungsi konversi huruf kolom (A, B, C) menjadi indeks angka (0, 1, 2)
+            def get_col_idx(letter):
+                if not letter: return -1
+                try:
+                    return a1_to_rowcol(f"{letter.strip()}1")[1] - 1
+                except:
+                    return -1
+
+            # Ubah huruf dari database menjadi indeks
+            idx_inc = get_col_idx(folder.col_desc_inc)
+            idx_exp = get_col_idx(folder.col_desc_exp)
+
+            for _, row in df_dirty.iterrows():
+                tanggal = row.get(folder.col_date, '')
+                
+                # [BARU] Ambil deskripsi secara mutlak menggunakan urutan posisi kolom (indeks)
+                desc_inc = row.iloc[idx_inc] if 0 <= idx_inc < len(row) else ''
+                desc_exp = row.iloc[idx_exp] if 0 <= idx_exp < len(row) else ''
+                
+                src_inc = row.get(folder.col_source_income, '')
+                src_exp = row.get(folder.col_source_expense, '')
+                nom_inc = row.get(folder.col_income, 0)
+                nom_exp = row.get(folder.col_expense, 0)
+
+                # TABEL HUTANG
+                if check_kw(src_inc, folder.kw_hutang_masuk):
+                    list_hutang.append({'tanggal': tanggal, 'desc': desc_inc, 'jenis': 'Terima Pinjaman', 'nominal': nom_inc, 'tipe': 'danger'})
+                if check_kw(src_exp, folder.kw_hutang_keluar):
+                    list_hutang.append({'tanggal': tanggal, 'desc': desc_exp, 'jenis': 'Sahur Hutang', 'nominal': nom_exp, 'tipe': 'success'})
+
+                # TABEL PIUTANG
+                if check_kw(src_exp, folder.kw_piutang_keluar):
+                    list_piutang.append({'tanggal': tanggal, 'desc': desc_exp, 'jenis': 'Beri Pinjaman', 'nominal': nom_exp, 'tipe': 'warning'})
+                if check_kw(src_inc, folder.kw_piutang_masuk):
+                    list_piutang.append({'tanggal': tanggal, 'desc': desc_inc, 'jenis': 'Sahur Piutang', 'nominal': nom_inc, 'tipe': 'primary'})
+
+    except Exception as e:
+        error_msg = str(e)
+
+    kpi = {
+        'hk': f"{hutang_kotor:,.0f}", 'hd': f"{hutang_dibayar:,.0f}", 'hs': f"{hutang_sisa:,.0f}",
+        'pk': f"{piutang_kotor:,.0f}", 'pd': f"{piutang_dibayar:,.0f}", 'ps': f"{piutang_sisa:,.0f}"
+    }
+
+    return render_template('dashboard_hutang.html', 
+                           folder=folder, sheet_list=sheet_list, selected_month=selected_month,
+                           kpi=kpi, list_hutang=list_hutang, list_piutang=list_piutang, error_msg=error_msg)
 
 if __name__ == '__main__':
     with app.app_context():

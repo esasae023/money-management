@@ -43,6 +43,30 @@
                 </div>
             </div>
         </div>
+    
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 glass-card-inactive">
+                <div class="card-body p-4 text-center d-flex flex-column align-items-center">
+                    <div class="icon-wrapper bg-primary bg-opacity-10 text-primary mb-3">
+                        <i class="bi bi-credit-card fs-1"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">Hutang Piutang</h4>
+                    <p class="text-muted small mb-4">
+                        Kelola catatan pinjaman dan tagihan secara terpisah.
+                    </p>
+
+                    {% if has_global %}
+                    <a href="{{ url_for('select_year', tipe='hutang') }}" class="btn btn-primary rounded-pill fw-bold w-100 mt-auto py-2 shadow-sm">
+                        Buka Dashboard <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary rounded-pill fw-bold w-100 mt-auto py-2" disabled>
+                        Butuh API Key
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 border-0 shadow-sm rounded-4 glass-card-inactive">
@@ -53,23 +77,6 @@
                     <h4 class="fw-bold text-muted">Investasi</h4>
                     <p class="text-muted small mb-4">
                         Pantau portofolio saham, reksadana, dan aset lainnya (Segera Hadir).
-                    </p>
-                    <button class="btn btn-light border rounded-pill fw-bold w-100 mt-auto py-2 text-muted" disabled>
-                        Coming Soon
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm rounded-4 glass-card-inactive">
-                <div class="card-body p-4 text-center d-flex flex-column align-items-center">
-                    <div class="icon-wrapper bg-danger bg-opacity-10 text-danger mb-3 grayscale-icon">
-                        <i class="bi bi-credit-card fs-1"></i>
-                    </div>
-                    <h4 class="fw-bold text-muted">Hutang Piutang</h4>
-                    <p class="text-muted small mb-4">
-                        Kelola catatan pinjaman dan tagihan secara terpisah (Segera Hadir).
                     </p>
                     <button class="btn btn-light border rounded-pill fw-bold w-100 mt-auto py-2 text-muted" disabled>
                         Coming Soon
