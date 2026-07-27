@@ -383,6 +383,7 @@ def folder_settings(folder_id):
     if folder.user_id != current_user.id: return redirect(url_for('home'))
 
     origin = request.args.get('origin', 'dash')
+    tipe = request.args.get('tipe')
     
     if request.method == 'POST':
         # Simpan Config
@@ -419,8 +420,8 @@ def folder_settings(folder_id):
         folder.kw_piutang_masuk = request.form.get('kw_piutang_masuk', folder.kw_piutang_masuk)
         
         db.session.commit()
-        flash('Konfigurasi Tahun berhasil disimpan.', 'success')
-        return redirect(url_for('folder_settings', folder_id=folder.id, origin=origin))
+        flash('Konfigurasi Tahun berhasil disimpan.', 'success') 
+        return redirect(url_for('folder_settings', folder_id=folder.id, origin=origin, tipe=tipe))
     
     cats_income = [c for c in folder.categories if c.type == 'income']
     cats_expense = [c for c in folder.categories if c.type == 'expense']

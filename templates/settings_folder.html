@@ -15,17 +15,21 @@
         <div class="col-auto">
             <div style="width: 45px; height: 45px; flex: 0 0 45px;">
                 {% if request.args.get('origin') == 'list' %}
-                    <a href="{{ url_for('select_year') }}" 
-                       class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
-                       style="width: 100%; height: 100%;" 
-                       title="Kembali ke Daftar Tahun">
+                    {% if request.args.get('tipe') == 'hutang' %}
+                        <a href="{{ url_for('select_year', tipe='hutang') }}" class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 100%; height: 100%;" title="Kembali ke Daftar Tahun Hutang">
+                            <i class="bi bi-arrow-left text-dark fs-5"></i>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('select_year') }}" class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 100%; height: 100%;" title="Kembali ke Daftar Tahun">
+                            <i class="bi bi-arrow-left text-dark fs-5"></i>
+                        </a>
+                    {% endif %}
+                {% elif request.args.get('origin') == 'dash_hutang' %}
+                    <a href="{{ url_for('dashboard_hutang', folder_id=folder.id) }}" class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 100%; height: 100%;" title="Kembali ke Dashboard Hutang">
                         <i class="bi bi-arrow-left text-dark fs-5"></i>
                     </a>
                 {% else %}
-                    <a href="{{ url_for('dashboard', folder_id=folder.id) }}" 
-                       class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
-                       style="width: 100%; height: 100%;" 
-                       title="Kembali ke Dashboard">
+                    <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 100%; height: 100%;" title="Kembali ke Dashboard Utama">
                         <i class="bi bi-arrow-left text-dark fs-5"></i>
                     </a>
                 {% endif %}
