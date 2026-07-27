@@ -554,9 +554,12 @@ def dashboard_hutang(folder_id):
             
         # 2. Proses Tabel Data List dari df_dirty
         if df_dirty is not None and not df_dirty.empty:
+            # [PERBAIKAN] Ubah logika dari 'in' menjadi '==' (sama persis)
             def check_kw(val, kw):
-                return str(kw).lower().strip() in str(val).lower() if kw else False
-                
+                if not kw: 
+                    return False
+                return str(kw).lower().strip() == str(val).lower().strip()
+               
             # Fungsi konversi huruf kolom (A, B, C) menjadi indeks angka (0, 1, 2)
             def get_col_idx(letter):
                 if not letter: return -1
