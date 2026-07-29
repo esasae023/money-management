@@ -553,6 +553,11 @@ html[data-bs-theme="dark"] body .btn.btn-warning i {
     color: #0d6efd !important;
 }
 
+/* 8. Penyesuaian border tabel responsive di HP untuk Mode Gelap */
+[data-bs-theme="dark"] .table-responsive {
+    border-color: #2e343b !important;
+}
+
 /* =========================================
    MENCEGAH LAYOUT SHIFT (KEDIPAN POSISI)
    ========================================= */
