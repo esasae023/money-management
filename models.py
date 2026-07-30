@@ -71,3 +71,10 @@ class CategoryMap(db.Model):
     cell_addr = db.Column(db.String(10), nullable=False)
     type = db.Column(db.String(20), default='expense')
     is_clean = db.Column(db.Boolean, default=False)
+
+class FormShortcut(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.String(20), nullable=False)
+    url = db.Column(db.String(500), nullable=False)

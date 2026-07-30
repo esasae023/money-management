@@ -83,6 +83,10 @@
         <a href="{{ url_for('home') }}" class="{{ 'active' if request.endpoint == 'home' else '' }}">
             <i class="bi bi-house-door"></i><span class="sidebar-text">Beranda</span>
         </a>
+
+        <a href="{{ url_for('form_shortcuts') }}" class="{{ 'active' if request.endpoint == 'form_shortcuts' else '' }}">
+            <i class="bi bi-file-earmark-text"></i><span class="sidebar-text">Input Data</span>
+        </a>
         
         <a href="{{ url_for('settings_global', origin=nav_origin, folder_id=nav_fid) }}" class="{{ 'active' if request.endpoint == 'settings_global' else '' }}">
             <i class="bi bi-key"></i><span class="sidebar-text">API Key</span>
@@ -103,18 +107,30 @@
     </div>
 
     <nav class="mobile-bottom-nav">
+        <!-- 1. Beranda -->
         <a href="{{ url_for('home') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'home' else '' }}">
             <i class="bi bi-house-door-fill"></i><span>Beranda</span>
         </a>
         
+        <!-- 2. API Key -->
         <a href="{{ url_for('settings_global', origin=nav_origin, folder_id=nav_fid) }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'settings_global' else '' }}">
             <i class="bi bi-key-fill"></i><span>API Key</span>
         </a>
         
+        <!-- 3. TOMBOL TENGAH (M-BANKING QRIS STYLE) -->
+        <a href="{{ url_for('form_shortcuts') }}" class="nav-item-mobile nav-center-item">
+            <div class="nav-center-circle {{ 'active-circle' if request.endpoint == 'form_shortcuts' else '' }}">
+                <i class="bi bi-plus-lg fs-3"></i>
+            </div>
+            <span class="mt-4">Input</span>
+        </a>
+
+        <!-- 4. Akun (Profile) -->
         <a href="{{ url_for('profile', origin=nav_origin, folder_id=nav_fid) }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'profile' else '' }}">
             <i class="bi bi-person-circle"></i><span>Akun</span>
         </a>
         
+        <!-- 5. Lainnya -->
         <a href="#" class="nav-item-mobile" data-bs-toggle="offcanvas" data-bs-target="#drawerLainnya">
             <i class="bi bi-grid-fill"></i><span>Lainnya</span>
         </a>

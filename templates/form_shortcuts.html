@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+        <div class="d-flex align-items-center">
+            <!-- Tombol Kembali Super Dinamis -->
+            <a href="{{ back_url }}" class="btn btn-white bg-white shadow-sm border rounded-circle me-3 hover-scale d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                <i class="bi bi-arrow-left text-dark"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold text-dark m-0">Input Data</h4>
+                <small class="text-muted">Shortcut Google Form Bulanan</small>
+            </div>
+        </div>
+        <button class="btn btn-primary rounded-pill shadow-sm fw-bold px-3 px-md-4" data-bs-toggle="modal" data-bs-target="#newShortcutModal">
+            <i class="bi bi-plus-lg me-1"></i> <span class="d-none d-md-inline">Tambah</span>
+        </button>
+    </div>
+
+    <!-- Tampilan Daftar Form -->
+    <div class="row g-4">
+        {% for year, forms in grouped.items() %}
+        <div class="col-12">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-calendar3 me-2 text-primary"></i>Tahun {{ year }}</h5>
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="list-group list-group-flush rounded-4">
+                    {% for form in forms %}
+                    <div class="list-group-item bg-white p-3 d-flex justify-content-between align-items-center border-bottom-0 {% if not loop.last %}border-bottom{% endif %}">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <i class="bi bi-file-earmark-text-fill"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">{{ form.month }}</h6>
+                                <a href="{{ form.url }}" target="_blank" class="small text-decoration-none text-muted"><i class="bi bi-link-45deg"></i> Buka Form</a>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{{ form.url }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 me-1">Isi Data</a>
+                            <a href="{{ url_for('delete_form_shortcut', id=form.id) }}" class="btn btn-sm btn-light text-danger rounded-pill px-2 border"><i class="bi bi-trash"></i></a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted mb-3 opacity-25"><i class="bi bi-inboxes fs-1" style="font-size: 4rem;"></i></div>
+            <h5 class="fw-bold text-secondary">Belum ada shortcut form</h5>
+            <p class="text-muted">Klik tombol tambah di atas untuk menyimpan link Google Form Anda.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Tambah Form -->
+<div class="modal fade" id="newShortcutModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{{ url_for('form_shortcuts') }}" class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold"><i class="bi bi-link me-2 text-primary"></i>Tambah Shortcut Form</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted">TAHUN</label>
+                        <input type="number" name="year" class="form-control form-control-auth" placeholder="2026" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted">BULAN</label>
+                        <select name="month" class="form-select form-control-auth border-0 bg-light" required>
+                            <option value="Januari">Januari</option><option value="Februari">Februari</option>
+                            <option value="Maret">Maret</option><option value="April">April</option>
+                            <option value="Mei">Mei</option><option value="Juni">Juni</option>
+                            <option value="Juli">Juli</option><option value="Agustus">Agustus</option>
+                            <option value="September">September</option><option value="Oktober">Oktober</option>
+                            <option value="November">November</option><option value="Desember">Desember</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">LINK GOOGLE FORM</label>
+                    <input type="url" name="url" class="form-control form-control-auth" placeholder="https://docs.google.com/forms/..." required>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Simpan Link</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -11,7 +11,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, abo
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 from sqlalchemy.exc import IntegrityError
-from models import db, User, GlobalSettings, MonitorFolder, CategoryMap, crypto
+from models import db, User, GlobalSettings, MonitorFolder, CategoryMap, crypto, FormShortcut
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -607,6 +607,46 @@ def dashboard_hutang(folder_id):
     return render_template('dashboard_hutang.html', 
                            folder=folder, sheet_list=sheet_list, selected_month=selected_month,
                            kpi=kpi, list_hutang=list_hutang, list_piutang=list_piutang, error_msg=error_msg)
+
+@app.route('/form-shortcuts', methods=['GET', 'POST'])
+@login_required
+def form_shortcuts():
+    if request.method == 'POST':
+        year = request.form.get('year')
+        month = request.form.get('month')
+        url = request.form.get('url')
+        
+        if year and month and url:
+            new_shortcut = FormShortcut(user_id=current_user.id, year=int(year), month=month, url=url)
+            db.session.add(new_shortcut)
+            db.session.commit()
+            flash('Shortcut Form berhasil ditambahkan!', 'success')
+        return redirect(url_for('form_shortcuts'))
+    
+    # Ambil data dan urutkan tahun dari yang terbaru
+    shortcuts = FormShortcut.query.filter_by(user_id=current_user.id).order_by(FormShortcut.year.desc()).all()
+    
+    # Kelompokkan berdasarkan tahun
+    grouped_shortcuts = {}
+    for s in shortcuts:
+        if s.year not in grouped_shortcuts:
+            grouped_shortcuts[s.year] = []
+        grouped_shortcuts[s.year].append(s)
+        
+    # Logika Cerdas Tombol Kembali (Menangkap asal halaman)
+    back_url = request.referrer if request.referrer and request.url not in request.referrer else url_for('home')
+        
+    return render_template('form_shortcuts.html', grouped=grouped_shortcuts, back_url=back_url)
+
+@app.route('/form-shortcuts/delete/<int:id>')
+@login_required
+def delete_form_shortcut(id):
+    shortcut = FormShortcut.query.get_or_404(id)
+    if shortcut.user_id == current_user.id:
+        db.session.delete(shortcut)
+        db.session.commit()
+        flash('Shortcut Form berhasil dihapus.', 'success')
+    return redirect(url_for('form_shortcuts'))
 
 if __name__ == '__main__':
     with app.app_context():
