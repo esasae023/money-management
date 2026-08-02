@@ -117,12 +117,12 @@
             <i class="bi bi-key-fill"></i><span>API Key</span>
         </a>
         
-        <!-- 3. TOMBOL TENGAH (M-BANKING QRIS STYLE) -->
-        <a href="{{ url_for('form_shortcuts') }}" class="nav-item-mobile nav-center-item">
-            <div class="nav-center-circle {{ 'active-circle' if request.endpoint == 'form_shortcuts' else '' }}">
-                <i class="bi bi-plus-lg fs-3"></i>
+        <!-- 3. TOMBOL TENGAH (DALAM NAVBAR) -->
+        <a href="{{ url_for('form_shortcuts') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'form_shortcuts' else '' }}">
+            <div class="nav-center-circle">
+                <i class="bi bi-plus-lg text-white"></i>
             </div>
-            <span class="mt-4">Input</span>
+            <span>Form</span>
         </a>
 
         <!-- 4. Akun (Profile) -->
