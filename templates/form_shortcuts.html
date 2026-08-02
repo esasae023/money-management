@@ -39,7 +39,7 @@
                                 <a href="{{ form.url }}" target="_blank" class="small text-decoration-none text-muted"><i class="bi bi-link-45deg"></i> Buka Form</a>
                             </div>
                         </div>
-                        <div>
+                        <div class="d-flex align-items-center flex-nowrap gap-2 ms-2">
                             <a href="{{ form.url }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 me-1">Isi Data</a>
                             <a href="{{ url_for('delete_form_shortcut', id=form.id) }}" class="btn btn-sm btn-light text-danger rounded-pill px-2 border"><i class="bi bi-trash"></i></a>
                         </div>
