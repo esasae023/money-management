@@ -359,7 +359,6 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
     .sidebar, .toggle-btn, #sidebar { display: none !important; width: 0 !important; }
 
     /* 2. Fix Navbar Bawah */
-    /* 2. Fix Navbar Bawah */
     .mobile-bottom-nav {
         display: flex !important;
         visibility: visible !important;
