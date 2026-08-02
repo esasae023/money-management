@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container pb-5">
-    <div class="d-flex justify-content-between align-items-center mb-4 mt-2">
+    <div class="d-flex justify-content-between align-items-center mb-5 mt-2">
         <div class="d-flex align-items-center">
             <!-- Tombol Kembali Anti Lonjong -->
             <a href="{{ back_url }}" class="btn btn-white bg-white shadow-sm border rounded-circle me-3 hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; min-width: 45px; flex-shrink: 0;">
@@ -14,9 +14,11 @@
             </div>
         </div>
         <!-- Tombol Tambah Anti Terpotong -->
-        <button class="btn btn-primary rounded-pill shadow-sm fw-bold px-4 text-nowrap" data-bs-toggle="modal" data-bs-target="#newShortcutModal">
-            <i class="bi bi-plus-lg me-1"></i> Tambah
-        </button>
+        <div>
+            <button class="btn btn-primary rounded-pill shadow-sm fw-bold px-4 text-nowrap" data-bs-toggle="modal" data-bs-target="#newShortcutModal">
+                <i class="bi bi-plus-lg me-1"></i> Tambah
+            </button>
+        </div>
     </div>
 
     <!-- Tampilan Daftar Form -->
