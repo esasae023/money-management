@@ -16,10 +16,35 @@
 <div class="container pb-5">
     <div class="d-flex justify-content-between align-items-center mb-5 mt-2">
         <div class="d-flex align-items-center">
-            <!-- Tombol Kembali Anti Lonjong -->
-            <a href="{{ back_url }}" class="btn btn-white bg-white shadow-sm border rounded-circle me-3 hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; min-width: 45px; flex-shrink: 0;">
-                <i class="bi bi-arrow-left text-dark fs-5"></i>
-            </a>
+            <!-- Tombol Kembali Anti Lonjong (Sistem Jangkar) -->
+            {% set o = request.args.get('origin', 'home') %}
+            {% set f = request.args.get('folder_id') %}
+            
+            {% if o == 'dash' and f %}
+                <a href="{{ url_for('dashboard', folder_id=f) }}" class="btn btn-white bg-white shadow-sm border rounded-circle me-3 hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; min-width: 45px; flex-shrink: 0;" title="Kembali ke Dashboard">
+                    <i class="bi bi-arrow-left text-dark fs-5"></i>
+                </a>
+            {% elif o == 'dash_hutang' and f %}
+                <a href="{{ url_for('dashboard_hutang', folder_id=f) }}" class="btn btn-white bg-white shadow-sm border rounded-circle me-3 hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; min-width: 45px; flex-shrink: 0;" title="Kembali ke Dashboard Hutang">
+                    <i class="bi bi-arrow-left text-dark fs-5"></i>
+                </a>
+            {% elif o == 'folder_settings' and f %}
+                <a href="{{ url_for('folder_settings', folder_id=f, origin='dash') }}" class="btn btn-white bg-white shadow-sm border rounded-circle me-3 hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; min-width: 45px; flex-shrink: 0;" title="Kembali ke Config">
+                    <i class="bi bi-arrow-left text-dark fs-5"></i>
+                </a>
+            {% elif o == 'list' %}
+                <a href="{{ url_for('select_year') }}" class="btn btn-white bg-white shadow-sm border rounded-circle me-3 hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; min-width: 45px; flex-shrink: 0;" title="Kembali ke Daftar">
+                    <i class="bi bi-arrow-left text-dark fs-5"></i>
+                </a>
+            {% elif o == 'list_hutang' %}
+                <a href="{{ url_for('select_year', tipe='hutang') }}" class="btn btn-white bg-white shadow-sm border rounded-circle me-3 hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; min-width: 45px; flex-shrink: 0;" title="Kembali ke Daftar Hutang">
+                    <i class="bi bi-arrow-left text-dark fs-5"></i>
+                </a>
+            {% else %}
+                <a href="{{ url_for('home') }}" class="btn btn-white bg-white shadow-sm border rounded-circle me-3 hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; min-width: 45px; flex-shrink: 0;" title="Kembali ke Home">
+                    <i class="bi bi-arrow-left text-dark fs-5"></i>
+                </a>
+            {% endif %}
             <div>
                 <h4 class="fw-bold text-dark m-0">Input Data</h4>
                 <small class="text-muted">Shortcut Google Form Bulanan</small>

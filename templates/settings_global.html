@@ -16,6 +16,15 @@
                             <i class="bi bi-arrow-left text-dark fs-5"></i>
                         </a>
 
+                    <!-- [BARU] Tombol Kembali ke Dashboard Hutang -->
+                    {% elif origin == 'dash_hutang' and folder_id %}
+                        <a href="{{ url_for('dashboard_hutang', folder_id=folder_id) }}" 
+                           class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale" 
+                           style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;" 
+                           title="Kembali ke Dashboard Hutang">
+                            <i class="bi bi-arrow-left text-dark fs-5"></i>
+                        </a>
+
                     {% elif origin == 'folder_settings' and folder_id %}
                          <a href="{{ url_for('folder_settings', folder_id=folder_id, origin='dash') }}" 
                            class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale" 
@@ -32,11 +41,12 @@
                             <i class="bi bi-arrow-left text-dark fs-5"></i>
                         </a>
                     
-                    {% elif origin == 'profile' %}
-                        <a href="{{ url_for('profile') }}" 
+                    <!-- [BARU] Tombol Kembali ke Daftar Tahun Hutang -->
+                    {% elif origin == 'list_hutang' %}
+                        <a href="{{ url_for('select_year', tipe='hutang') }}" 
                            class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale" 
                            style="width: 45px; height: 45px; display:flex; align-items:center; justify-content:center;" 
-                           title="Kembali ke Profil">
+                           title="Kembali ke Daftar Hutang">
                             <i class="bi bi-arrow-left text-dark fs-5"></i>
                         </a>
 

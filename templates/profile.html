@@ -17,40 +17,44 @@
                 {% if origin == 'dash' and folder_id %}
                     <a href="{{ url_for('dashboard', folder_id=folder_id) }}" 
                        class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
-                       style="width: 100%; height: 100%;" 
-                       title="Kembali ke Dashboard">
+                       style="width: 100%; height: 100%;" title="Kembali ke Dashboard">
+                        <i class="bi bi-arrow-left text-dark fs-5"></i>
+                    </a>
+                
+                <!-- [BARU] Tombol Kembali ke Dashboard Hutang -->
+                {% elif origin == 'dash_hutang' and folder_id %}
+                    <a href="{{ url_for('dashboard_hutang', folder_id=folder_id) }}" 
+                       class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
+                       style="width: 100%; height: 100%;" title="Kembali ke Dashboard Hutang">
                         <i class="bi bi-arrow-left text-dark fs-5"></i>
                     </a>
                 
                 {% elif origin == 'folder_settings' and folder_id %}
                     <a href="{{ url_for('folder_settings', folder_id=folder_id, origin='dash') }}" 
                        class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
-                       style="width: 100%; height: 100%;" 
-                       title="Kembali ke Config">
+                       style="width: 100%; height: 100%;" title="Kembali ke Config">
                         <i class="bi bi-arrow-left text-dark fs-5"></i>
                     </a>
                 
                 {% elif origin == 'list' %}
                     <a href="{{ url_for('select_year') }}" 
                        class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
-                       style="width: 100%; height: 100%;" 
-                       title="Kembali ke Daftar">
+                       style="width: 100%; height: 100%;" title="Kembali ke Daftar">
                         <i class="bi bi-arrow-left text-dark fs-5"></i>
                     </a>
                 
-                {% elif origin == 'settings_global' %}
-                    <a href="{{ url_for('settings_global', origin='profile', folder_id=folder_id) }}" 
+                <!-- [BARU] Tombol Kembali ke Daftar Tahun Hutang -->
+                {% elif origin == 'list_hutang' %}
+                    <a href="{{ url_for('select_year', tipe='hutang') }}" 
                        class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
-                       style="width: 100%; height: 100%;" 
-                       title="Kembali ke API Key">
+                       style="width: 100%; height: 100%;" title="Kembali ke Daftar Hutang">
                         <i class="bi bi-arrow-left text-dark fs-5"></i>
                     </a>
 
                 {% else %}
                     <a href="{{ url_for('home') }}" 
                        class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" 
-                       style="width: 100%; height: 100%;" 
-                       title="Kembali ke Home">
+                       style="width: 100%; height: 100%;" title="Kembali ke Home">
                         <i class="bi bi-arrow-left text-dark fs-5"></i>
                     </a>
                 {% endif %}

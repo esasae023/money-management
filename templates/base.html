@@ -42,6 +42,11 @@
     {% if request.endpoint == 'dashboard' %}
         {% set nav_origin = 'dash' %}
         {% set nav_fid = request.view_args.get('folder_id') %}
+        
+    {# KASUS A2: Dashboard Hutang (BARU) #}
+    {% elif request.endpoint == 'dashboard_hutang' %}
+        {% set nav_origin = 'dash_hutang' %}
+        {% set nav_fid = request.view_args.get('folder_id') %}
     
     {# KASUS B: Settings Folder (PISAHKAN DARI DASHBOARD) #}
     {% elif request.endpoint == 'folder_settings' %}
@@ -49,28 +54,27 @@
         {% set nav_origin = 'folder_settings' %}
         {% set nav_fid = request.view_args.get('folder_id') %}
     
-    {# KASUS C: Daftar Tahun #}
+    {# KASUS C: Daftar Tahun (Diperbarui dengan Deteksi Hutang) #}
     {% elif request.endpoint == 'select_year' %}
-        {% set nav_origin = 'list' %}
+        {% if request.args.get('tipe') == 'hutang' %}
+            {% set nav_origin = 'list_hutang' %}
+        {% else %}
+            {% set nav_origin = 'list' %}
+        {% endif %}
         {% set nav_fid = none %}
 
-    {# KASUS D: Halaman Global (Profile / API Key) #}
+    {# KASUS D: Halaman Global (Profile / API Key / dll) #}
     {% else %}
         
-        {# Prioritas 1: Jika url_origin valid (folder_settings/dash/list), PERTAHANKAN! #}
-        {% if url_origin in ['folder_settings', 'dash', 'list'] %}
+        {# Prioritas Mutlak: Jika ada jejak jangkar yang valid, PERTAHANKAN TERUS! #}
+        {% if url_origin in ['home', 'folder_settings', 'dash', 'dash_hutang', 'list', 'list_hutang'] %}
             {% set nav_origin = url_origin %}
             {% set nav_fid = url_fid %}
         
-        {# Prioritas 2: Navigasi Antar Halaman Global #}
+        {# Jika tidak ada jejak sama sekali, paksa jangkar ke Home #}
         {% else %}
-            {% if request.endpoint == 'profile' %}
-                {% set nav_origin = 'profile' %}
-            {% elif request.endpoint == 'settings_global' %}
-                {% set nav_origin = 'settings_global' %}
-            {% else %}
-                {% set nav_origin = 'home' %}
-            {% endif %}
+            {% set nav_origin = 'home' %}
+            {% set nav_fid = none %}
         {% endif %}
 
     {% endif %}
@@ -84,7 +88,7 @@
             <i class="bi bi-house-door"></i><span class="sidebar-text">Beranda</span>
         </a>
 
-        <a href="{{ url_for('form_shortcuts') }}" class="{{ 'active' if request.endpoint == 'form_shortcuts' else '' }}">
+        <a href="{{ url_for('form_shortcuts', origin=nav_origin, folder_id=nav_fid) }}" class="{{ 'active' if request.endpoint == 'form_shortcuts' else '' }}">
             <i class="bi bi-file-earmark-text"></i><span class="sidebar-text">Input Data</span>
         </a>
         
@@ -118,7 +122,7 @@
         </a>
         
         <!-- 3. TOMBOL TENGAH (DALAM NAVBAR) -->
-        <a href="{{ url_for('form_shortcuts') }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'form_shortcuts' else '' }}">
+        <a href="{{ url_for('form_shortcuts', origin=nav_origin, folder_id=nav_fid) }}" class="nav-item-mobile {{ 'active' if request.endpoint == 'form_shortcuts' else '' }}">
             <div class="nav-center-circle">
                 <i class="bi bi-plus-lg text-white"></i>
             </div>
