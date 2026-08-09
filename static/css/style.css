@@ -389,7 +389,7 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
         box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
     }
 
-    /* Mengatur jarak bawah laci "Lainnya" agar pas dengan navbar 60px */
+    /* Mengatur jarak bawah laci "Lainnya" agar pas dengan navbar*/
     #drawerLainnya.offcanvas-bottom {
         padding-bottom: 60px !important; /* Menahan dasar laci agar pas di batas navbar 60px */
         min-height: auto !important;
