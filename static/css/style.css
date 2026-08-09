@@ -370,7 +370,7 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
     /* 3. Adjust Content (Beri ruang untuk navbar bawah) */
     .main-content { 
         margin-left: 0 !important; 
-        padding: 15px 15px 75px 15px !important; /* <-- UBAH 100px menjadi 75px agar jarak bawah tidak bolong */
+        padding: 15px 15px 80px 15px !important; /* <-- UBAH 100px menjadi 75px agar jarak bawah tidak bolong */
         width: 100% !important; 
     }
     body.sb-expanded .main-content { margin-left: 0 !important; }
@@ -388,6 +388,21 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
         border: none !important;
         box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
     }
+
+    /* Mengatur jarak bawah laci "Lainnya" agar pas dengan navbar 60px */
+    #drawerLainnya.offcanvas-bottom {
+        padding-bottom: 60px !important; /* Menahan dasar laci agar pas di batas navbar 60px */
+        min-height: auto !important;
+    }
+
+    #drawerLainnya .offcanvas-body {
+        padding-bottom: 5px !important; /* Memangkas ruang kosong ekstra di bawah tombol Logout */
+    }
+    
+    #drawerLainnya .list-group {
+        margin-bottom: 0 !important; /* Memastikan tidak ada sisa margin dari daftar menu */
+    }
+
     .drawer-handle { width: 50px; height: 6px; background: #e9ecef; border-radius: 10px; margin: 12px auto; }
     .offcanvas-body a[onclick*="toggleTheme"] { color: #212529 !important; }
 
