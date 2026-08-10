@@ -135,9 +135,9 @@ function updateThemeUI(theme) {
 
     // Update ikon dan teks di Mobile Drawer
     document.querySelectorAll('.theme-icon-mobile').forEach(icon => {
-        icon.className = isDark ? 'theme-icon-mobile bi bi-sun fs-4 me-3' : 'theme-icon-mobile bi bi-moon fs-4 me-3';
+        icon.className = isDark ? 'theme-icon-mobile bi bi-sun' : 'theme-icon-mobile bi bi-moon';
     });
-    document.querySelectorAll('.theme-text-mobile').forEach(text => {
-        text.innerText = isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap';
-    });
+    // document.querySelectorAll('.theme-text-mobile').forEach(text => {
+    //     text.innerText = isDark ? 'Mode Terang' : 'Mode Gelap';
+    // });
 }

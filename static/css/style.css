@@ -350,7 +350,6 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
 /* DESKTOP VIEW (> 992px): Sembunyikan Mobile Nav */
 @media (min-width: 992px) { 
     .mobile-bottom-nav { display: none !important; } 
-    .offcanvas-bottom { display: none !important; }
 }
 
 /* MOBILE VIEW (< 992px): Paksa Munculkan Mobile Nav */
@@ -364,7 +363,14 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
         visibility: visible !important;
         position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; 
         height: 60px !important; /* <-- UBAH DI SINI (Sebelumnya 70px) */
-        background-color: #ffffff !important; z-index: 99999 !important;
+        background-color: 99999 !important;
+
+        /* EFEK KACA BURAM TERANG */
+        background: rgba(255, 255, 255, 0.75) !important;
+        backdrop-filter: blur(16px) saturate(120%) !important;
+        -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.6) !important;
+        box-shadow: 0 -8px 32px 0 rgba(31, 38, 135, 0.07) !important;
     }
 
     /* 3. Adjust Content (Beri ruang untuk navbar bawah) */
@@ -377,36 +383,8 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
     
     .auth-main-wrapper { padding: 15px; }
     .glass-control-wrapper { bottom: 75px !important; width: 90% !important; left: 5% !important; }
-    
-    /* 4. Perbaikan Drawer Laci Rounded */
-    .offcanvas-bottom { 
-        height: auto !important; 
-        max-height: 85vh;
-        border-top-left-radius: 24px !important; 
-        border-top-right-radius: 24px !important;
-        overflow: hidden !important; 
-        border: none !important;
-        box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
-    }
 
-    /* Mengatur jarak bawah laci "Lainnya" agar pas dengan navbar*/
-    #drawerLainnya.offcanvas-bottom {
-        padding-bottom: 60px !important; /* Menahan dasar laci agar pas di batas navbar 60px */
-        min-height: auto !important;
-    }
-
-    #drawerLainnya .offcanvas-body {
-        padding-bottom: 5px !important; /* Memangkas ruang kosong ekstra di bawah tombol Logout */
-    }
-    
-    #drawerLainnya .list-group {
-        margin-bottom: 0 !important; /* Memastikan tidak ada sisa margin dari daftar menu */
-    }
-
-    .drawer-handle { width: 50px; height: 6px; background: #e9ecef; border-radius: 10px; margin: 12px auto; }
-    .offcanvas-body a[onclick*="toggleTheme"] { color: #212529 !important; }
-
-    /* 5. Toast Center Mobile */
+    /* 4. Toast Center Mobile */
     .toast-container {
         right: auto !important; left: 50% !important; transform: translateX(-50%) !important; 
         top: 20px !important; width: auto !important; max-width: 90vw;            
@@ -576,10 +554,13 @@ button:active,
     background-color: #181a1d !important;
     border-right: 1px solid #2e343b !important;
 }
-[data-bs-theme="dark"] .mobile-bottom-nav { background-color: #121416 !important; border-top-color: #1f2328; }
-[data-bs-theme="dark"] .offcanvas { background-color: #181a1d !important; border-top: 1px solid #2e343b !important; }
-[data-bs-theme="dark"] .offcanvas-body a[onclick*="toggleTheme"] { color: #e0e0e0 !important; }
-[data-bs-theme="dark"] .drawer-handle { background: #444c56; }
+[data-bs-theme="dark"] .mobile-bottom-nav { 
+    /* EFEK KACA BURAM GELAP */
+    background: rgba(18, 20, 22, 0.75) !important; 
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 -8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+    /* Backdrop-filter sudah diwarisi dari mode terang, jadi tidak perlu ditulis ulang */
+}
 [data-bs-theme="dark"] .list-group-item { background-color: transparent; color: #e0e0e0; border-color: #2e343b; }
 [data-bs-theme="dark"] .list-group-item:hover { background-color: #22262a; }
 
