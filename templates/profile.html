@@ -5,14 +5,8 @@
     
     <div class="row align-items-center mb-4 mt-2">
         
-        <div class="col overflow-hidden">
-            <h4 class="fw-bold text-dark m-0 pb-1 text-truncate">
-                Profil Pengguna
-            </h4>
-        </div>
-        
-        <div class="col-auto">
-            <div style="width: 45px; height: 45px; flex: 0 0 45px;">
+        <div class="d-flex align-items-center mb-4 mt-2 gap-3">
+            <div class="flex-shrink-0" style="width: 45px; height: 45px;">
                 
                 {% if origin == 'dash' and folder_id %}
                     <a href="{{ url_for('dashboard', folder_id=folder_id) }}" 
@@ -59,6 +53,11 @@
                     </a>
                 {% endif %}
                 
+            </div>
+            <div class="col overflow-hidden">
+                <h4 class="fw-bold text-dark m-0 pb-1 text-truncate">
+                    Profil Pengguna
+                </h4>
             </div>
         </div>
     </div>
