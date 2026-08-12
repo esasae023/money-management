@@ -4,11 +4,8 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <style>
-    .no-margin-bottom { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-    .bottom-spacer-force { height: 20px !important; display: block; }
     .table-hp th { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; }
     .table-hp td { vertical-align: middle; font-size: 0.95rem; }
-    @media (max-width: 768px) { .bottom-spacer-force { height: 30px !important; } }
 </style>
 {% endblock %}
 
@@ -55,7 +52,7 @@
         <div class="col-md-4"><div class="card card-soft-secondary h-100 rounded-4"><div class="card-body kpi-text-card"><div class="kpi-label">Sisa Hutang</div><div class="kpi-value" id="hs-val">Rp {{ kpi.hs }}</div></div></div></div>
     </div>
 
-    <div class="card mb-4 rounded-4 shadow-sm border-0">
+    <div class="card rounded-4 shadow-sm border-0">
         <div class="card-header bg-white border-0 pt-4 px-4 fw-bold text-danger"><i class="bi bi-list-ul me-2"></i> Riwayat Hutang Saya</div>
         <div class="card-body px-4 pb-4">
             <div class="table-responsive">
@@ -93,7 +90,7 @@
         <div class="col-md-4"><div class="card card-soft-secondary h-100 rounded-4"><div class="card-body kpi-text-card"><div class="kpi-label">Sisa Piutang</div><div class="kpi-value" id="ps-val">Rp {{ kpi.ps }}</div></div></div></div>
     </div>
 
-    <div class="card mb-4 rounded-4 shadow-sm border-0">
+    <div class="card rounded-4 shadow-sm border-0">
         <div class="card-header bg-white border-0 pt-4 px-4 fw-bold text-warning"><i class="bi bi-list-ul me-2"></i> Riwayat Piutang</div>
         <div class="card-body px-4 pb-4">
             <div class="table-responsive">
@@ -139,11 +136,17 @@
         
         let activeBtnId = '';
         if (mode === 'semua') {
-            if(secHutang) secHutang.style.display = 'block'; 
+            if(secHutang) {
+                secHutang.style.display = 'block';
+                secHutang.classList.add('mb-5', 'pb-4');
+            } 
             if(secPiutang) secPiutang.style.display = 'block';
             activeBtnId = 'btnSemua';
         } else if (mode === 'hutang') {
-            if(secHutang) secHutang.style.display = 'block'; 
+            if(secHutang) {
+                secHutang.style.display = 'block';
+                secHutang.classList.remove('mb-5', 'pb-4');
+            } 
             if(secPiutang) secPiutang.style.display = 'none';
             activeBtnId = 'btnHutang';
         } else if (mode === 'piutang') {

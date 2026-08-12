@@ -5,15 +5,11 @@
     /* Styling khusus tabel mirip halaman Hutang Piutang */
     .table-hp th { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; }
     .table-hp td { vertical-align: middle; font-size: 0.95rem; }
-    
-    /* Spacer agar item paling bawah tidak terhalang tombol melayang / navbar di mobile */
-    .bottom-spacer-force { height: 20px !important; display: block; }
-    @media (max-width: 768px) { .bottom-spacer-force { height: 85px !important; } }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container pb-5">
+<div class="container">
     <div class="d-flex justify-content-between align-items-center mb-5 mt-2">
         <div class="d-flex align-items-center">
             <!-- Tombol Kembali Anti Lonjong (Sistem Jangkar) -->

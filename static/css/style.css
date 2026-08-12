@@ -315,6 +315,10 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
     transition: color 0.3s; font-size: 0.9rem;
 }
 .glass-switch-btn.active { color: #0d6efd; }
+.bottom-spacer-force { 
+    height: 20px !important;
+    display: block;
+}
 
 /* =========================================
    7. RESPONSIVE LOGIC (DIJAMIN AMAN)
@@ -343,6 +347,7 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
 .nav-item-mobile span {
     font-size: 0.65rem !important; /* Sebelumnya 0.7rem */
 }
+
 .nav-item-mobile.active { color: #0d6efd; }
 .nav-item-mobile.active i { transform: translateY(-2px); }
 
@@ -376,7 +381,7 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
     /* 3. Adjust Content (Beri ruang untuk navbar bawah) */
     .main-content { 
         margin-left: 0 !important; 
-        padding: 15px 15px 80px 15px !important; /* <-- UBAH 100px menjadi 75px agar jarak bawah tidak bolong */
+        padding: 15px 15px 43px 15px !important; /* <-- UBAH 100px menjadi 75px agar jarak bawah tidak bolong */
         width: 100% !important; 
     }
     body.sb-expanded .main-content { margin-left: 0 !important; }
@@ -488,7 +493,9 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
         top: 3px !important; 
         height: calc(100% - 6px) !important; /* Menyesuaikan ukuran background putih meluncurnya */
     }
-
+    .bottom-spacer-force {
+        height: 15px !important;
+    }
 }
 
 /* =========================================

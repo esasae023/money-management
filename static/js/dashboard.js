@@ -235,11 +235,17 @@ function setMode(mode) {
     
     let activeBtnId = '';
     if (mode === 'semua') {
-        if(secClean) secClean.style.display = 'block'; 
+        if(secClean) {
+            secClean.style.display = 'block';
+            secClean.classList.add('mb-5', 'pb-4');
+        } 
         if(secDirty) secDirty.style.display = 'block';
         activeBtnId = 'btnSemua';
     } else if (mode === 'bersih') {
-        if(secClean) secClean.style.display = 'block'; 
+        if(secClean) {
+            secClean.style.display = 'block';
+            secClean.classList.remove('mb-5', 'pb-4');
+        } 
         if(secDirty) secDirty.style.display = 'none';
         activeBtnId = 'btnBersih';
     } else if (mode === 'kotor') {
@@ -248,7 +254,7 @@ function setMode(mode) {
         activeBtnId = 'btnKotor';
     }
     const btn = document.getElementById(activeBtnId);
-    if(btn) { btn.classList.add('active'); movePill(btn); }
+    if(btn) { btn.classList.add('active'); if(typeof movePill === 'function') movePill(btn); }
 }
 
 function movePill(targetBtn) {
