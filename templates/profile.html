@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container">
     
-    <div class="row align-items-center mb-4 mt-2">
+    <div class="row align-items-center">
         
         <div class="d-flex align-items-center mb-4 mt-2 gap-3">
             <div class="flex-shrink-0" style="width: 45px; height: 45px;">
@@ -75,7 +75,7 @@
                             </div>
                             
                             <div>
-                                <h2 class="fw-bold text-dark mb-1">{{ current_user.username }}</h2>
+                                <h2 class="fw-bold text-dark mb-2">{{ current_user.username }}</h2>
                                 <div class="d-flex align-items-center justify-content-center justify-content-md-start gap-2">
                                     <span class="badge bg-light text-secondary border rounded-pill px-3">
                                         User ID: #{{ current_user.id }}
