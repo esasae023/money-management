@@ -108,7 +108,8 @@ body.sb-expanded .sidebar-text { opacity: 1; pointer-events: auto; transition-de
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px 0;
+    padding: 15px; /* <-- Ubah padding vertikalnya menjadi padding sekeliling biasa */
+    box-sizing: border-box; /* Pastikan padding dihitung ke dalam total 100vh */
 }
 
 .auth-card {
@@ -292,7 +293,13 @@ body.sb-expanded .sidebar-text { opacity: 1; pointer-events: auto; transition-de
     overflow-x: hidden; 
 }
 body.sb-expanded .main-content { margin-left: 250px; }
-body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100%; }
+body.auth-body .main-content { 
+    margin-left: 0 !important; 
+    margin-bottom: 0 !important; /* <-- INI KUNCI PEMBUNUH RUANG KOSONGNYA */
+    padding: 0 !important; 
+    width: 100% !important; 
+    min-height: auto !important;
+}
 
 .glass-control-wrapper {
     position: fixed; left: 0; width: 100%; z-index: 1040;
@@ -495,6 +502,34 @@ body.auth-body .main-content { margin-left: 0 !important; padding: 0; width: 100
     }
     .bottom-spacer-force {
         height: 15px !important;
+    }
+    body.auth-body .main-content {
+        padding: 0 !important;
+        margin-bottom: 0 !important;
+        min-height: auto !important; /* Mematikan paksaan tinggi layar penuh dari konten */
+    }
+    
+    body.auth-body .auth-main-wrapper {
+        padding: 15px !important; 
+        min-height: 100dvh !important; /* Biarkan wrapper ini yang menjaga form tetap di tengah layar */
+    }
+    /* Memperbaiki Proporsi Kartu Auth di Mobile */
+    .auth-card {
+        max-width: 360px !important; /* Menahan kartu agar tidak melar sampai ke ujung layar HP */
+        margin: 0 auto !important;   /* Menjaga kartu tetap berada tepat di tengah */
+        width: 100% !important;
+    }
+    
+    /* Merapatkan jarak atas-bawah di dalam kartu agar tidak terlihat terlalu tinggi */
+    body.auth-body .card-body {
+        padding: 2rem 1.5rem !important; 
+    }
+    
+    /* Mengecilkan sedikit ukuran logo/ikon profil di atas form agar lebih proporsional */
+    body.auth-body .profile-avatar-circle {
+        width: 75px !important;
+        height: 75px !important;
+        font-size: 2rem !important;
     }
 }
 
