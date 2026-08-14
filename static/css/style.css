@@ -852,3 +852,7 @@ html[data-bs-theme="dark"] body .btn.btn-warning i {
         filter: blur(60px);
     }
 }
+
+/* --- PENCEGAH GLITCH ICON TEMA (FOIT) --- */
+[data-bs-theme="light"] .show-on-dark { display: none !important; }
+[data-bs-theme="dark"] .show-on-light { display: none !important; }

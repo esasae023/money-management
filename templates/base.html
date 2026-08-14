@@ -97,7 +97,13 @@
         </a>
 
         <a href="#" onclick="toggleTheme(event)" class="text-warning">
-            <i class="theme-icon-desktop bi bi-moon"></i><span class="sidebar-text theme-text-desktop">Mode Gelap</span>
+            <!-- Ikon & Teks muncul saat Light Mode -->
+            <i class="bi bi-moon show-on-light"></i>
+            <span class="sidebar-text show-on-light">Mode Gelap</span>
+            
+            <!-- Ikon & Teks muncul saat Dark Mode -->
+            <i class="bi bi-sun show-on-dark"></i>
+            <span class="sidebar-text show-on-dark">Mode Terang</span>
         </a>
         
         <a href="{{ url_for('profile', origin=nav_origin, folder_id=nav_fid) }}" class="{{ 'active' if request.endpoint == 'profile' else '' }}">
@@ -136,7 +142,9 @@
         
         <!-- 5. Tema -->
         <a href="#" class="nav-item-mobile" onclick="toggleTheme(event)">
-            <i class="theme-icon-mobile bi bi-moon"></i><span class="theme-text-mobile">Tema</span>
+            <i class="bi bi-moon show-on-light"></i>
+            <i class="bi bi-sun show-on-dark"></i>
+            <span>Tema</span>
         </a>
     </nav>
     
