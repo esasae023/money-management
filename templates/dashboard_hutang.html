@@ -10,6 +10,21 @@
 {% endblock %}
 
 {% block content %}
+<div id="sticky-header" class="sticky-glass-header">
+    <div class="sgh-content">
+        <div class="sgh-left">
+            <span class="sgh-title">Dashboard Hutang Piutang</span>
+            <i class="bi bi-chevron-right mx-2 text-muted sgh-divider"></i>
+            <span class="sgh-year">{{ folder.name }}</span>
+        </div>
+        <div class="sgh-right">
+            <!-- Menggunakan bg-danger agar sesuai dengan tema halaman Hutang -->
+            <span class="badge bg-danger rounded-pill px-3 py-2 shadow-sm">
+                <i class="bi bi-calendar4-week me-1"></i> {{ selected_month }}
+            </span>
+        </div>
+    </div>
+</div>
 <div class="dashboard-header-wrapper">
     <div class="header-left">
         <a href="{{ url_for('select_year', tipe='hutang') }}" class="btn btn-white bg-white shadow-sm border btn-circle-fix hover-scale"><i class="bi bi-arrow-left text-dark fs-5"></i></a>
@@ -172,6 +187,17 @@
                 setTimeout(() => animateCountUp(id, finalNumber), Math.random() * 300);
             }
         });
+        // Scroll Listener untuk memunculkan Header Kaca
+        const stickyHeader = document.getElementById('sticky-header');
+        if (stickyHeader) {
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 120) { 
+                    stickyHeader.classList.add('show-header');
+                } else {
+                    stickyHeader.classList.remove('show-header');
+                }
+            });
+        }
     });
 </script>
 {% endblock %}
