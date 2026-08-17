@@ -12,6 +12,21 @@
 
 {% block content %}
 
+<div id="sticky-header" class="sticky-glass-header">
+    <div class="sgh-content">
+        <div class="sgh-left">
+            <span class="sgh-title">Dashboard Keuangan</span>
+            <i class="bi bi-chevron-right mx-2 text-muted sgh-divider"></i>
+            <span class="sgh-year">{{ folder.name }}</span>
+        </div>
+        <div class="sgh-right">
+            <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm">
+                <i class="bi bi-calendar4-week me-1"></i> {{ selected_month }}
+            </span>
+        </div>
+    </div>
+</div>
+
 <div class="dashboard-header-wrapper">
     
     <div class="header-left">
@@ -356,6 +371,19 @@
 
         // 5. LISTENER TOMBOL TOGGLE 
         window.addEventListener('themeChanged', applyChartTheme);
+
+        // 6. SCROLL LISTENER UNTUK STICKY HEADER
+        const stickyHeader = document.getElementById('sticky-header');
+        if (stickyHeader) {
+            window.addEventListener('scroll', () => {
+                // Jika halaman digulir lebih dari 120px ke bawah, munculkan header
+                if (window.scrollY > 120) { 
+                    stickyHeader.classList.add('show-header');
+                } else {
+                    stickyHeader.classList.remove('show-header');
+                }
+            });
+        }
     });
 </script>
 {% endblock %}
