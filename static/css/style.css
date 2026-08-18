@@ -279,6 +279,24 @@ body.sb-expanded .sidebar-text { opacity: 1; pointer-events: auto; transition-de
 .hover-scale { transition: transform 0.2s; }
 .hover-scale:hover { transform: translateY(-2px); }
 
+/* =========================================
+   TABEL HUTANG PIUTANG & FORM SHORTCUT
+   ========================================= */
+.table-hp th { 
+    font-size: 0.85rem; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+    color: #6c757d; 
+}
+.table-hp td { 
+    vertical-align: middle; 
+    font-size: 0.95rem; 
+}
+
+/* Penyesuaian Mode Gelap untuk teks header tabel */
+[data-bs-theme="dark"] .table-hp th {
+    color: #9ca3af;
+}
 
 /* =========================================
    6. MAIN CONTENT AREA & GLASS SWITCH
