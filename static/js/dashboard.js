@@ -260,8 +260,15 @@ function setMode(mode) {
 function movePill(targetBtn) {
     const pill = document.getElementById('slidePill');
     if (pill && targetBtn) {
+        // 1. Set posisinya secara rahasia (karena masih transparan)
         pill.style.width = `${targetBtn.offsetWidth}px`;
         pill.style.left = `${targetBtn.offsetLeft}px`;
+        
+        // 2. Tunggu browser menggambar posisinya, baru munculkan kapsulnya
+        requestAnimationFrame(() => {
+            pill.classList.add('ready');
+            pill.style.opacity = '1';
+        });
     }
 }
 window.addEventListener('resize', () => {
