@@ -4,7 +4,7 @@
 body {
     background-color: #f8f9fa;
     min-height: 100vh;
-    overflow-x: hidden;
+    overflow-x: clip;
     margin: 0;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     padding-bottom: 0;
@@ -308,7 +308,7 @@ body.sb-expanded .sidebar-text { opacity: 1; pointer-events: auto; transition-de
     transition: margin-left 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     width: auto; 
     max-width: 100%;
-    overflow-x: hidden; 
+    overflow-x: clip; 
 }
 body.sb-expanded .main-content { margin-left: 250px; }
 body.auth-body .main-content { 
@@ -874,3 +874,39 @@ html[data-bs-theme="dark"] body .btn.btn-warning i {
 /* --- PENCEGAH GLITCH ICON TEMA (FOIT) --- */
 [data-bs-theme="light"] .show-on-dark { display: none !important; }
 [data-bs-theme="dark"] .show-on-light { display: none !important; }
+
+/* =========================================
+   STICKY YEAR HEADER (EFEK FREEZE PANES)
+   ========================================= */
+.sticky-year-header {
+    /* Dukungan khusus untuk Safari & iOS */
+    position: -webkit-sticky !important; 
+    position: sticky !important;
+    
+    /* Jarak menempel dari batas atas layar */
+    top: 0; 
+    
+    /* Lapisan z-index (di atas konten tabel, di bawah toast/modal) */
+    z-index: 1020; 
+    
+    /* Warna background solid transparan (wajib ada agar teks di bawahnya tidak bertumpuk) */
+    background: rgba(248, 249, 250, 0.75);
+    
+    /* Efek kaca buram premium */
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    
+    /* Ruang napas (padding) untuk estetika saat menempel di atas */
+    padding-top: 15px;
+    padding-bottom: 10px;
+    
+    /* Memastikan jarak bawah dengan konten tetap aman */
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Penyesuaian warna solid transparan khusus Mode Gelap */
+[data-bs-theme="dark"] .sticky-year-header {
+    background: rgba(9, 10, 11, 0.8); 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}

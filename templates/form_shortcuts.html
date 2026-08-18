@@ -1,5 +1,36 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<style>
+    /* 1. Mencegah Glitch (FOUC) pada Konten */
+    html[data-form-view="table"] .view-card { display: none !important; }
+    html[data-form-view="table"] .view-table { display: flex !important; flex-direction: column; }
+    
+    html[data-form-view="card"] .view-table { display: none !important; }
+    html[data-form-view="card"] .view-card { display: flex !important; }
+
+    /* 2. Mencegah Glitch pada Teks Tombol Aktif */
+    html[data-form-view="card"] #btnCard,
+    html[data-form-view="table"] #btnTable { color: #0d6efd !important; }
+    
+    /* Penyesuaian teks tombol aktif untuk Mode Gelap */
+    html[data-bs-theme="dark"][data-form-view="card"] #btnCard,
+    html[data-bs-theme="dark"][data-form-view="table"] #btnTable { color: #ffffff !important; }
+
+    /* 3. Menyembunyikan Kapsul Putih sebelum posisinya dihitung secara presisi */
+    #slidePill:not(.ready) {
+        opacity: 0 !important;
+        transition: none !important; /* Matikan animasi meluncur saat awal muat */
+    }
+</style>
+
+<script>
+    // Skrip mikro ini tereksekusi secepat kilat sebelum elemen HTML di bawahnya selesai dibaca
+    const savedFormView = localStorage.getItem('formShortcutView') || 'card';
+    document.documentElement.setAttribute('data-form-view', savedFormView);
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-5 mt-2">
@@ -50,7 +81,7 @@
     <div class="row g-4">
         {% for year, forms in grouped.items() %}
         <div class="col-12">
-            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-calendar3 me-2 text-primary"></i>Tahun {{ year }}</h5>
+            <h5 class="fw-bold text-dark mb-3 sticky-year-header"><i class="bi bi-calendar3 me-2 text-primary"></i>Tahun {{ year }}</h5>
             
             <!-- MODE 1: TAMPILAN CARD MEMANJANG -->
             <div class="row g-3 view-card">
@@ -86,7 +117,7 @@
             </div> <!-- Penutup Row List -->
 
             <!-- MODE 2: TAMPILAN TABEL HTML -->
-            <div class="card rounded-4 shadow-sm border-0 view-table" style="display: none;">
+            <div class="card rounded-4 shadow-sm border-0 view-table">
                 <div class="card-body px-4 py-3">
                     <div class="table-responsive">
                         <table class="table table-hover table-hp mb-0 align-middle">
@@ -188,28 +219,18 @@
 <script>
     // Logika Pengaturan View Mode
     function setViewMode(mode) {
-        const viewCards = document.querySelectorAll('.view-card');
-        const viewTables = document.querySelectorAll('.view-table');
+        // Biarkan CSS yang bekerja instan via atribut HTML
+        document.documentElement.setAttribute('data-form-view', mode);
+        localStorage.setItem('formShortcutView', mode); 
+        
+        // Atur efek aktif pada tombol kaca
         document.querySelectorAll('.glass-switch-btn').forEach(b => b.classList.remove('active'));
+        const btnId = mode === 'card' ? 'btnCard' : 'btnTable';
+        const btn = document.getElementById(btnId);
         
-        let activeBtnId = '';
-        if (mode === 'card') {
-            viewCards.forEach(el => el.style.display = ''); 
-            viewTables.forEach(el => el.style.display = 'none');
-            activeBtnId = 'btnCard';
-        } else if (mode === 'table') {
-            viewCards.forEach(el => el.style.display = 'none');
-            viewTables.forEach(el => el.style.display = 'block');
-            activeBtnId = 'btnTable';
-        }
-        
-        const btn = document.getElementById(activeBtnId);
         if (btn) { 
             btn.classList.add('active'); 
             movePill(btn); 
-            
-            // Simpan pilihan ke localStorage agar tidak reset saat refresh
-            localStorage.setItem('formShortcutView', mode); 
         }
     }
 
@@ -217,8 +238,15 @@
     function movePill(targetBtn) {
         const pill = document.getElementById('slidePill');
         if (pill && targetBtn) {
+            // Set posisi
             pill.style.width = `${targetBtn.offsetWidth}px`;
             pill.style.left = `${targetBtn.offsetLeft}px`;
+            
+            // Tunggu browser menggambar koordinatnya, lalu munculkan kapsulnya
+            requestAnimationFrame(() => {
+                pill.classList.add('ready');
+                pill.style.opacity = '1';
+            });
         }
     }
 
