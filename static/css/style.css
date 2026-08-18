@@ -343,7 +343,7 @@ body.auth-body .main-content {
     color: #495057; padding: 10px 20px; font-weight: 600; cursor: pointer;
     transition: color 0.3s; font-size: 0.9rem;
 }
-.glass-switch-btn.active { color: #0d6efd; }
+.glass-switch-btn.active { color: #111827; }
 .bottom-spacer-force { 
     height: 20px !important;
     display: block;
