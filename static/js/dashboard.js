@@ -275,3 +275,22 @@ window.addEventListener('resize', () => {
     const activeBtn = document.querySelector('.glass-switch-btn.active');
     if(activeBtn) movePill(activeBtn);
 });
+
+// =========================================
+// FUNGSI RELOAD DATA DENGAN ANIMASI
+// =========================================
+function refreshData(btn) {
+    // 1. Cari elemen ikon di dalam tombol
+    const icon = btn.querySelector('i');
+    
+    // 2. Tambahkan class animasi berputar
+    if (icon) {
+        icon.classList.add('icon-spin');
+    }
+    
+    // 3. Matikan tombol sementara agar tidak diklik berkali-kali (spam)
+    btn.disabled = true;
+    
+    // 4. Muat ulang halaman untuk mengambil data terbaru dari server
+    window.location.reload();
+}

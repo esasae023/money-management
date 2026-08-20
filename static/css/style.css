@@ -350,6 +350,19 @@ body.auth-body .main-content {
 }
 
 /* =========================================
+   ANIMASI TOMBOL RELOAD
+   ========================================= */
+@keyframes spin-smooth {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.icon-spin {
+    animation: spin-smooth 0.8s linear infinite;
+    display: inline-block; /* Wajib ada agar ikon bisa diputar oleh CSS */
+}
+
+/* =========================================
    7. RESPONSIVE LOGIC (DIJAMIN AMAN)
    ========================================= */
 

@@ -62,7 +62,11 @@
                 {% endfor %}
             </ul>
         </div>
-        
+
+        <button onclick="refreshData(this)" class="btn btn-white bg-white shadow-sm border btn-circle-fix" title="Muat Ulang Data">
+            <i class="bi bi-arrow-clockwise text-success fs-5"></i>
+        </button>
+
         <a href="{{ url_for('folder_settings', folder_id=folder.id, origin='dash') }}" 
            class="btn btn-white bg-white shadow-sm border btn-circle-fix" 
            title="Konfigurasi">
