@@ -13,7 +13,13 @@
                 </h4>
 
                 <small class="text-muted">
-                    {{ 'Hutang Piutang Dashboard' if request.args.get('tipe') == 'hutang' else 'Budget Monitor Dashboard' }}
+                    {% if request.args.get('tipe') == 'hutang' %}
+                        Hutang Piutang Dashboard
+                    {% elif request.args.get('tipe') == 'portofolio' %}
+                        Portofolio & Aset Dashboard
+                    {% else %}
+                        Budget Monitor Dashboard
+                    {% endif %}
                 </small>
             </div>
         </div>
@@ -25,6 +31,40 @@
     </div>
 
     <div class="row g-4">
+        
+        <!-- ==================================================== -->
+        <!-- [BARU] CARD KHUSUS OVERALL (HANYA UNTUK PORTOFOLIO) -->
+        <!-- ==================================================== -->
+        {% if request.args.get('tipe') == 'portofolio' %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm hover-scale border-0 rounded-4 card-soft-primary">
+                <div class="card-body p-4 d-flex flex-column text-center">
+                    
+                    <div class="mb-3">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 60px;">
+                            <i class="bi bi-globe fs-3"></i>
+                        </div>
+                    </div>
+                    
+                    <h5 class="card-title fw-bold text-dark mb-1">Semua Tahun (Overall)</h5>
+                    <p class="text-muted small mb-4 px-2">
+                        Akumulasi seluruh arus kas dan aset dari semua periode tahun.
+                    </p>
+                    
+                    <div class="mt-auto d-grid gap-2">
+                        <a href="{{ url_for('dashboard_portofolio_overall') }}" class="btn btn-primary rounded-pill fw-bold">
+                            Buka Dashboard Overall
+                        </a>
+                        <a href="{{ url_for('settings_portofolio_overall', origin='list') }}" class="btn btn-light text-secondary rounded-pill fw-bold border">
+                            <i class="bi bi-gear-fill me-1"></i> Konfigurasi Overall
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <!-- ==================================================== -->
+
         {% for folder in folders %}
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm hover-scale border-0 rounded-4">
@@ -42,12 +82,19 @@
                     </p>
                     
                     <div class="mt-auto d-grid gap-2">
-                        <a href="{{ url_for('dashboard_hutang', folder_id=folder.id) if request.args.get('tipe') == 'hutang' else url_for('dashboard', folder_id=folder.id) }}" class="btn btn-primary rounded-pill fw-bold">
-                            Buka Dashboard
-                        </a>
-                        <a href="{{ url_for('folder_settings', folder_id=folder.id, origin='list', tipe=request.args.get('tipe')) }}" class="btn btn-light text-secondary rounded-pill fw-bold border">
-                            <i class="bi bi-gear-fill me-1"></i> Konfigurasi
-                        </a>
+                        {% if request.args.get('tipe') == 'hutang' %}
+                            <a href="{{ url_for('dashboard_hutang', folder_id=folder.id) }}" class="btn btn-primary rounded-pill fw-bold">Buka Dashboard</a>
+                        {% elif request.args.get('tipe') == 'portofolio' %}
+                            <a href="{{ url_for('dashboard_portofolio', folder_id=folder.id) }}" class="btn btn-primary rounded-pill fw-bold">Buka Portofolio</a>
+                            <a href="{{ url_for('settings_portofolio', folder_id=folder.id, origin='list') }}" class="btn btn-light text-secondary rounded-pill fw-bold border">
+                                <i class="bi bi-gear-fill me-1"></i> Konfigurasi
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('dashboard', folder_id=folder.id) }}" class="btn btn-primary rounded-pill fw-bold">Buka Dashboard</a>
+                            <a href="{{ url_for('folder_settings', folder_id=folder.id, origin='list', tipe=request.args.get('tipe')) }}" class="btn btn-light text-secondary rounded-pill fw-bold border">
+                                <i class="bi bi-gear-fill me-1"></i> Konfigurasi
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -69,6 +116,7 @@
 </div>
 
 <div class="modal fade" id="newFolderModal" tabindex="-1">
+    <!-- Modal Add Folder Tetap Sama -->
     <div class="modal-dialog modal-dialog-centered">
         <form method="POST" action="{{ url_for('create_folder') }}" class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-0 pb-0 pt-4 px-4">

@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container pb-5">
+    
+    <div class="row align-items-center mb-4 mt-2">
+        <div class="col-auto">
+            <div style="width: 45px; height: 45px; flex: 0 0 45px;">
+                {% if origin == 'dash' %}
+                    <a href="{{ url_for('dashboard_portofolio_overall') }}" class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 100%; height: 100%;" title="Kembali ke Dashboard">
+                        <i class="bi bi-arrow-left text-dark fs-5"></i>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('select_year', tipe='portofolio') }}" class="btn btn-white bg-white shadow-sm border rounded-circle hover-scale p-0 d-flex align-items-center justify-content-center" style="width: 100%; height: 100%;" title="Kembali ke Daftar Tahun">
+                        <i class="bi bi-arrow-left text-dark fs-5"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col overflow-hidden">
+            <h4 class="fw-bold text-dark m-0 text-truncate">Config Portofolio Overall</h4>
+            <span class="badge bg-primary rounded-pill mt-1 px-3 text-truncate d-inline-block" style="max-width: 100%;">
+                Semua Tahun (Global)
+            </span>
+        </div>
+    </div>
+
+    <form method="POST" class="mb-5">
+        
+        <div class="card border-0 shadow-sm mb-4 rounded-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold text-primary mb-0"><i class="bi bi-link-45deg me-2"></i>Sumber Spreadsheet Overall</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold text-muted">URL SPREADSHEET GLOBAL</label>
+                        <input type="url" name="url" class="form-control form-control-auth" value="{{ config.spreadsheet_url if config else '' }}" placeholder="https://docs.google.com/..." required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">NAMA SHEET</label>
+                        <input type="text" name="sheet_name" class="form-control form-control-auth" value="{{ config.sheet_name if config else 'Overall' }}" placeholder="Contoh: Overall" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4 rounded-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold text-warning mb-0"><i class="bi bi-wallet2 me-2"></i>Mapping Cell KPI (Total Keseluruhan)</h6>
+            </div>
+            <div class="card-body p-4">
+                
+                <div class="bg-light p-3 rounded-4 mb-4 border">
+                    <h6 class="small fw-bold text-dark mb-3"><i class="bi bi-cash-stack me-1"></i> DANA KOTOR (Keseluruhan)</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4"><label class="form-label small text-muted">Cell Pemasukan</label><input type="text" name="cell_inc_kotor" class="form-control form-control-auth" value="{{ config.cell_inc_kotor if config else '' }}"></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">Cell Pengeluaran</label><input type="text" name="cell_exp_kotor" class="form-control form-control-auth" value="{{ config.cell_exp_kotor if config else '' }}"></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">Cell Saldo</label><input type="text" name="cell_bal_kotor" class="form-control form-control-auth" value="{{ config.cell_bal_kotor if config else '' }}"></div>
+                    </div>
+                </div>
+
+                <div class="bg-light p-3 rounded-4 border">
+                    <h6 class="small fw-bold text-dark mb-3"><i class="bi bi-stars me-1"></i> DANA BERSIH (Operasional)</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4"><label class="form-label small text-muted">Cell Pemasukan</label><input type="text" name="cell_inc_bersih" class="form-control form-control-auth" value="{{ config.cell_inc_bersih if config else '' }}"></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">Cell Pengeluaran</label><input type="text" name="cell_exp_bersih" class="form-control form-control-auth" value="{{ config.cell_exp_bersih if config else '' }}"></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">Cell Saldo</label><input type="text" name="cell_bal_bersih" class="form-control form-control-auth" value="{{ config.cell_bal_bersih if config else '' }}"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4 rounded-4">
+            <div class="card-header bg-white border-0 pt-4 px-4">
+                <h6 class="fw-bold text-info mb-0"><i class="bi bi-graph-up me-2"></i>Konfigurasi Grafik Trend Tahunan</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">HURUF KOLOM TAHUN</label>
+                        <input type="text" name="col_year" class="form-control form-control-auth" value="{{ config.col_year if config else 'A' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">MULAI BACA DARI BARIS KE-</label>
+                        <input type="number" name="start_row" class="form-control form-control-auth" value="{{ config.start_row if config else 2 }}">
+                    </div>
+                </div>
+
+                <div class="bg-light p-3 rounded-4 mb-3 border">
+                    <h6 class="small fw-bold text-dark mb-3">HURUF KOLOM DANA KOTOR</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4"><label class="form-label small text-muted">Pemasukan</label><input type="text" name="col_inc_kotor" class="form-control form-control-auth form-control-sm" value="{{ config.col_inc_kotor if config else 'B' }}"></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">Pengeluaran</label><input type="text" name="col_exp_kotor" class="form-control form-control-auth form-control-sm" value="{{ config.col_exp_kotor if config else 'C' }}"></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">Saldo</label><input type="text" name="col_bal_kotor" class="form-control form-control-auth form-control-sm" value="{{ config.col_bal_kotor if config else 'D' }}"></div>
+                    </div>
+                </div>
+
+                <div class="bg-light p-3 rounded-4 border">
+                    <h6 class="small fw-bold text-dark mb-3">HURUF KOLOM DANA BERSIH</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4"><label class="form-label small text-muted">Pemasukan</label><input type="text" name="col_inc_bersih" class="form-control form-control-auth form-control-sm" value="{{ config.col_inc_bersih if config else 'E' }}"></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">Pengeluaran</label><input type="text" name="col_exp_bersih" class="form-control form-control-auth form-control-sm" value="{{ config.col_exp_bersih if config else 'F' }}"></div>
+                        <div class="col-md-4"><label class="form-label small text-muted">Saldo</label><input type="text" name="col_bal_bersih" class="form-control form-control-auth form-control-sm" value="{{ config.col_bal_bersih if config else 'G' }}"></div>
+                    </div>
+                </div>
+            </div> 
+            <div class="card-footer bg-white border-0 px-4 pb-4 pt-0">
+                <button type="submit" class="btn btn-dark w-100 rounded-pill fw-bold py-2 shadow-sm">
+                    <i class="bi bi-check-lg me-2"></i> Simpan Konfigurasi Overall
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <h5 class="fw-bold text-dark mb-3 px-1">Mapping Kategori Overall (Pie Chart)</h5>
+    <div class="row g-4">
+        <!-- Pemasukan -->
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm card-soft-success rounded-4">
+                <div class="card-header border-0 bg-transparent fw-bold text-success pt-4 px-4">
+                    <i class="bi bi-arrow-down-circle-fill me-2"></i> Pemasukan Overall
+                </div>
+                <div class="card-body px-4">
+                    <div class="table-responsive bg-white rounded-4 p-2 shadow-sm mb-3">
+                        <table class="table table-borderless table-sm align-middle mb-0">
+                            <thead class="text-muted small border-bottom"><tr><th class="ps-3">Nama</th><th>Cell</th><th>Bersih?</th><th></th></tr></thead>
+                            <tbody>
+                                {% for cat in cats_income %}
+                                <tr>
+                                    <td class="ps-3 fw-bold">{{ cat.name }}</td><td class="font-monospace small">{{ cat.cell_addr }}</td>
+                                    <td>{% if cat.is_clean %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}-{% endif %}</td>
+                                    <td class="text-end pe-3"><a href="{{ url_for('delete_portofolio_category', cat_id=cat.id) }}" class="text-danger"><i class="bi bi-trash"></i></a></td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" class="text-center text-muted small py-3">Belum ada kategori</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <form action="{{ url_for('add_portofolio_category') }}" method="POST" class="bg-white p-3 rounded-4 shadow-sm">
+                        <input type="hidden" name="is_overall" value="true">
+                        <input type="hidden" name="cat_type" value="income">
+                        <div class="row g-2 mb-2">
+                            <div class="col-7"><input type="text" name="cat_name" class="form-control form-control-sm bg-light border-0" placeholder="Nama Kategori" required></div>
+                            <div class="col-5"><input type="text" name="cat_addr" class="form-control form-control-sm bg-light border-0" placeholder="Cell (A1)" required></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_clean" id="chkIncOver">
+                                <label class="form-check-label small text-muted" for="chkIncOver">Dana Bersih?</label>
+                            </div>
+                            <button class="btn btn-sm btn-success rounded-pill px-3 fw-bold">Add</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pengeluaran -->
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm card-soft-danger rounded-4">
+                <div class="card-header border-0 bg-transparent fw-bold text-danger pt-4 px-4">
+                    <i class="bi bi-arrow-up-circle-fill me-2"></i> Pengeluaran Overall
+                </div>
+                <div class="card-body px-4">
+                    <div class="table-responsive bg-white rounded-4 p-2 shadow-sm mb-3">
+                        <table class="table table-borderless table-sm align-middle mb-0">
+                            <thead class="text-muted small border-bottom"><tr><th class="ps-3">Nama</th><th>Cell</th><th>Bersih?</th><th></th></tr></thead>
+                            <tbody>
+                                {% for cat in cats_expense %}
+                                <tr>
+                                    <td class="ps-3 fw-bold">{{ cat.name }}</td><td class="font-monospace small">{{ cat.cell_addr }}</td>
+                                    <td>{% if cat.is_clean %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}-{% endif %}</td>
+                                    <td class="text-end pe-3"><a href="{{ url_for('delete_portofolio_category', cat_id=cat.id) }}" class="text-danger"><i class="bi bi-trash"></i></a></td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" class="text-center text-muted small py-3">Belum ada kategori</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <form action="{{ url_for('add_portofolio_category') }}" method="POST" class="bg-white p-3 rounded-4 shadow-sm">
+                        <input type="hidden" name="is_overall" value="true">
+                        <input type="hidden" name="cat_type" value="expense">
+                        <div class="row g-2 mb-2">
+                            <div class="col-7"><input type="text" name="cat_name" class="form-control form-control-sm bg-light border-0" placeholder="Nama Kategori" required></div>
+                            <div class="col-5"><input type="text" name="cat_addr" class="form-control form-control-sm bg-light border-0" placeholder="Cell (A1)" required></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_clean" id="chkExpOver">
+                                <label class="form-check-label small text-muted" for="chkExpOver">Dana Bersih?</label>
+                            </div>
+                            <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold">Add</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

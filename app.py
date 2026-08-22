@@ -4,6 +4,7 @@ import pandas as pd
 import gspread
 import random
 import string
+import re
 from datetime import timedelta
 from oauth2client.service_account import ServiceAccountCredentials
 from gspread.utils import a1_to_rowcol
@@ -11,7 +12,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, abo
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_bcrypt import Bcrypt
 from sqlalchemy.exc import IntegrityError
-from models import db, User, GlobalSettings, MonitorFolder, CategoryMap, crypto, FormShortcut
+from models import db, User, GlobalSettings, MonitorFolder, CategoryMap, crypto, FormShortcut, OverallPortfolioConfig, PortfolioCategoryMap, AssetData
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -647,6 +648,351 @@ def delete_form_shortcut(id):
         db.session.commit()
         flash('Shortcut Form berhasil dihapus.', 'success')
     return redirect(url_for('form_shortcuts'))
+
+# ==============================================================
+# [BARU] ROUTES FITUR PORTOFOLIO & ASET
+# ==============================================================
+
+@app.route('/folder/<int:folder_id>/portofolio/settings', methods=['GET', 'POST'])
+@login_required
+def settings_portofolio(folder_id):
+    folder = MonitorFolder.query.get_or_404(folder_id)
+    if folder.user_id != current_user.id: return redirect(url_for('home'))
+    origin = request.args.get('origin', 'list')
+    
+    if request.method == 'POST':
+        # Simpan Config KPI Portofolio
+        folder.port_sheet_name = request.form.get('port_sheet_name', 'Portofolio')
+        folder.port_cell_inc_kotor = request.form.get('port_cell_inc_kotor', '')
+        folder.port_cell_exp_kotor = request.form.get('port_cell_exp_kotor', '')
+        folder.port_cell_bal_kotor = request.form.get('port_cell_bal_kotor', '')
+        folder.port_cell_inc_bersih = request.form.get('port_cell_inc_bersih', '')
+        folder.port_cell_exp_bersih = request.form.get('port_cell_exp_bersih', '')
+        folder.port_cell_bal_bersih = request.form.get('port_cell_bal_bersih', '')
+        
+        # Simpan Config Chart Tren Portofolio
+        folder.port_col_month = request.form.get('port_col_month', 'A')
+        folder.port_col_inc_kotor = request.form.get('port_col_inc_kotor', 'B')
+        folder.port_col_exp_kotor = request.form.get('port_col_exp_kotor', 'C')
+        folder.port_col_bal_kotor = request.form.get('port_col_bal_kotor', 'D')
+        folder.port_col_inc_bersih = request.form.get('port_col_inc_bersih', 'E')
+        folder.port_col_exp_bersih = request.form.get('port_col_exp_bersih', 'F')
+        folder.port_col_bal_bersih = request.form.get('port_col_bal_bersih', 'G')
+        try:
+            folder.port_start_row = int(request.form.get('port_start_row', 2))
+        except:
+            folder.port_start_row = 2
+            
+        db.session.commit()
+        flash('Konfigurasi Portofolio Tahunan berhasil disimpan.', 'success')
+        return redirect(url_for('settings_portofolio', folder_id=folder.id, origin=origin))
+        
+    # Ambil Kategori Khusus Portofolio Tahun Ini
+    cats_income = PortfolioCategoryMap.query.filter_by(folder_id=folder.id, type='income').all()
+    cats_expense = PortfolioCategoryMap.query.filter_by(folder_id=folder.id, type='expense').all()
+    
+    return render_template('settings_portofolio.html', folder=folder, origin=origin, 
+                           cats_income=cats_income, cats_expense=cats_expense)
+
+@app.route('/portofolio/overall/settings', methods=['GET', 'POST'])
+@login_required
+def settings_portofolio_overall():
+    config = OverallPortfolioConfig.query.filter_by(user_id=current_user.id).first()
+    origin = request.args.get('origin', 'list')
+    
+    if request.method == 'POST':
+        if not config:
+            config = OverallPortfolioConfig(user_id=current_user.id)
+            db.session.add(config)
+            
+        config.spreadsheet_url = request.form.get('url', '')
+        config.sheet_name = request.form.get('sheet_name', 'Overall')
+        
+        # Mapping Cell
+        config.cell_inc_kotor = request.form.get('cell_inc_kotor', '')
+        config.cell_exp_kotor = request.form.get('cell_exp_kotor', '')
+        config.cell_bal_kotor = request.form.get('cell_bal_kotor', '')
+        config.cell_inc_bersih = request.form.get('cell_inc_bersih', '')
+        config.cell_exp_bersih = request.form.get('cell_exp_bersih', '')
+        config.cell_bal_bersih = request.form.get('cell_bal_bersih', '')
+        
+        # Mapping Chart
+        config.col_year = request.form.get('col_year', 'A')
+        config.col_inc_kotor = request.form.get('col_inc_kotor', 'B')
+        config.col_exp_kotor = request.form.get('col_exp_kotor', 'C')
+        config.col_bal_kotor = request.form.get('col_bal_kotor', 'D')
+        config.col_inc_bersih = request.form.get('col_inc_bersih', 'E')
+        config.col_exp_bersih = request.form.get('col_exp_bersih', 'F')
+        config.col_bal_bersih = request.form.get('col_bal_bersih', 'G')
+        try:
+            config.start_row = int(request.form.get('start_row', 2))
+        except:
+            config.start_row = 2
+            
+        db.session.commit()
+        flash('Konfigurasi Portofolio Overall berhasil disimpan.', 'success')
+        return redirect(url_for('settings_portofolio_overall', origin=origin))
+        
+    cats_income = PortfolioCategoryMap.query.filter_by(user_id=current_user.id, is_overall=True, type='income').all()
+    cats_expense = PortfolioCategoryMap.query.filter_by(user_id=current_user.id, is_overall=True, type='expense').all()
+    
+    return render_template('settings_portofolio_overall.html', config=config, origin=origin,
+                           cats_income=cats_income, cats_expense=cats_expense)
+
+@app.route('/portofolio/category/add', methods=['POST'])
+@login_required
+def add_portofolio_category():
+    folder_id = request.form.get('folder_id')
+    is_overall = request.form.get('is_overall') == 'true'
+    name = request.form.get('cat_name')
+    addr = request.form.get('cat_addr')
+    tipe = request.form.get('cat_type')
+    is_clean = True if request.form.get('is_clean') else False
+    
+    if name and addr and tipe:
+        new_cat = PortfolioCategoryMap(
+            user_id=current_user.id,
+            folder_id=folder_id if folder_id else None,
+            is_overall=is_overall,
+            name=name, cell_addr=addr, type=tipe, is_clean=is_clean
+        )
+        db.session.add(new_cat)
+        db.session.commit()
+        flash('Kategori Portofolio berhasil ditambahkan.', 'success')
+        
+    if is_overall:
+        return redirect(url_for('settings_portofolio_overall'))
+    return redirect(url_for('settings_portofolio', folder_id=folder_id))
+
+@app.route('/portofolio/category/delete/<int:cat_id>')
+@login_required
+def delete_portofolio_category(cat_id):
+    cat = PortfolioCategoryMap.query.get_or_404(cat_id)
+    if cat.user_id == current_user.id:
+        db.session.delete(cat)
+        db.session.commit()
+    if cat.is_overall:
+        return redirect(url_for('settings_portofolio_overall'))
+    return redirect(url_for('settings_portofolio', folder_id=cat.folder_id))
+
+@app.route('/asset/add/<int:folder_id>', methods=['POST'])
+@login_required
+def add_asset(folder_id):
+    folder = MonitorFolder.query.get_or_404(folder_id)
+    if folder.user_id != current_user.id: return redirect(url_for('home'))
+    
+    nama_aset = request.form.get('nama_aset')
+    harga_beli = request.form.get('harga_beli')
+    tanggal_beli = request.form.get('tanggal_beli') # Format bebas, misal: "15 Agustus"
+    
+    # Otomatis cari angka tahun dari nama folder (misal: "Keuangan 2026" -> 2026)
+    tahun_match = re.search(r'\d{4}', folder.name)
+    tahun = int(tahun_match.group()) if tahun_match else 0
+    
+    if nama_aset and harga_beli and tanggal_beli:
+        try:
+            harga_float = float(harga_beli.replace('Rp', '').replace('.', '').replace(',', '').strip())
+            new_asset = AssetData(
+                user_id=current_user.id,
+                nama_aset=nama_aset,
+                harga_beli=harga_float,
+                tanggal_beli=tanggal_beli,
+                tahun=tahun
+            )
+            db.session.add(new_asset)
+            db.session.commit()
+            flash('Aset berhasil ditambahkan!', 'success')
+        except ValueError:
+            flash('Format harga tidak valid.', 'danger')
+            
+    # Nanti ini akan redirect ke Dashboard Portofolio, tapi sementara kita arahkan ke settings dulu
+    # return redirect(url_for('dashboard_portofolio', folder_id=folder.id))
+    return redirect(url_for('select_year', tipe='portofolio'))
+
+@app.route('/asset/delete/<int:asset_id>')
+@login_required
+def delete_asset(asset_id):
+    asset = AssetData.query.get_or_404(asset_id)
+    if asset.user_id == current_user.id:
+        db.session.delete(asset)
+        db.session.commit()
+        flash('Aset berhasil dihapus.', 'success')
+    return redirect(request.referrer or url_for('select_year', tipe='portofolio'))
+
+# ==============================================================
+# LOGIKA BACKEND DASHBOARD PORTOFOLIO
+# ==============================================================
+
+@app.route('/folder/<int:folder_id>/portofolio/dashboard')
+@login_required
+def dashboard_portofolio(folder_id):
+    folder = MonitorFolder.query.get_or_404(folder_id)
+    if folder.user_id != current_user.id: return redirect(url_for('home'))
+
+    client = get_google_client()
+    error_msg = None
+    kpi = {}
+    chart_trend = {'labels': [], 'inc_kotor': [], 'exp_kotor': [], 'bal_kotor': [], 'inc_bersih': [], 'exp_bersih': [], 'bal_bersih': []}
+    pie_data = {'clean_inc': {'labels': [], 'data': []}, 'clean_exp': {'labels': [], 'data': []}, 'dirty_inc': {'labels': [], 'data': []}, 'dirty_exp': {'labels': [], 'data': []}}
+    
+    # Cari tahun dari nama folder (Otomatis filter aset untuk tahun ini)
+    tahun_match = re.search(r'\d{4}', folder.name)
+    tahun = int(tahun_match.group()) if tahun_match else 0
+    assets = AssetData.query.filter_by(user_id=current_user.id, tahun=tahun).all()
+
+    try:
+        if not client: raise Exception("Akun Google belum diatur.")
+        sheet = client.open_by_url(folder.spreadsheet_url)
+        # Asumsi rekap tahunan ada di sheet pertama
+        sheet_name = folder.port_sheet_name if folder.port_sheet_name else 'Portofolio'
+        worksheet = sheet.worksheet(sheet_name)
+        raw_data = worksheet.get_all_values()
+
+        def clean_val(val):
+            try:
+                s = str(val).replace('Rp', '').strip().replace('.', '').replace(',', '.')
+                return float(s) if s else 0
+            except: return 0
+
+        def get_val(addr):
+            if not addr: return 0
+            try:
+                r, c = a1_to_rowcol(addr.strip())
+                return clean_val(raw_data[r-1][c-1])
+            except: return 0
+            
+        def get_col_idx(letter):
+            if not letter: return -1
+            try: return a1_to_rowcol(f"{letter.strip()}1")[1] - 1
+            except: return -1
+
+        # Tarik KPI Matang
+        kpi['inc_kotor'] = f"{get_val(folder.port_cell_inc_kotor):,.0f}"
+        kpi['exp_kotor'] = f"{get_val(folder.port_cell_exp_kotor):,.0f}"
+        kpi['bal_kotor'] = f"{get_val(folder.port_cell_bal_kotor):,.0f}"
+        kpi['inc_bersih'] = f"{get_val(folder.port_cell_inc_bersih):,.0f}"
+        kpi['exp_bersih'] = f"{get_val(folder.port_cell_exp_bersih):,.0f}"
+        kpi['bal_bersih'] = f"{get_val(folder.port_cell_bal_bersih):,.0f}"
+
+        # Tarik Pie Kategori
+        cats = PortfolioCategoryMap.query.filter_by(folder_id=folder.id).all()
+        for cat in cats:
+            val = get_val(cat.cell_addr)
+            if val > 0:
+                prefix = 'clean_' if cat.is_clean else 'dirty_'
+                tipe_str = 'inc' if cat.type == 'income' else 'exp'
+                pie_data[f"{prefix}{tipe_str}"]['labels'].append(cat.name)
+                pie_data[f"{prefix}{tipe_str}"]['data'].append(val)
+
+        # Proses Tabel Tren Berdasarkan Huruf Kolom
+        start_idx = max(0, folder.port_start_row - 1)
+        idx_month = get_col_idx(folder.port_col_month)
+        idx_ik = get_col_idx(folder.port_col_inc_kotor)
+        idx_ek = get_col_idx(folder.port_col_exp_kotor)
+        idx_bk = get_col_idx(folder.port_col_bal_kotor)
+        idx_ib = get_col_idx(folder.port_col_inc_bersih)
+        idx_eb = get_col_idx(folder.port_col_exp_bersih)
+        idx_bb = get_col_idx(folder.port_col_bal_bersih)
+
+        for i in range(start_idx, len(raw_data)):
+            row = raw_data[i]
+            if idx_month >= 0 and idx_month < len(row) and str(row[idx_month]).strip():
+                chart_trend['labels'].append(str(row[idx_month]))
+                chart_trend['inc_kotor'].append(clean_val(row[idx_ik]) if 0 <= idx_ik < len(row) else 0)
+                chart_trend['exp_kotor'].append(clean_val(row[idx_ek]) if 0 <= idx_ek < len(row) else 0)
+                chart_trend['bal_kotor'].append(clean_val(row[idx_bk]) if 0 <= idx_bk < len(row) else 0)
+                chart_trend['inc_bersih'].append(clean_val(row[idx_ib]) if 0 <= idx_ib < len(row) else 0)
+                chart_trend['exp_bersih'].append(clean_val(row[idx_eb]) if 0 <= idx_eb < len(row) else 0)
+                chart_trend['bal_bersih'].append(clean_val(row[idx_bb]) if 0 <= idx_bb < len(row) else 0)
+
+    except Exception as e:
+        error_msg = str(e)
+
+    return render_template('dashboard_portofolio.html', folder=folder, kpi=kpi, 
+                           chart_trend=chart_trend, pie_data=pie_data, assets=assets, error_msg=error_msg)
+
+@app.route('/portofolio/overall/dashboard')
+@login_required
+def dashboard_portofolio_overall():
+    config = OverallPortfolioConfig.query.filter_by(user_id=current_user.id).first()
+    if not config:
+        flash('Silakan atur konfigurasi Portofolio Overall terlebih dahulu.', 'warning')
+        return redirect(url_for('select_year', tipe='portofolio'))
+
+    client = get_google_client()
+    error_msg = None
+    kpi = {}
+    chart_trend = {'labels': [], 'inc_kotor': [], 'exp_kotor': [], 'bal_kotor': [], 'inc_bersih': [], 'exp_bersih': [], 'bal_bersih': []}
+    pie_data = {'clean_inc': {'labels': [], 'data': []}, 'clean_exp': {'labels': [], 'data': []}, 'dirty_inc': {'labels': [], 'data': []}, 'dirty_exp': {'labels': [], 'data': []}}
+    
+    # Ambil SEMUA ASET dari seluruh tahun milik pengguna ini
+    assets = AssetData.query.filter_by(user_id=current_user.id).order_by(AssetData.tahun.desc()).all()
+
+    try:
+        if not client: raise Exception("Akun Google belum diatur.")
+        sheet = client.open_by_url(config.spreadsheet_url)
+        worksheet = sheet.worksheet(config.sheet_name)
+        raw_data = worksheet.get_all_values()
+
+        def clean_val(val):
+            try:
+                s = str(val).replace('Rp', '').strip().replace('.', '').replace(',', '.')
+                return float(s) if s else 0
+            except: return 0
+
+        def get_val(addr):
+            if not addr: return 0
+            try:
+                r, c = a1_to_rowcol(addr.strip())
+                return clean_val(raw_data[r-1][c-1])
+            except: return 0
+            
+        def get_col_idx(letter):
+            if not letter: return -1
+            try: return a1_to_rowcol(f"{letter.strip()}1")[1] - 1
+            except: return -1
+
+        kpi['inc_kotor'] = f"{get_val(config.cell_inc_kotor):,.0f}"
+        kpi['exp_kotor'] = f"{get_val(config.cell_exp_kotor):,.0f}"
+        kpi['bal_kotor'] = f"{get_val(config.cell_bal_kotor):,.0f}"
+        kpi['inc_bersih'] = f"{get_val(config.cell_inc_bersih):,.0f}"
+        kpi['exp_bersih'] = f"{get_val(config.cell_exp_bersih):,.0f}"
+        kpi['bal_bersih'] = f"{get_val(config.cell_bal_bersih):,.0f}"
+
+        cats = PortfolioCategoryMap.query.filter_by(user_id=current_user.id, is_overall=True).all()
+        for cat in cats:
+            val = get_val(cat.cell_addr)
+            if val > 0:
+                prefix = 'clean_' if cat.is_clean else 'dirty_'
+                tipe_str = 'inc' if cat.type == 'income' else 'exp'
+                pie_data[f"{prefix}{tipe_str}"]['labels'].append(cat.name)
+                pie_data[f"{prefix}{tipe_str}"]['data'].append(val)
+
+        start_idx = max(0, config.start_row - 1)
+        idx_year = get_col_idx(config.col_year)
+        idx_ik = get_col_idx(config.col_inc_kotor)
+        idx_ek = get_col_idx(config.col_exp_kotor)
+        idx_bk = get_col_idx(config.col_bal_kotor)
+        idx_ib = get_col_idx(config.col_inc_bersih)
+        idx_eb = get_col_idx(config.col_exp_bersih)
+        idx_bb = get_col_idx(config.col_bal_bersih)
+
+        for i in range(start_idx, len(raw_data)):
+            row = raw_data[i]
+            if idx_year >= 0 and idx_year < len(row) and str(row[idx_year]).strip():
+                chart_trend['labels'].append(str(row[idx_year]))
+                chart_trend['inc_kotor'].append(clean_val(row[idx_ik]) if 0 <= idx_ik < len(row) else 0)
+                chart_trend['exp_kotor'].append(clean_val(row[idx_ek]) if 0 <= idx_ek < len(row) else 0)
+                chart_trend['bal_kotor'].append(clean_val(row[idx_bk]) if 0 <= idx_bk < len(row) else 0)
+                chart_trend['inc_bersih'].append(clean_val(row[idx_ib]) if 0 <= idx_ib < len(row) else 0)
+                chart_trend['exp_bersih'].append(clean_val(row[idx_eb]) if 0 <= idx_eb < len(row) else 0)
+                chart_trend['bal_bersih'].append(clean_val(row[idx_bb]) if 0 <= idx_bb < len(row) else 0)
+
+    except Exception as e:
+        error_msg = str(e)
+
+    return render_template('dashboard_portofolio_overall.html', config=config, kpi=kpi, 
+                           chart_trend=chart_trend, pie_data=pie_data, assets=assets, error_msg=error_msg)
 
 if __name__ == '__main__':
     with app.app_context():
