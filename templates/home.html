@@ -7,7 +7,24 @@
     
     <div class="text-center mb-5 mt-4">
         <h2 class="fw-bold text-dark">Selamat Datang, {{ current_user.username }}!</h2>
+
+        <!-- [BARU] WIDGET WAKTU REAL-TIME (HANYA DESKTOP) -->
+        <div class="d-none d-lg-block mt-5 mb-5" id="liveTimeWidget">
+            <div class="text-center">
+                <!-- Jam Besar di Tengah (Warna Putih Permanen) -->
+                <div id="liveClock" class="fw-bold text-black" style="font-size: 5rem; line-height: 1; letter-spacing: -2px; text-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                    00:00:00
+                </div>
+                <!-- Hari, Tanggal, Bulan, Tahun di Bawahnya -->
+                <div id="liveDate" class="text-muted mt-2" style="font-size: 1.1rem;">
+                    Memuat...
+                </div>
+            </div>
+        </div>
+        <!-- ============================================== -->
+
         <p class="text-muted">Pilih dashboard yang ingin Anda kelola hari ini.</p>
+
         
         {% if not has_global %}
         <div class="d-inline-block mt-2">
@@ -108,5 +125,39 @@
     .grayscale-icon {
         filter: grayscale(100%);
     }
+    /* Tweak Mode Gelap untuk Widget Jam */
+    [data-bs-theme="dark"] #liveTimeWidget > div {
+        background: rgba(24, 26, 29, 0) !important;
+        border-color: rgba(255,255,255,0.1) !important;
+    }
+    [data-bs-theme="dark"] #liveDate { color: #f8f9fa !important; }
+    [data-bs-theme="dark"] #liveClock { color: #f8f9fa !important; }
 </style>
+{% endblock %}
+{% block extra_js %}
+<script>
+    function updateLiveTime() {
+        const dateEl = document.getElementById('liveDate');
+        const clockEl = document.getElementById('liveClock');
+        if (!dateEl || !clockEl) return;
+
+        const now = new Date();
+        
+        // Format Nama Hari dan Tanggal (Bahasa Indonesia)
+        const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateString = now.toLocaleDateString('id-ID', optionsDate);
+        
+        // Format Jam (HH:MM:SS)
+        const clockString = now.toLocaleTimeString('id-ID', { hour12: false });
+        
+        dateEl.textContent = dateString;
+        clockEl.textContent = clockString;
+    }
+
+    // Jalankan pertama kali, lalu ulangi setiap 1 detik
+    document.addEventListener("DOMContentLoaded", function() {
+        updateLiveTime();
+        setInterval(updateLiveTime, 1000);
+    });
+</script>
 {% endblock %}
