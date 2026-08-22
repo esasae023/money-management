@@ -805,9 +805,7 @@ def add_asset(folder_id):
         except ValueError:
             flash('Format harga tidak valid.', 'danger')
             
-    # Nanti ini akan redirect ke Dashboard Portofolio, tapi sementara kita arahkan ke settings dulu
-    # return redirect(url_for('dashboard_portofolio', folder_id=folder.id))
-    return redirect(url_for('select_year', tipe='portofolio'))
+    return redirect(url_for('dashboard_portofolio', folder_id=folder.id))
 
 @app.route('/asset/delete/<int:asset_id>')
 @login_required
