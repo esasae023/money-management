@@ -35,6 +35,7 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
 
     Pastikan Anda menempatkan (atau melakukan clone) repositori proyek ke dalam direktori `/data/money_manager_project` sesuai dengan path konfigurasi service Anda.
     ``` bash
+    mkdir /data
     cd /data
     sudo git clone https://github.com/esasae023/money-management.git money_manager_project
     cd money_manager_project
