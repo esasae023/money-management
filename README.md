@@ -35,8 +35,8 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
 
     Pastikan server Anda sudah terinstal Python 3, `pip`, dan `venv`.
     ```bash
-    sudo apt update
-    sudo apt install python3 python3-venv python3-pip git -y
+    apt update
+    apt install python3 python3-venv python3-pip git -y
     ```
 2. Persiapan Direktori
 
@@ -44,7 +44,7 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
     ``` bash
     mkdir /data
     cd /data
-    sudo git clone https://github.com/esasae023/money-management.git money_manager_project
+    git clone https://github.com/esasae023/money-management.git money_manager_project
     cd money_manager_project
     ```
 3. Membuat dan Mengaktifkan Virtual Environment (venv)
@@ -52,10 +52,10 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
     Gunakan `venv` untuk mengisolasi dependensi aplikasi dari sistem utama.
     ```bash
     # Membuat virtual environment dengan nama 'venv'
-    sudo python3 -m venv venv
+    python3 -m venv venv
 
-    # (Opsional) Sesuaikan kepemilikan folder agar mudah diakses tanpa sudo terus-menerus
-    sudo chown -R $USER:$USER venv
+    # (Opsional) Sesuaikan kepemilikan folder agar mudah diakses tanpa terus-menerus
+    chown -R $USER:$USER venv
 
     # Mengaktifkan virtual environment
     source venv/bin/activate
@@ -97,7 +97,7 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
 
     Keluar dari virtual environment dengan mengetikkan `deactivate`, lalu buat file service agar Gunicorn dapat berjalan di latar belakang dan otomatis menyala saat server booting.
     ```bash
-    sudo nano /etc/systemd/system/money_manager.service
+    nano /etc/systemd/system/money_manager.service
     ```
     Tempelkan blok konfigurasi berikut:
     ```bash
@@ -122,12 +122,12 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
     Muat ulang daemon untuk membaca service baru, lalu jalankan aplikasinya:
 
     ```bash
-    sudo systemctl daemon-reload
-    sudo systemctl start money_manager
-    sudo systemctl enable money_manager
+    systemctl daemon-reload
+    systemctl start money_manager
+    systemctl enable money_manager
     ```
     Untuk memastikan aplikasi sudah berjalan dengan normal tanpa error, periksa status service:
     ```bash
-    sudo systemctl status money_manager
+    systemctl status money_manager
     ```
     > Karena konfigurasi bind Gunicorn Anda disetel ke `0.0.0.0:5000`, aplikasi akan terekspos langsung ke jaringan publik jika port `5000` dibuka di level firewall. Jika Anda berencana menggunakan Reverse Proxy (seperti Nginx) di level host, disarankan untuk mengubah parameter bind menjadi `127.0.0.1:5000` untuk membatasi akses langsung.
