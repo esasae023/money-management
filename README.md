@@ -31,7 +31,14 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
 - Integrasi: Google Drive & Google Sheets API (gspread, oauth2client)
 
 ## 🚀 Deployment Guide
-1. Persiapan Direktori
+1. Persiapan Lingkungan (Pre-requisites)
+
+    Pastikan server Anda sudah terinstal Python 3, `pip`, dan `venv`.
+    ```bash
+    sudo apt update
+    sudo apt install python3 python3-venv python3-pip git -y
+    ```
+2. Persiapan Direktori
 
     Pastikan Anda menempatkan (atau melakukan clone) repositori proyek ke dalam direktori `/data/money_manager_project` sesuai dengan path konfigurasi service Anda.
     ``` bash
@@ -40,7 +47,7 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
     sudo git clone https://github.com/esasae023/money-management.git money_manager_project
     cd money_manager_project
     ```
-2. Membuat dan Mengaktifkan Virtual Environment (venv)
+3. Membuat dan Mengaktifkan Virtual Environment (venv)
 
     Gunakan `venv` untuk mengisolasi dependensi aplikasi dari sistem utama.
     ```bash
@@ -53,7 +60,7 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
     # Mengaktifkan virtual environment
     source venv/bin/activate
     ```
-3. Instalasi Dependensi
+4. Instalasi Dependensi
 
     Setelah virtual environment aktif (biasanya ditandai dengan awalan `(venv)` di terminal Anda), instal semua package yang dibutuhkan melalui file `requirements.txt`.
     ```bash
@@ -64,7 +71,7 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
     pip install -r requirements.txt
     ```
 
-4. Konfigurasi Environment Variables (`.env`)
+5. Konfigurasi Environment Variables (`.env`)
 
     Layanan `systemd` yang Anda konfigurasi memanggil file `.env`. Buat file tersebut di dalam direktori utama proyek:
 
@@ -79,14 +86,14 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
     SECRET_KEY_ENCRYPTION='ganti_dengan_kunci_enkripsi_fernet_anda'
     ```
 
-5. Inisialisasi Database
+6. Inisialisasi Database
 
     Selagi masih berada di dalam `venv`, jalankan inisialisasi database SQLite. Karena struktur aplikasi menggunakan pemanggilan `db.create_all()`, eksekusi perintah ini:
     ```bash
     python -c "from app import app, db; app.app_context().push(); db.create_all()"
     ```
 
-6. Setup Systemd Service
+7. Setup Systemd Service
 
     Keluar dari virtual environment dengan mengetikkan `deactivate`, lalu buat file service agar Gunicorn dapat berjalan di latar belakang dan otomatis menyala saat server booting.
     ```bash
@@ -110,7 +117,7 @@ Berbeda dengan aplikasi keuangan tradisional yang mengunci data Anda di dalam da
     WantedBy=multi-user.target
     ```
 
-7. Menjalankan Layanan
+8. Menjalankan Layanan
 
     Muat ulang daemon untuk membaca service baru, lalu jalankan aplikasinya:
 
